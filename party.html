@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Saviors Party Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@500;700&family=Alegreya+Sans:wght@400;500;700&display=swap">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+[hidden]{display:none!important}
+/* Layout: one DM-screen ledger — a summary strip of party-wide weak points, then one row per hero, editable in place. */
+:root{
+  --bg:#eef0eb; --panel:#f8f9f6; --ink:#1c2226; --muted:#5d676b; --rule:#cfd5cf;
+  --accent:#1f6f62; --accent-soft:#d8ebe6; --fly:#8a5a12; --fly-soft:#f2e6cf;
+  --weak:#a3322a; --weak-soft:#f6dcd8; --good:#2d6a2f;
+  --display:"Alegreya SC",Georgia,serif; --body:"Alegreya Sans",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#14191b; --panel:#1c2326; --ink:#e3e8e5; --muted:#97a3a4; --rule:#2f393c;
+  --accent:#5fbfae; --accent-soft:#1f3a36; --fly:#e0b267; --fly-soft:#3a2f1d;
+  --weak:#f08a7f; --weak-soft:#43211e; --good:#8fd093; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#14191b; --panel:#1c2326; --ink:#e3e8e5; --muted:#97a3a4; --rule:#2f393c;
+  --accent:#5fbfae; --accent-soft:#1f3a36; --fly:#e0b267; --fly-soft:#3a2f1d;
+  --weak:#f08a7f; --weak-soft:#43211e; --good:#8fd093; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.4}
+main{max-width:1240px;margin:0 auto;padding-inline:16px;padding-block:24px 48px;display:grid;gap:20px}
+header{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px}
+h1{font-family:var(--display);font-weight:700;font-size:2rem;margin:0;line-height:1.05;text-wrap:balance}
+.sub{color:var(--muted);margin:4px 0 0}
+.tools{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-weight:500;border:1px solid var(--rule);background:var(--panel);color:var(--ink);border-radius:6px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+button.ghost{border-color:transparent;background:transparent;color:var(--muted);padding:4px 8px}
+.status{color:var(--muted);font-size:.9rem;align-self:center}
+.notice{background:var(--fly-soft);color:var(--ink);border-radius:6px;padding:8px 12px;font-size:.92rem}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.sum{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:10px 12px;display:grid;gap:2px}
+.sum .k{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.sum .v{font-family:var(--display);font-size:1.25rem;font-variant-numeric:tabular-nums}
+.sum .w{font-size:.85rem;color:var(--muted)}
+.wrap{overflow-x:auto;background:var(--panel);border:1px solid var(--rule);border-radius:8px}
+table{border-collapse:collapse;width:100%;min-width:1060px;font-variant-numeric:tabular-nums}
+th{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500;text-align:left;padding:10px 10px 6px;border-bottom:2px solid var(--rule);white-space:nowrap}
+th.grp{text-align:center;border-bottom:1px solid var(--rule);padding-bottom:2px}
+td{padding:10px;border-bottom:1px solid var(--rule);vertical-align:top}
+tr:last-child td{border-bottom:0}
+.name{font-family:var(--display);font-weight:700;font-size:1.1rem;line-height:1.1}
+.race{color:var(--muted);font-size:.88rem}
+.cls{font-size:.92rem}
+.lvl{display:inline-block;background:var(--accent-soft);color:var(--accent);font-weight:700;border-radius:4px;padding:0 6px;font-size:.82rem;margin-right:4px}
+.big{font-family:var(--display);font-size:1.45rem;font-weight:700;line-height:1}
+.minor{color:var(--muted);font-size:.82rem;white-space:nowrap}
+.num{text-align:center}
+.save{display:inline-block;min-width:2.4em;text-align:center;font-weight:700;font-size:1.1rem;padding:2px 4px;border-radius:4px}
+.save.weak{background:var(--weak-soft);color:var(--weak)}
+.save.strong{color:var(--good)}
+.fly{display:inline-block;background:var(--fly-soft);color:var(--fly);border-radius:4px;padding:1px 6px;font-weight:700;white-space:nowrap}
+.none{color:var(--muted)}
+.note{font-size:.86rem;color:var(--muted);max-width:30ch}
+.hp{display:grid;gap:4px;min-width:120px}
+.hpbar{height:6px;background:var(--rule);border-radius:3px;overflow:hidden}
+.hpbar i{display:block;height:100%;background:var(--accent)}
+.hpbar i.low{background:var(--weak)}
+.hprow{display:flex;align-items:center;gap:4px}
+.hprow input{width:4.2em}
+input{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--rule);border-radius:4px;padding:3px 6px;width:100%;box-sizing:border-box;font-variant-numeric:tabular-nums}
+input.n{width:4.2em;text-align:center}
+.edit td{background:color-mix(in srgb,var(--accent-soft) 35%,transparent)}
+.stack{display:grid;gap:4px}
+.lbl{font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+footer{color:var(--muted);font-size:.85rem;display:grid;gap:4px}
+.hp{min-width:190px}
+select{font:inherit;font-size:.85rem;color:var(--ink);background:var(--bg);border:1px solid var(--rule);border-radius:4px;padding:3px 4px;min-width:0;flex:1}
+select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.dmg{display:flex;gap:4px;margin-top:4px}
+.dmgbtns{display:flex;gap:4px}
+.dmgbtns button{flex:1;padding:3px 6px;font-size:.85rem}
+button.hurt{color:var(--weak)}
+button.heal{color:var(--good)}
+.log{font-size:.8rem;color:var(--ink);background:var(--bg);border-radius:4px;padding:3px 6px}
+.resist{white-space:normal}
+.hero{display:flex;align-items:center;gap:5px;margin-top:8px}
+.pip{width:18px;height:18px;padding:0;border-radius:50%;border:2px solid var(--fly);background:transparent}
+.pip.on{background:var(--fly)}
+.conds{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;max-width:200px}
+.chip{font-size:.75rem;padding:1px 8px;border-radius:999px;color:var(--muted)}
+.chip.on{background:var(--weak-soft);color:var(--weak);border-color:var(--weak);font-weight:700}
+.effects{font-size:.78rem;color:var(--weak);margin-top:4px;max-width:220px}
+.chip.buff{border-style:dashed}
+.chip.buff.on{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);font-weight:700}
+.bufffx{font-size:.78rem;color:var(--accent);margin-top:4px;max-width:220px}
+.buffed{font-size:.72rem;color:var(--accent);font-weight:700;margin-top:2px}
+.spellsbtn{margin-top:8px;padding:2px 10px;font-size:.82rem;color:var(--accent)}
+.spellrow td{background:var(--bg);padding:12px 14px}
+.spells{display:grid;gap:14px}
+.caster{display:grid;gap:8px}
+.cfg{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+.cfg label{display:flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted)}
+.cfg select{flex:none}
+.cfg input[type=checkbox]{width:auto;accent-color:var(--accent)}
+.slots{display:flex;flex-wrap:wrap;gap:8px}
+.slot{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:6px 10px;min-width:96px;display:grid;gap:4px;align-content:start}
+.slot .sl{font-family:var(--display);font-weight:700}
+.slot .dc{font-size:.85rem;color:var(--accent);font-weight:700}
+.slot.spent{opacity:.55}
+.pips{display:flex;flex-wrap:wrap;gap:4px;max-width:120px}
+.spip{width:15px;height:15px;padding:0;border-radius:3px;border:2px solid var(--accent);background:transparent}
+.spip.on{background:var(--accent)}
+.spellbar{display:flex;flex-wrap:wrap;gap:8px}
+.spellbar button:disabled{opacity:.45;cursor:not-allowed}
+.slot.ferv .pips{max-width:160px}
+.fervinfo{font-size:.88rem;max-width:62ch}
+.fervinfo p{margin:0 0 4px}
+.neg{display:flex;align-items:center;gap:5px;margin-top:6px}
+.step{padding:0;width:22px;height:22px;line-height:1;font-weight:700}
+.negn{min-width:1.2em;text-align:center;font-weight:700;color:var(--muted)}
+.negn.on{color:var(--weak)}
+.drained{font-size:.8rem;color:var(--weak);font-weight:700;white-space:nowrap}
+dialog{border:1px solid var(--rule);border-radius:8px;background:var(--panel);color:var(--ink);width:min(760px,calc(100vw - 32px));max-height:calc(100vh - 48px);box-sizing:border-box;padding:16px}
+dialog::backdrop{background:rgb(0 0 0 / .5)}
+.dlg-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.dlg-head h2{font-family:var(--display);margin:0;font-size:1.4rem}
+table.stats{min-width:520px}
+.adj{display:block;font-size:.78rem;color:var(--weak);margin-top:3px;max-width:22ch}
+/* Linked spell report from a hero's own character sheet */
+.linked{border:1px solid var(--accent);border-radius:6px;padding:10px 12px;background:var(--panel);display:grid;gap:8px}
+.lk-h{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline}
+.lk-h b{font-family:var(--display);font-size:1.1rem}
+.lk-stale{color:var(--weak);font-weight:700}
+.lk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:8px}
+.lk-lv{border:1px solid var(--rule);border-radius:6px;padding:6px 8px;display:grid;gap:3px;align-content:start}
+.lk-lv .sl{font-family:var(--display);font-weight:700;display:flex;justify-content:space-between;gap:6px}
+.lk-lv ul{margin:0;padding-left:16px;font-size:.88rem}
+.lk-lv li.cast{text-decoration:line-through;color:var(--muted)}
+.lk-tag{font-size:.7rem;font-weight:700;letter-spacing:.04em;color:var(--accent)}
+.lk-row{font-size:.88rem}
+.lk-log{font-size:.82rem;display:grid;gap:2px;max-height:11em;overflow:auto;background:var(--bg);border-radius:4px;padding:4px 8px}
+.lk-log div{display:flex;justify-content:space-between;gap:10px}
+.lk-log span:last-child{color:var(--muted);white-space:nowrap}
+.lk-paste{display:flex;flex-wrap:wrap;gap:6px;align-items:start}
+.lk-paste textarea{flex:1;min-width:min(100%,260px);font:inherit;font-family:monospace;font-size:.78rem;color:var(--ink);background:var(--bg);border:1px solid var(--rule);border-radius:4px;padding:4px 6px}
+.lk-msg{font-size:.85rem;color:var(--weak)}
+.lk-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:10px}
+.lk-sum>div{background:var(--bg);border-radius:6px;padding:8px 10px}
+.lk-sum ul{margin:4px 0 0;padding-left:18px;font-size:.9rem;display:grid;gap:2px}
+.live{font-size:.78rem;color:var(--accent);font-weight:700;margin-top:4px}
+.live.stale{color:var(--weak)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main id="root"><header><div><h1>Saviors of Tal’Dorei</h1><p class="sub">Party quick reference · Pathfinder 1e · updated 2026-10-06</p></div><div class="tools"><span class="status" role="status">Saved</span><button id="reset-hp">Reset all HP</button><button id="export-btn">Export backup</button><button id="import-btn">Import backup</button><input type="file" id="import-file" accept=".json,application/json" hidden=""><button class="primary" id="edit-btn">Edit sheet</button></div></header><p class="notice">Stats are copied from the level 16 sheets (Owlbear Man 17). The party is now level 18, so edit any row once the new numbers are in. Weakest save per hero is shaded red, strongest in green.</p><section class="summary" aria-label="Party weak points"><div class="sum"><span class="k">Lowest Fort</span><span class="v">+6</span><span class="w">Lork</span></div><div class="sum"><span class="k">Lowest Reflex</span><span class="v">+8</span><span class="w">Drax</span></div><div class="sum"><span class="k">Lowest Will</span><span class="v">+5</span><span class="w">Sinafey</span></div><div class="sum"><span class="k">Lowest AC</span><span class="v">22</span><span class="w">Vex'ahlia</span></div><div class="sum"><span class="k">Lowest touch AC</span><span class="v">16</span><span class="w">Vex'ahlia</span></div><div class="sum"><span class="k">Can fly</span><span class="v">4 of 7</span><span class="w">see Fly column</span></div></section><div class="wrap"><table><thead><tr><th rowspan="2">Character</th><th rowspan="2">Level / class</th><th rowspan="2">AC</th><th rowspan="2">Hit points</th><th rowspan="2">Speed</th><th rowspan="2">Fly (magical)</th><th class="grp" colspan="3">Saving throws</th><th rowspan="2">Notes</th></tr><tr><th class="num">Fort</th><th class="num">Ref</th><th class="num">Will</th></tr></thead><tbody><tr><td><div class="name">Drax</div><div class="race">Tiefling</div></td><td class="cls"><span class="lvl">16</span>Warpriest</td><td><div class="big">28</div><div class="minor">T 20 · FF 27</div></td><td><div class="hp"><div><span class="big">113</span> <span class="minor">max</span></div><div class="hprow"><label class="minor" for="cur-drax">Now</label><input class="n" id="cur-drax" data-cur="drax" inputmode="numeric" value="113"><button class="ghost" data-full="drax" title="Reset to max">Full</button></div><div class="hpbar"><i class="" style="width:100%"></i></div></div></td><td class="num"><span class="big">30</span> <span class="minor">ft</span></td><td><span class="fly">60 ft</span><div class="minor" style="white-space:normal;margin-top:4px">Storm Lord, 3/day</div></td><td class="num"><span class="save ">+14</span></td><td class="num"><span class="save weak">+8</span></td><td class="num"><span class="save strong">+17</span></td><td class="note">Resist cold/fire/elec 5. Sheet HP shows 104; 113 per DM. Sheet also notes +20 base speed (ki) — verify.</td></tr><tr><td><div class="name">Lork</div><div class="race">Half-orc (Deathless)</div></td><td class="cls"><span class="lvl">16</span>Rogue</td><td><div class="big">26</div><div class="minor">T 18 · FF 20</div></td><td><div class="hp"><div><span class="big">96</span> <span class="minor">max</span></div><div class="hprow"><label class="minor" for="cur-lork">Now</label><input class="n" id="cur-lork" data-cur="lork" inputmode="numeric" value="96"><button class="ghost" data-full="lork" title="Reset to max">Full</button></div><div class="hpbar"><i class="" style="width:100%"></i></div></div></td><td class="num"><span class="big">30</span> <span class="minor">ft</span></td><td><span class="fly">60 ft</span><div class="minor" style="white-space:normal;margin-top:4px">Deathwalker's Ward; grants haste 1 min, 1/day</div></td><td class="num"><span class="save weak">+6</span></td><td class="num"><span class="save strong">+14</span></td><td class="num"><span class="save ">+9</span></td><td class="note">Immune to Fort-save effects (not energy drain) and mind-affecting. Fast heal 1. 25% miss chance (cloak).</td></tr><tr><td><div class="name">Sinafey</div><div class="race">Drow</div></td><td class="cls"><span class="lvl">16</span>Rogue 6 / Shadowdancer 10</td><td><div class="big">24</div><div class="minor">T 17 · FF 17</div></td><td><div class="hp"><div><span class="big">150</span> <span class="minor">max</span></div><div class="hprow"><label class="minor" for="cur-sinafey">Now</label><input class="n" id="cur-sinafey" data-cur="sinafey" inputmode="numeric" value="150"><button class="ghost" data-full="sinafey" title="Reset to max">Full</button></div><div class="hpbar"><i class="" style="width:100%"></i></div></div></td><td class="num"><span class="big">30</span> <span class="minor">ft</span></td><td><span class="none">—</span><div class="minor" style="white-space:normal;margin-top:4px">Shadow Jump 320 ft</div></td><td class="num"><span class="save ">+7</span></td><td class="num"><span class="save strong">+16</span></td><td class="num"><span class="save weak">+5</span></td><td class="note">Light blindness. Improved evasion. Darkvision 150 ft.</td></tr><tr><td><div class="name">Namfoodle</div><div class="race">Gnome</div></td><td class="cls"><span class="lvl">16</span>Bard</td><td><div class="big">26</div><div class="minor">T 21 · FF 20</div></td><td><div class="hp"><div><span class="big">118</span> <span class="minor">max</span></div><div class="hprow"><label class="minor" for="cur-namfoodle">Now</label><input class="n" id="cur-namfoodle" data-cur="namfoodle" inputmode="numeric" value="118"><button class="ghost" data-full="namfoodle" title="Reset to max">Full</button></div><div class="hpbar"><i class="" style="width:100%"></i></div></div></td><td class="num"><span class="big">20</span> <span class="minor">ft</span></td><td><span class="none">—</span><div class="minor" style="white-space:normal;margin-top:4px">Ring of feather fall</div></td><td class="num"><span class="save weak">+8</span></td><td class="num"><span class="save strong">+15</span></td><td class="num"><span class="save ">+12</span></td><td class="note">AC 27 / touch 22 vs giants. +5 vs poison, +4 vs bardic/sonic/language. Acid resist 10.</td></tr><tr><td><div class="name">Vex'ahlia</div><div class="race">Elf</div></td><td class="cls"><span class="lvl">16</span>Ranger</td><td><div class="big">22</div><div class="minor">T 16 · FF 18</div></td><td><div class="hp"><div><span class="big">107</span> <span class="minor">max</span></div><div class="hprow"><label class="minor" for="cur-vex">Now</label><input class="n" id="cur-vex" data-cur="vex" inputmode="numeric" value="107"><button class="ghost" data-full="vex" title="Reset to max">Full</button></div><div class="hpbar"><i class="" style="width:100%"></i></div></div></td><td class="num"><span class="big">30</span> <span class="minor">ft</span></td><td><span class="none">—</span></td><td class="num"><span class="save ">+11</span></td><td class="num"><span class="save strong">+15</span></td><td class="num"><span class="save weak">+6</span></td><td class="note">Acid resist 10. Resist negative 10, immune energy drain (Dawnfather). +4 Fort vs endurance effects.</td></tr><tr><td><div class="name">Ensley</div><div class="race">Pixie</div></td><td class="cls"><span class="lvl">16</span>Druid</td><td><div class="big">27</div><div class="minor">T 19 · FF 22</div></td><td><div class="hp"><div><span class="big">104</span> <span class="minor">max</span></div><div class="hprow"><label class="minor" for="cur-ensley">Now</label><input class="n" id="cur-ensley" data-cur="ensley" inputmode="numeric" value="104"><button class="ghost" data-full="ensley" title="Reset to max">Full</button></div><div class="hpbar"><i class="" style="width:100%"></i></div></div></td><td class="num"><span class="big">20</span> <span class="minor">ft</span></td><td><span class="fly">60 ft</span><div class="minor" style="white-space:normal;margin-top:4px">Racial wings (good) — verify</div></td><td class="num"><span class="save ">+14</span></td><td class="num"><span class="save weak">+11</span></td><td class="num"><span class="save strong">+18</span></td><td class="note">Wild Shape 7/day changes AC, HP and speed. Vanishing Trick 1/day.</td></tr><tr><td><div class="name">Owlbear Man</div><div class="race">Human</div></td><td class="cls"><span class="lvl">17</span>Brawler 6 / Alchemist 11</td><td><div class="big">26</div><div class="minor">T 18 · FF 22</div></td><td><div class="hp"><div><span class="big">138</span> <span class="minor">max</span></div><div class="hprow"><label class="minor" for="cur-owlbear">Now</label><input class="n" id="cur-owlbear" data-cur="owlbear" inputmode="numeric" value="138"><button class="ghost" data-full="owlbear" title="Reset to max">Full</button></div><div class="hpbar"><i class="" style="width:100%"></i></div></div></td><td class="num"><span class="big">30</span> <span class="minor">ft</span></td><td><span class="fly">60 ft</span><div class="minor" style="white-space:normal;margin-top:4px">Fly extract, 11 min</div></td><td class="num"><span class="save strong">+18</span></td><td class="num"><span class="save ">+15</span></td><td class="num"><span class="save weak">+11</span></td><td class="note">AC 28 with mutagen. Fast heal 5 (5 rounds/day).</td></tr></tbody></table></div><footer><span>Everything saves in this browser on this device. Use Export backup to keep a copy or move the sheet to another device, then Import backup there.</span></footer></main>
+<script type="application/json" id="party-data">{"updated":"2026-10-06","party":[
+{"id":"drax","name":"Drax","race":"Tiefling","classes":"Warpriest","level":"16","ac":"28","touch":"20","ff":"27","hp":"113","speed":"30","fly":"60","flyNote":"Storm Lord, 3/day","fort":"14","ref":"8","will":"17","resist":"cold 5, fire 5, electricity 5","buffs":[{"id":"titanstone","name":"Titanstone Knuckles","resist":"acid half, cold half, electricity half, fire half","note":"Titanstone Knuckles: half damage from elemental (acid, cold, electricity, fire) attacks, replacing his racial resist 5."}],"notes":"Resist cold/fire/elec 5. Sheet HP shows 104; 113 per DM. Sheet also notes +20 base speed (ki) — verify."},
+{"id":"lork","name":"Lork","race":"Half-orc (Deathless)","classes":"Rogue","level":"16","ac":"26","touch":"18","ff":"20","hp":"96","speed":"30","fly":"?","flyNote":"Deathwalker's Ward; grants haste 1 min, 1/day","fort":"6","ref":"14","will":"9","notes":"Immune to Fort-save effects (not energy drain) and mind-affecting. Fast heal 1. 25% miss chance (cloak)."},
+{"id":"sinafey","name":"Sinafey","race":"Drow","classes":"Rogue 6 / Shadowdancer 10","level":"16","ac":"24","touch":"17","ff":"17","hp":"150","speed":"30","fly":"","flyNote":"Shadow Jump 320 ft","fort":"7","ref":"16","will":"5","resist":"","buffs":[{"id":"lowlight","name":"In low light","resist":"DR 10","saves":2,"note":"In low light: DR 10/–, +2 luck bonus on all saves."}],"notes":"Light blindness. Improved evasion. Darkvision 150 ft."},
+{"id":"namfoodle","name":"Namfoodle","race":"Gnome","classes":"Bard","level":"16","ac":"26","touch":"21","ff":"20","hp":"118","speed":"20","fly":"","flyNote":"Ring of feather fall","fort":"8","ref":"15","will":"12","resist":"acid 10","notes":"AC 27 / touch 22 vs giants. +5 vs poison, +4 vs bardic/sonic/language. Acid resist 10."},
+{"id":"vex","name":"Vex'ahlia","race":"Elf","classes":"Ranger","level":"16","ac":"22","touch":"16","ff":"18","hp":"107","speed":"30","fly":"","flyNote":"","fort":"11","ref":"15","will":"6","resist":"acid 10, negative 10","notes":"Acid resist 10. Resist negative 10, immune energy drain (Dawnfather). +4 Fort vs endurance effects."},
+{"id":"ensley","name":"Ensley","race":"Pixie","classes":"Druid","level":"16","ac":"27","touch":"19","ff":"22","hp":"104","speed":"20","fly":"60","flyNote":"Racial wings (good) — verify","fort":"14","ref":"11","will":"18","notes":"Wild Shape 7/day changes AC, HP and speed. Vanishing Trick 1/day."},
+{"id":"owlbear","name":"Owlbear Man","race":"Human","classes":"Brawler 6 / Alchemist 11","level":"17","ac":"26","touch":"18","ff":"22","hp":"138","speed":"30","fly":"60","flyNote":"Fly extract, 11 min","fort":"18","ref":"15","will":"11","notes":"AC 28 with mutagen. Fast heal 5 (5 rounds/day)."}
+]}</script>
+<script src="js/firebase-config.js"></script>
+<script src="js/cloud.js"></script>
+<script id="app">
+(function(){
+  var dataEl=document.getElementById('party-data');
+  var DEFAULTS=dataEl.textContent;var STORE='saviors-party-sheet';
+  var state=JSON.parse(DEFAULTS);
+  try{var saved=localStorage.getItem(STORE);if(saved){var sp=JSON.parse(saved);if(sp&&Array.isArray(sp.party))state=sp;}}catch(e){}
+  var editing=false, dirty=false, statusMsg='', confirmReset=false;
+  var HPKEY='saviors-current-hp';
+  var cur={};
+  try{cur=JSON.parse(localStorage.getItem(HPKEY)||'{}')||{}}catch(e){cur={}}
+  function saveCur(){try{localStorage.setItem(HPKEY,JSON.stringify(cur))}catch(e){}cloudPush()}
+  // Sheets saved before resistances existed get them filled in from the defaults.
+  function fillResist(){
+    var defs=JSON.parse(DEFAULTS).party;
+    state.party.forEach(function(p){
+      var d=defs.find(function(x){return x.id===p.id});
+      if(p.resist==null)p.resist=d&&d.resist?d.resist:'';
+      if(p.buffs==null)p.buffs=d&&d.buffs?d.buffs:[];
+    });
+  }
+  fillResist();
+  // Conditions and hero points, per character.
+  var XKEY='saviors-extras';
+  var extras={cond:{},hero:{},neg:{}};
+  try{var xs=JSON.parse(localStorage.getItem(XKEY)||'null');if(xs&&xs.cond&&xs.hero)extras=xs;}catch(e){}
+  if(!extras.neg)extras.neg={};
+  if(!extras.buff)extras.buff={};
+  function activeBuffs(p){var on=extras.buff[p.id]||{};return (p.buffs||[]).filter(function(b){return on[b.id]})}
+  function saveBonus(p){return activeBuffs(p).reduce(function(a,b){return a+(+b.saves||0)},0)}
+  function saveExtras(){try{localStorage.setItem(XKEY,JSON.stringify(extras))}catch(e){}cloudPush()}
+  var CONDS=[['fatigued','Fatigued','Fatigued: −2 Str & Dex, can’t run or charge.'],['exhausted','Exhausted','Exhausted: half speed, −6 Str & Dex, can’t run or charge.'],['sickened','Sickened','Sickened: −2 on attacks, weapon damage, saves, skills & ability checks.'],
+    ['shaken','Shaken','Shaken: −2 on attacks, saves, skills & ability checks.'],['staggered','Staggered','Staggered: only a single move or standard action each round (plus swift, immediate & free).'],['stunned','Stunned','Stunned: drops what it holds, takes no actions, −2 AC, loses Dex bonus to AC.']];
+  function negLv(p){return extras.neg[p.id]||0}
+  function effMax(p){var m=n(p.hp);return m==null?null:m-5*negLv(p)}
+  // Penalties from active conditions and negative levels to Perception, CMB and CMD.
+  function pens(p){
+    var on=extras.cond[p.id]||{}, nl=negLv(p), r={perception:[],cmb:[],cmd:[]};
+    function add(keys,v,l){keys.forEach(function(k){r[k].push([v,l])})}
+    if(on.shaken)add(['perception','cmb'],-2,'shaken');
+    if(on.sickened)add(['perception','cmb'],-2,'sickened');
+    if(on.exhausted){add(['cmb'],-3,'exhausted');add(['cmd'],-6,'exhausted');}
+    else if(on.fatigued){add(['cmb'],-1,'fatigued');add(['cmd'],-2,'fatigued');}
+    if(on.stunned)add(['cmd'],-2,'stunned, also loses Dex');
+    if(nl)add(['perception','cmb','cmd'],-nl,'neg. levels');
+    return r;
+  }
+  var TYPES=[['untyped','Untyped'],['physical','Physical'],['fire','Fire'],['cold','Cold'],['electricity','Electricity'],['acid','Acid'],['sonic','Sonic'],['negative','Negative'],['force','Force']];
+  var ALIAS={fire:'fire',cold:'cold',elec:'electricity',electric:'electricity',electricity:'electricity',acid:'acid',sonic:'sonic',neg:'negative',negative:'negative',force:'force',dr:'physical',physical:'physical',phys:'physical'};
+  var lastType={}, logs={};
+  // "cold 5, fire 5" · "cold/fire/elec 5" · "DR 5/magic" · "fire immune" · "cold vulnerable"
+  function parseResist(s){
+    var out={};
+    String(s||'').toLowerCase().split(/[,;]+/).forEach(function(part){
+      var types=[],val=null;
+      (part.match(/[a-z]+|\d+/g)||[]).forEach(function(w){
+        if(/^\d+$/.test(w)){if(val===null)val=+w;}
+        else if(w==='immune'||w==='immunity')val='immune';
+        else if(w==='half')val='half';
+        else if(/^vuln/.test(w))val='vuln';
+        else if(ALIAS[w]&&types.indexOf(ALIAS[w])<0)types.push(ALIAS[w]);
+      });
+      if(val!==null)types.forEach(function(t){out[t]=val});
+    });
+    return out;
+  }
+  function typeName(t){var x=TYPES.find(function(y){return y[0]===t});return x?x[1].toLowerCase():t}
+  // Base resistances, with any active buff replacing (not stacking with) the base value for the types it covers.
+  function effResist(p){
+    var out={}, base=parseResist(p.resist);
+    Object.keys(base).forEach(function(t){out[t]={v:base[t],src:''}});
+    activeBuffs(p).forEach(function(b){var r=parseResist(b.resist);Object.keys(r).forEach(function(t){out[t]={v:r[t],src:b.name}})});
+    return out;
+  }
+  function resistText(p){
+    var r=effResist(p), groups=[], parts=[];
+    Object.keys(r).forEach(function(t){
+      if(t==='physical'){parts.push('DR '+(r[t].v==='half'?'½':r[t].v));return;}
+      var g=groups.find(function(x){return x.v===r[t].v});
+      if(!g){g={v:r[t].v,names:[]};groups.push(g);}
+      g.names.push(typeName(t));
+    });
+    return groups.map(function(g){var v=g.v;return g.names.join('/')+(v==='immune'?' immune':v==='vuln'?' vulnerable':v==='half'?' ½ dmg':' '+v)}).concat(parts).join(' · ');
+  }
+  function curHp(p){var c=cur[p.id];return (c==null||isNaN(c))?effMax(p):c}
+  function applyHp(p,amt,heal){
+    var max=effMax(p), c=curHp(p); if(c==null) c=0;
+    if(heal){
+      var nc=max==null?c+amt:Math.min(max,c+amt);
+      cur[p.id]=nc; logs[p.id]='+'+(nc-c)+' healed'+(nc-c<amt?' (capped at max)':'')+' → '+nc;
+    } else {
+      var type=lastType[p.id]||'untyped', e=effResist(p)[type], r=e&&e.v, src=e&&e.src?', '+e.src:'', fin, how;
+      var nm=type==='untyped'?'':' '+typeName(type);
+      if(r==='immune'){fin=0;how=' (immune'+src+')';}
+      else if(r==='vuln'){fin=Math.floor(amt*1.5);how=' ('+amt+' ×1.5 vulnerable'+src+')';}
+      else if(r==='half'){fin=Math.floor(amt/2);how=' ('+amt+' halved'+src+')';}
+      else if(r){fin=Math.max(0,amt-r);how=' ('+amt+' − '+r+(type==='physical'?' DR':' resist')+src+')';}
+      else {fin=amt;how='';}
+      cur[p.id]=c-fin; logs[p.id]='−'+fin+nm+how+' → '+(c-fin);
+    }
+    saveCur();
+  }
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function n(v){var x=parseInt(v,10);return isNaN(x)?null:x}
+  var FIELDS=['name','race','classes','level','ac','touch','ff','hp','speed','fly','flyNote','fort','ref','will','notes'];
+
+  function saveCls(p,key){
+    var v=[n(p.fort),n(p.ref),n(p.will)].filter(function(x){return x!==null});
+    var me=n(p[key]); if(me===null||!v.length) return '';
+    if(me===Math.min.apply(null,v)) return 'weak';
+    if(me===Math.max.apply(null,v)) return 'strong';
+    return '';
+  }
+  function lowest(key){
+    var best=null;
+    state.party.forEach(function(p){var x=n(p[key]);if(x!==null&&(!best||x<best.v))best={v:x,who:p.name}});
+    return best;
+  }
+  function summary(){
+    var cards=[['Lowest Fort','fort'],['Lowest Reflex','ref'],['Lowest Will','will'],['Lowest AC','ac'],['Lowest touch AC','touch']].map(function(c){
+      var l=lowest(c[1]);
+      return '<div class="sum"><span class="k">'+c[0]+'</span><span class="v">'+(l?(c[1]==='ac'||c[1]==='touch'?'':'+')+l.v:'—')+'</span><span class="w">'+(l?esc(l.who):'')+'</span></div>';
+    });
+    var fliers=state.party.filter(function(p){return String(p.fly||'').trim()!==''}).length;
+    cards.push('<div class="sum"><span class="k">Can fly</span><span class="v">'+fliers+' of '+state.party.length+'</span><span class="w">see Fly column</span></div>');
+    return '<section class="summary" aria-label="Party weak points">'+cards.join('')+'</section>';
+  }
+  // A hero whose own sheet reports HP: shown read-only here (one-way link), straight from that sheet.
+  function liveHpCell(p,L){
+    var h=L.hp, max=+h.max||0, c=+h.cur||0, pct=max?Math.max(0,Math.min(100,Math.round(c/max*100))):0, w=when(L.at), rt=resistText(p), extra=[];
+    if(+h.temp)extra.push('+'+h.temp+' temp');
+    if(+h.nl)extra.push(h.nl+' nonlethal');
+    if(+h.neg)extra.push(h.neg+' neg. level'+(h.neg>1?'s':''));
+    return '<div class="hp"><div><span class="big">'+c+'</span> <span class="minor">/ '+max+' max</span></div>'+
+      (extra.length?'<div class="minor" style="white-space:normal">'+esc(extra.join(' · '))+'</div>':'')+
+      '<div class="hpbar"><i class="'+(pct<=33?'low':'')+'" style="width:'+pct+'%"></i></div>'+
+      '<div class="live'+(w.old?' stale':'')+'" title="'+esc(w.abs)+'">● Live from '+esc(p.name)+'’s sheet · '+esc(w.rel)+'</div>'+
+      '<div class="minor" style="white-space:normal">Damage and healing are tracked on '+esc(p.name)+'’s own sheet.</div>'+
+      (rt?'<div class="minor resist">Resist: '+esc(rt)+'</div>':'')+'</div>';
+  }
+  // Cast since last rest (with times) and prepared-but-unused, from a linked report.
+  function castLists(L){
+    var cast=[], ready=[], orisons=[];
+    (L.levels||[]).forEach(function(lv){((L.prep||{})[lv.s]||[]).forEach(function(x){
+      var item={n:x[0],s:+lv.s,emp:x[2]>=0,real:x[2],t:x[3]||''};
+      if(+lv.s===0)orisons.push(item);else if(x[1])cast.push(item);else ready.push(item);
+    })});
+    var log=L.log||[], lastRest=-1;
+    log.forEach(function(e,i){if(/^Rested/.test(e.txt))lastRest=i});
+    log.slice(lastRest+1).forEach(function(e){var m=String(e.txt).match(/^Cast (.*) from the Ring of Spell Storing$/);if(m)cast.push({n:m[1],ring:true,t:e.t})});
+    cast.sort(function(a,b){return (b.t||'')<(a.t||'')?-1:1});
+    return {cast:cast,ready:ready,orisons:orisons};
+  }
+  function spellName(x){return (x.emp?'Empowered ':'')+x.n}
+  function liveLine(p){
+    var L=readLink(p.id); if(!L) return '';
+    if(!L.levels){var e=(L.log||[])[L.log.length-1];return e?'<div class="live" style="white-space:normal;max-width:200px">Last: '+esc(e.txt)+' · '+esc(when(e.t).abs||'')+'</div>':''}
+    var c=castLists(L).cast[0];
+    return '<div class="live" style="white-space:normal;max-width:200px">'+(c?'Last cast: '+esc(spellName(c))+(c.t?' · '+esc(when(c.t).abs||''):''):'No spells cast since rest')+'</div>';
+  }
+  function hpCell(p){
+    var LL=readLink(p.id); if(LL&&LL.hp) return liveHpCell(p,LL);
+    var max=n(p.hp); var c=curHp(p);
+    var pct=max?Math.max(0,Math.min(100,Math.round(c/max*100))):0;
+    var sel=lastType[p.id]||'untyped';
+    var rt=resistText(p);
+    var nl=negLv(p);
+    return '<div class="hp"><div><span class="big">'+esc(p.hp||'—')+'</span> <span class="minor">max</span>'+(nl&&max!=null?' <span class="drained">−'+(5*nl)+' → '+effMax(p)+'</span>':'')+'</div>'+
+      '<div class="hprow"><label class="minor" for="cur-'+p.id+'">Now</label><input class="n" id="cur-'+p.id+'" data-cur="'+p.id+'" inputmode="numeric" value="'+(c==null?'':c)+'"><button class="ghost" data-full="'+p.id+'" title="Reset to max">Full</button></div>'+
+      '<div class="hpbar"><i class="'+(pct<=33?'low':'')+'" style="width:'+pct+'%"></i></div>'+
+      '<div class="dmg"><input class="n" id="amt-'+p.id+'" data-amt="'+p.id+'" inputmode="numeric" placeholder="amt" aria-label="'+esc(p.name)+' damage or healing amount">'+
+      '<select data-type="'+p.id+'" aria-label="'+esc(p.name)+' damage type">'+TYPES.map(function(t){return '<option value="'+t[0]+'"'+(t[0]===sel?' selected':'')+'>'+t[1]+'</option>'}).join('')+'</select></div>'+
+      '<div class="dmgbtns"><button class="hurt" data-dmg="'+p.id+'">Damage</button><button class="heal" data-heal="'+p.id+'">Heal</button></div>'+
+      (logs[p.id]?'<div class="log" role="status">'+esc(logs[p.id])+'</div>':'')+
+      (rt?'<div class="minor resist">Resist: '+esc(rt)+'</div>':'')+'</div>';
+  }
+  function heroCell(p){
+    var h=extras.hero[p.id]||0;
+    return '<div class="hero"><span class="lbl">Hero pts</span>'+[0,1,2].map(function(i){
+      var to=(i+1===h)?i:i+1;
+      return '<button class="pip'+(i<h?' on':'')+'" data-pip="'+p.id+'" data-to="'+to+'" aria-label="'+esc(p.name)+': set hero points to '+to+'" title="'+h+' of 3"></button>';
+    }).join('')+'</div>';
+  }
+  function buffCell(p){
+    if(!(p.buffs&&p.buffs.length)) return '';
+    var on=extras.buff[p.id]||{}, act=activeBuffs(p);
+    return '<div class="conds">'+p.buffs.map(function(b){
+      return '<button class="chip buff'+(on[b.id]?' on':'')+'" data-buff="'+p.id+'" data-b="'+esc(b.id)+'" aria-pressed="'+(on[b.id]?'true':'false')+'">'+esc(b.name)+'</button>';
+    }).join('')+'</div>'+(act.length?'<div class="bufffx">'+act.map(function(b){return esc(b.note||b.name)}).join('<br>')+'</div>':'');
+  }
+  function condCell(p){
+    var on=extras.cond[p.id]||{};
+    var fx=CONDS.filter(function(c){return on[c[0]]}).map(function(c){return c[2]});
+    var nl=negLv(p), lv=n(p.level);
+    if(nl){
+      fx.push((/immune(?: to)? energy drain/i.test(p.notes||'')?'Notes say immune to energy drain! ':'')+
+        'Energy drain ('+nl+' neg. level'+(nl>1?'s':'')+'): −'+nl+' on attacks, saves, skills, ability checks, CMB & CMD; −'+(5*nl)+' max HP; −'+nl+' caster level & level-based effects. After 24 hr, Fort save per level (DC 10 + ½ drainer HD + its Cha) or it becomes permanent.'+
+        (lv!=null&&nl>=lv?' Negative levels ≥ level: dies.':''));
+    }
+    return '<div class="conds">'+CONDS.map(function(c){
+      return '<button class="chip'+(on[c[0]]?' on':'')+'" data-cond="'+p.id+'" data-c="'+c[0]+'" aria-pressed="'+(on[c[0]]?'true':'false')+'">'+c[1]+'</button>';
+    }).join('')+'</div>'+
+    '<div class="neg"><span class="lbl">Neg. levels</span><button class="step" data-neg="'+p.id+'" data-d="-1" aria-label="'+esc(p.name)+': remove a negative level">−</button><span class="negn'+(nl?' on':'')+'">'+nl+'</span><button class="step" data-neg="'+p.id+'" data-d="1" aria-label="'+esc(p.name)+': add a negative level">+</button></div>'+
+    (fx.length?'<div class="effects">'+fx.map(esc).join('<br>')+'</div>':'');
+  }
+  function flyCell(p){
+    var f=String(p.fly||'').trim();
+    var main=f?'<span class="fly">'+esc(f)+(/^\d+$/.test(f)?' ft':'')+'</span>':'<span class="none">—</span>';
+    return main+(p.flyNote?'<div class="minor" style="white-space:normal;margin-top:4px">'+esc(p.flyNote)+'</div>':'');
+  }
+  function row(p){
+    if(editing) return editRow(p);
+    return '<tr><td><div class="name">'+esc(p.name)+'</div><div class="race">'+esc(p.race)+'</div>'+liveLine(p)+heroCell(p)+buffCell(p)+condCell(p)+spellBtn(p)+fervorBtn(p)+shadowBtn(p)+'</td>'+
+      '<td class="cls"><span class="lvl">'+esc(p.level)+'</span>'+esc(p.classes)+'</td>'+
+      '<td><div class="big">'+esc(p.ac)+'</div><div class="minor">T '+esc(p.touch)+' · FF '+esc(p.ff)+'</div></td>'+
+      '<td>'+hpCell(p)+'</td>'+
+      '<td class="num"><span class="big">'+esc(p.speed)+'</span> <span class="minor">ft</span></td>'+
+      '<td>'+flyCell(p)+'</td>'+
+      ['fort','ref','will'].map(function(k){
+        var v=n(p[k]), sb=saveBonus(p);
+        return '<td class="num"><span class="save '+saveCls(p,k)+'">'+(v==null?'—':(v+sb>=0?'+':'')+(v+sb))+'</span>'+(v!=null&&sb?'<div class="buffed">incl. +'+sb+'</div>':'')+'</td>';
+      }).join('')+
+      '<td class="note">'+esc(p.notes)+'</td></tr>'+(openSpells[p.id]?spellPanel(p):'')+(openFervor[p.id]?fervorPanel(p):'')+(openShadow[p.id]?shadowPanel(p):'');
+  }
+  function inp(p,k,cls,ph){return '<input class="'+(cls||'')+'" id="'+k+'-'+p.id+'" data-id="'+p.id+'" data-k="'+k+'" value="'+esc(p[k])+'" placeholder="'+(ph||'')+'" aria-label="'+esc(p.name)+' '+k+'">'}
+  function editRow(p){
+    return '<tr class="edit"><td><div class="stack">'+inp(p,'name','','Name')+inp(p,'race','','Race')+'<button class="ghost" data-del="'+p.id+'">Remove</button></div></td>'+
+      '<td><div class="stack"><span class="lbl">Level</span>'+inp(p,'level','n')+'<span class="lbl">Classes</span>'+inp(p,'classes')+'</div></td>'+
+      '<td><div class="stack"><span class="lbl">AC</span>'+inp(p,'ac','n')+'<span class="lbl">Touch</span>'+inp(p,'touch','n')+'<span class="lbl">Flat-foot</span>'+inp(p,'ff','n')+'</div></td>'+
+      '<td><div class="stack"><span class="lbl">Max HP</span>'+inp(p,'hp','n')+'<span class="lbl">Resist / DR</span>'+inp(p,'resist','','fire 5, DR 5/magic')+'</div></td>'+
+      '<td><div class="stack"><span class="lbl">Feet</span>'+inp(p,'speed','n')+'</div></td>'+
+      '<td><div class="stack"><span class="lbl">Fly speed</span>'+inp(p,'fly','n','none')+'<span class="lbl">Source</span>'+inp(p,'flyNote','','e.g. 3/day')+'</div></td>'+
+      ['fort','ref','will'].map(function(k){return '<td class="num">'+inp(p,k,'n')+'</td>'}).join('')+
+      '<td>'+inp(p,'notes','','Notes')+'</td></tr>';
+  }
+  function render(){
+    var root=document.getElementById('root');
+    var tools='';
+    if(editing){
+      tools=(confirmReset?'<button id="restore-yes">Yes, restore originals</button><button id="restore-no">Keep my edits</button>':'<button id="restore-btn">Restore original stats</button>')+'<button id="add-btn">Add character</button><button id="cancel-btn">Cancel</button><button class="primary" id="save-btn">Save changes</button>';
+    } else {
+      tools='<button id="sync-btn">'+esc(syncLabel())+'</button><button id="stats-btn">Perception · CMB · CMD</button><button id="reset-hp">Reset all HP</button><button id="export-btn">Export backup</button><button id="import-btn">Import backup</button><input type="file" id="import-file" accept=".json,application/json" hidden><button class="primary" id="edit-btn">Edit sheet</button>';
+    }
+    root.innerHTML=
+      '<header><div><h1>Saviors of Tal’Dorei</h1><p class="sub">Party quick reference · Pathfinder 1e · updated '+esc(state.updated)+'</p></div>'+
+      '<div class="tools">'+(statusMsg?'<span class="status" role="status">'+esc(statusMsg)+'</span>':'')+tools+'</div></header>'+
+      '<p class="notice">Stats are copied from the level 16 sheets (Owlbear Man 17). The party is now level 18, so edit any row once the new numbers are in. Weakest save per hero is shaded red, strongest in green.</p>'+
+      summary()+
+      '<div class="wrap"><table><thead><tr><th rowspan="2">Character</th><th rowspan="2">Level / class</th><th rowspan="2">AC</th><th rowspan="2">Hit points</th><th rowspan="2">Speed</th><th rowspan="2">Fly (magical)</th><th class="grp" colspan="3">Saving throws</th><th rowspan="2">Notes</th></tr>'+
+      '<tr><th class="num">Fort</th><th class="num">Ref</th><th class="num">Will</th></tr></thead><tbody>'+
+      state.party.map(row).join('')+'</tbody></table></div>'+
+      '<footer><span>'+(cloud?'Everything saves online, so this sheet is the same on every device you open it on. Export backup keeps an extra copy.':'Everything saves in this browser on this device. Use Export backup to keep a copy or move the sheet to another device, then Import backup there.')+'</span></footer>';
+  }
+  var STATS=[['perception','Perception',true],['cmb','CMB',true],['cmd','CMD',false]];
+  function fmt(v,sign){return (sign&&v>=0?'+':'')+v}
+  function adjText(p,k,sign){
+    var b=n(p[k]), ps=pens(p)[k]; if(!ps.length) return '';
+    var tot=ps.reduce(function(a,x){return a+x[0]},0);
+    return (b==null?'':'→ '+fmt(b+tot,sign)+' ')+'('+ps.map(function(x){return '−'+(-x[0])+' '+x[1]}).join(', ')+')';
+  }
+  function statsRows(){
+    return state.party.map(function(p){
+      var on=extras.cond[p.id]||{}, act=CONDS.filter(function(c){return on[c[0]]}).map(function(c){return c[1]});
+      if(negLv(p))act.push(negLv(p)+' neg. lvl');
+      return '<tr><td><div class="name">'+esc(p.name)+'</div>'+(act.length?'<div class="effects">'+esc(act.join(', '))+'</div>':'')+'</td>'+
+        STATS.map(function(s){
+          return '<td><input class="n" data-stat="'+p.id+'" data-s="'+s[0]+'" inputmode="numeric" value="'+esc(p[s[0]]||'')+'" placeholder="—" aria-label="'+esc(p.name)+' '+s[1]+'">'+
+            '<span class="adj" id="adj-'+s[0]+'-'+p.id+'">'+esc(adjText(p,s[0],s[2]))+'</span></td>';
+        }).join('')+'</tr>';
+    }).join('');
+  }
+  function openStats(){
+    var d=document.getElementById('stats-dlg');
+    if(!d){d=document.createElement('dialog');d.id='stats-dlg';d.setAttribute('aria-labelledby','stats-title');document.body.appendChild(d);}
+    d.innerHTML='<div class="dlg-head"><h2 id="stats-title">Perception · CMB · CMD</h2><button data-close="1">Close</button></div>'+
+      '<p class="minor" style="white-space:normal">Type each hero’s base numbers from their sheet; they save as you go. When a hero has conditions or negative levels, the adjusted number shows in red. Fatigued/exhausted assume the full Str/Dex penalty; stunned also loses the Dex bonus to CMD, which isn’t subtracted.</p>'+
+      '<div class="wrap"><table class="stats"><thead><tr><th>Character</th>'+STATS.map(function(s){return '<th>'+s[1]+'</th>'}).join('')+'</tr></thead><tbody>'+statsRows()+'</tbody></table></div>';
+    if(!d.open)d.showModal();
+  }
+  // ---- Spellcasting (PF1e spells-per-day tables, spell levels 1–9, by class level 1–20) ----
+  var SPD={
+    full:[[1],[2],[2,1],[3,2],[3,2,1],[3,3,2],[4,3,2,1],[4,3,3,2],[4,4,3,2,1],[4,4,3,3,2],[4,4,4,3,2,1],[4,4,4,3,3,2],[4,4,4,4,3,2,1],[4,4,4,4,3,3,2],[4,4,4,4,4,3,2,1],[4,4,4,4,4,3,3,2],[4,4,4,4,4,4,3,2,1],[4,4,4,4,4,4,3,3,2],[4,4,4,4,4,4,4,3,3],[4,4,4,4,4,4,4,4,4]],
+    spont:[[3],[4],[5],[6,3],[6,4],[6,5,3],[6,6,4],[6,6,5,3],[6,6,6,4],[6,6,6,5,3],[6,6,6,6,4],[6,6,6,6,5,3],[6,6,6,6,6,4],[6,6,6,6,6,5,3],[6,6,6,6,6,6,4],[6,6,6,6,6,6,5,3],[6,6,6,6,6,6,6,4],[6,6,6,6,6,6,6,5,3],[6,6,6,6,6,6,6,6,4],[6,6,6,6,6,6,6,6,6]],
+    six:[[1],[2],[3],[3,1],[4,2],[4,3],[4,3,1],[4,4,2],[5,4,3],[5,4,3,1],[5,4,4,2],[5,5,4,3],[5,5,4,3,1],[5,5,4,4,2],[5,5,5,4,3],[5,5,5,4,3,1],[5,5,5,4,4,2],[5,5,5,5,4,3],[5,5,5,5,5,4],[5,5,5,5,5,5]],
+    four:[[],[],[],[0],[1],[1],[1,0],[1,1],[2,1],[2,1,0],[2,1,1],[2,2,1],[3,2,1,0],[3,2,1,1],[3,2,2,1],[3,3,2,1],[4,3,2,1],[4,3,2,2],[4,3,3,2],[4,4,3,3]]
+  };
+  // key: [name, table, ability, bonus-slot label (domain/school/spirit), has 0-level spells]
+  var CLASSES={
+    alchemist:['Alchemist','six','int','',false], antipaladin:['Antipaladin','four','cha','',false], bard:['Bard','six','cha','',true],
+    cleric:['Cleric','full','wis','domain',true], druid:['Druid','full','wis','domain',true], hunter:['Hunter','six','wis','',true],
+    inquisitor:['Inquisitor','six','wis','',true], investigator:['Investigator','six','int','',false], magus:['Magus','six','int','',true],
+    oracle:['Oracle','spont','cha','',true], paladin:['Paladin','four','cha','',false], ranger:['Ranger','four','wis','',false],
+    shaman:['Shaman','full','wis','spirit',true], skald:['Skald','six','cha','',true], sorcerer:['Sorcerer','spont','cha','',true],
+    summoner:['Summoner','six','cha','',true], warpriest:['Warpriest','six','wis','',true], witch:['Witch','full','int','',true],
+    wizard:['Wizard','full','int','school',true]
+  };
+  // Prestige classes that add spells-per-day levels to an existing casting class.
+  function skip159(l){return l-(l>=1)-(l>=5)-(l>=9)}
+  var PRESTIGE={'arcane trickster':function(l){return l},'loremaster':function(l){return l},'mystic theurge':function(l){return l},
+    'eldritch knight':function(l){return Math.max(0,l-1)},'dragon disciple':skip159,'arcane archer':skip159};
+  var ABN={int:'Int',wis:'Wis',cha:'Cha'};
+  var openSpells={};
+  if(!extras.spells)extras.spells={};
+  function ord(x){return x+(['th','st','nd','rd'][x]||'th')}
+  function persist(){try{localStorage.setItem(STORE,JSON.stringify(state))}catch(e){}cloudPush()}
+  function detectCasting(p){
+    var parts=String(p.classes||'').split(/[\/,]+/), out=[], prest=[];
+    var keys=Object.keys(CLASSES).sort(function(a,b){return b.length-a.length});
+    parts.forEach(function(part){
+      var m=part.trim().match(/^(.*?)\s*(\d+)?$/); if(!m) return;
+      var name=m[1].toLowerCase(), lv=m[2]?+m[2]:(parts.length===1?(n(p.level)||1):0);
+      var k=keys.find(function(x){return name.indexOf(x)>=0});
+      if(k){out.push({id:k+out.length,cls:k,lvl:lv,score:'',extra:false});return;}
+      var pk=Object.keys(PRESTIGE).find(function(x){return name.indexOf(x)>=0});
+      if(pk)prest.push([pk,lv]);
+    });
+    prest.forEach(function(x){(x[0]==='mystic theurge'?out.slice(0,2):out.slice(0,1)).forEach(function(t){t.lvl+=PRESTIGE[x[0]](x[1])})});
+    return out;
+  }
+  function getCasting(p){return Array.isArray(p.casting)?p.casting:detectCasting(p)}
+  function slotsFor(p,e){
+    var c=CLASSES[e.cls]; if(!c) return {levels:[],mod:null,cl:0};
+    var L=Math.max(1,Math.min(20,n(e.lvl)||1)), base=SPD[c[1]][L-1]||[], sc=n(e.score), mod=sc==null?null:Math.floor((sc-10)/2);
+    var used=(extras.spells[p.id]||{})[e.id]||{};
+    var levels=base.map(function(b,i){
+      var sl=i+1, bonus=(mod!=null&&mod>=sl)?Math.floor((mod-sl)/4)+1:0, dom=(e.extra&&c[3])?1:0;
+      var blocked=sc!=null&&sc<10+sl, total=blocked?0:b+bonus+dom;
+      return {sl:sl,base:b,bonus:bonus,dom:dom,total:total,blocked:blocked,rem:Math.max(0,total-(used[sl]||0)),dc:mod==null?null:10+sl+mod};
+    });
+    return {levels:levels,mod:mod,cl:c[1]==='four'?Math.max(0,(n(e.lvl)||0)-3):(n(e.lvl)||0)};
+  }
+  function spellTotals(p){
+    var r=0,t=0; getCasting(p).forEach(function(e){slotsFor(p,e).levels.forEach(function(x){r+=x.rem;t+=x.total})});
+    return {rem:r,tot:t};
+  }
+  function spellBtn(p){
+    var s=spellTotals(p), has=getCasting(p).length;
+    var L=readLink(p.id), lc='';
+    if(L&&L.levels){var tot=0,used=0;(L.levels||[]).forEach(function(x){if(x.s!=0){tot+=x.total;used+=x.used}});lc=' · linked '+(tot-used)+'/'+tot;}
+    return '<button class="spellsbtn" data-spells="'+p.id+'" aria-expanded="'+(openSpells[p.id]?'true':'false')+'">Spells'+(lc||(has&&s.tot?' '+s.rem+'/'+s.tot:''))+' '+(openSpells[p.id]?'▴':'▾')+'</button>';
+  }
+  // ---- Linked spell report: sent from a hero's own character sheet (same-browser storage, or a pasted SPELLS1: code) ----
+  if(!extras.link)extras.link={};
+  var pasteOpen={}, linkMsg={};
+  // spell reports come from casters' sheets (Drax), hero reports from others (Sinafey's shadow powers)
+  function isReport(d){return !!d&&(d.t==='saviors-spells'||d.t==='saviors-hero')}
+  // A report belongs to the row with its id, or else the row with the same name (so heroes added with Add character link too).
+  function normName(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'')}
+  function rowFor(d){var r=state.party.find(function(p){return p.id===d.id});if(r)return r;var nm=normName(d.name);return nm?state.party.find(function(p){return normName(p.name)===nm})||null:null}
+  function readLink(id){
+    var best=extras.link[id]||null, row=state.party.find(function(p){return p.id===id});
+    [id,row?normName(row.name):''].forEach(function(k){if(!k)return;
+      try{var l=JSON.parse(localStorage.getItem('saviors-link-'+k)||'null');if(l&&isReport(l)&&(l.id===id||(row&&normName(l.name)===normName(row.name)))&&(!best||l.at>best.at))best=l;}catch(e){}});
+    return best;
+  }
+  function decodeCode(s){
+    var m=String(s||'').replace(/\s+/g,'').match(/SPELLS1:([A-Za-z0-9+\/=]+)/); if(!m) return null;
+    try{var d=JSON.parse(decodeURIComponent(escape(atob(m[1]))));return isReport(d)?d:null}catch(e){return null}
+  }
+  function when(iso){
+    var d=new Date(iso); if(isNaN(d)) return '';
+    var mins=Math.round((Date.now()-d)/60000);
+    var rel=mins<1?'just now':mins<60?mins+' min ago':mins<1440?Math.round(mins/60)+' hr ago':Math.round(mins/1440)+' day'+(mins>=2880?'s':'')+' ago';
+    return {rel:rel,abs:d.toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}),old:mins>=720};
+  }
+  function linkBlock(p){
+    var L=readLink(p.id), html='';
+    var paste=pasteOpen[p.id]?'<div class="lk-paste"><textarea id="lk-code-'+p.id+'" rows="3" placeholder="Paste the code from '+esc(p.name)+'’s sheet (starts with SPELLS1:)" aria-label="Spell report code"></textarea><button class="primary" data-lkimport="'+p.id+'">Import</button><button data-lkpaste="'+p.id+'">Cancel</button></div>':'';
+    var msg=linkMsg[p.id]?'<div class="lk-msg" role="status">'+esc(linkMsg[p.id])+'</div>':'';
+    if(!L) return '<div class="linked"><div class="lk-h"><b>Linked spells</b><span class="minor" style="white-space:normal">Not linked yet. On '+esc(p.name)+'’s sheet, press <b>Send to DM</b> on the Spells tab and paste the code here. If both sheets are open as files in this browser, it links by itself.</span><button data-lkpaste="'+p.id+'">Paste update</button></div>'+paste+msg+'</div>';
+    var w=when(L.at), ord2=function(s){return s==0?'Orisons':ord(+s)};
+    html+='<div class="lk-h"><b>'+esc(p.name)+'’s prepared spells</b><span class="minor'+(w.old?' lk-stale':'')+'" title="'+esc(w.abs)+'">Updated '+esc(w.rel)+' ('+esc(w.abs)+')</span>'+
+      '<span class="minor">CL '+L.cl+' · '+esc(L.abil)+' '+fmt(L.mod,true)+' · concentration '+fmt(L.conc,true)+'</span>'+
+      '<span style="margin-left:auto;display:flex;gap:6px"><button data-lkpaste="'+p.id+'">Paste update</button>'+(extras.link[p.id]?'<button class="ghost" data-lkclear="'+p.id+'">Unlink</button>':'')+'</span></div>'+paste+msg;
+    var CL=castLists(L), lvTxt=function(x){return x.ring?'from ring':ord(x.s)+(x.emp?' slot, '+ord(x.real)+'-level spell':'')};
+    html+='<div class="lk-sum">'+
+      '<div><span class="lbl">Cast since last rest ('+CL.cast.length+')</span>'+(CL.cast.length?'<ul>'+CL.cast.map(function(x){return '<li><b>'+esc(spellName(x))+'</b> <span class="minor">'+esc(lvTxt(x))+(x.t?' · '+esc(when(x.t).abs||''):'')+'</span></li>'}).join('')+'</ul>':'<div class="minor">Nothing cast yet.</div>')+'</div>'+
+      '<div><span class="lbl">Prepared and still ready ('+CL.ready.length+')</span>'+(CL.ready.length?'<ul>'+CL.ready.map(function(x){return '<li>'+esc(spellName(x))+' <span class="minor">'+esc(lvTxt(x))+'</span></li>'}).join('')+'</ul>':'<div class="minor">No prepared spells left.</div>')+
+        (CL.orisons.length?'<div class="minor" style="margin-top:4px">Orisons (at will): '+esc(CL.orisons.map(function(x){return x.n}).join(', '))+'</div>':'')+'</div>'+
+      '</div>';
+    html+='<div class="lk-grid">'+(L.levels||[]).map(function(lv){
+      var P=(L.prep||{})[lv.s]||[], cast=P.filter(function(x){return x[1]}).length;
+      if(!lv.total&&!P.length) return '';
+      return '<div class="lk-lv"><div class="sl"><span>'+ord2(lv.s)+'</span><span class="dc">DC '+lv.dc+'</span></div>'+
+        '<div class="minor">'+(lv.s==0?P.length+' prepared · at will':cast+' of '+lv.total+' slots cast · '+P.length+' prepared')+'</div>'+
+        (P.length?'<ul>'+P.map(function(x){return '<li class="'+(x[1]&&lv.s!=0?'cast':'')+'">'+(x[2]>=0?'<span class="lk-tag">EMP</span> ':'')+esc(x[0])+(x[2]>=0?' <span class="minor">('+ord(x[2])+'-level spell)</span>':'')+'</li>'}).join('')+'</ul>':'<div class="minor">none prepared</div>')+'</div>';
+    }).join('')+'</div>';
+    var extra=[];
+    if((L.ring||[]).length||true){var rl=(L.ring||[]).reduce(function(a,x){return a+x[1]},0);extra.push('<b>Ring of Spell Storing</b> '+rl+'/5: '+((L.ring||[]).length?L.ring.map(function(x){return (x[2]?'Empowered ':'')+esc(x[0])+' ('+x[1]+')'}).join(', '):'empty'));}
+    if(L.ferv)extra.push('<b>Fervor</b> '+(L.ferv.max-L.ferv.used)+'/'+L.ferv.max+' left');
+    extra.push('<b>Active spell effects</b> '+((L.fx||[]).length?L.fx.map(esc).join(', '):'none'));
+    html+='<div class="lk-row">'+extra.join(' · ')+'</div>';
+    if((L.log||[]).length)html+='<div><span class="lbl">Recent casting</span><div class="lk-log">'+L.log.slice().reverse().map(function(e){var t=when(e.t);return '<div><span>'+esc(e.txt)+'</span><span>'+esc(t.abs||'')+'</span></div>'}).join('')+'</div></div>';
+    return '<div class="linked">'+html+'</div>';
+  }
+  window.addEventListener('storage',function(e){if(e.key&&e.key.indexOf('saviors-link-')===0)softRender();});
+  // Re-render without yanking focus out of a box the DM is typing in.
+  var pendingRender=false;
+  function softRender(){var a=document.activeElement;if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)&&document.getElementById('root').contains(a)){pendingRender=true;return}render()}
+  document.addEventListener('focusout',function(){if(pendingRender){pendingRender=false;setTimeout(function(){softRender()},0)}});
+
+  // ---- Live sync through ntfy.sh (free, no account). Both sheets turn the same phrase into the same private topic. ----
+  var SYNCKEY='saviors-sync', sync={phrase:'',es:null,status:'',last:null};
+  try{sync.phrase=localStorage.getItem(SYNCKEY)||''}catch(e){}
+  function syncHost(){try{return localStorage.getItem('saviors-sync-host')||'https://ntfy.sh'}catch(e){return 'https://ntfy.sh'}}
+  function syncTopic(phrase){
+    var p=String(phrase||'').trim().toLowerCase(); if(!p) return '';
+    function h(s,seed){var a=0xdeadbeef^seed,b=0x41c6ce57^seed;for(var i=0;i<s.length;i++){var c=s.charCodeAt(i);a=Math.imul(a^c,2654435761);b=Math.imul(b^c,1597334677)}
+      a=Math.imul(a^(a>>>16),2246822507)^Math.imul(b^(b>>>13),3266489909);b=Math.imul(b^(b>>>16),2246822507)^Math.imul(a^(a>>>13),3266489909);
+      return ('0000000'+(b>>>0).toString(16)).slice(-8)+('0000000'+(a>>>0).toString(16)).slice(-8)}
+    return 'saviors-'+h(p,1)+h(p,7);
+  }
+  // A report counts only if it's a spell report for a hero on this sheet and newer than what's shown.
+  function acceptReport(d){
+    if(!isReport(d)||typeof d.id!=='string'||typeof d.at!=='string') return false;
+    var row=rowFor(d); if(!row) return false;
+    var prev=readLink(row.id); if(prev&&prev.at>=d.at) return false;
+    extras.link[row.id]=d; saveExtras(); sync.last={name:String(d.name||d.id),at:d.at}; return true;
+  }
+  function takeLines(txt){var changed=false;String(txt||'').split('\n').forEach(function(line){if(!line.trim())return;try{var m=JSON.parse(line);if(m.event==='message'&&acceptReport(JSON.parse(m.message)))changed=true}catch(e){}});return changed}
+  function syncPoll(){var topic=syncTopic(sync.phrase);if(!topic)return;
+    fetch(syncHost()+'/'+topic+'/json?poll=1&since=12h').then(function(r){return r.text()}).then(function(t){if(takeLines(t))softRender();updSyncUi()}).catch(function(){});}
+  function syncConnect(){
+    if(sync.es){sync.es.close();sync.es=null}
+    var topic=syncTopic(sync.phrase); if(!topic){sync.status='';updSyncUi();return}
+    sync.status='Connecting…'; syncPoll();
+    try{
+      var es=new EventSource(syncHost()+'/'+topic+'/sse'); sync.es=es;
+      es.onopen=function(){sync.status='Live';updSyncUi()};
+      es.onerror=function(){sync.status=navigator.onLine===false?'Offline':'Reconnecting…';updSyncUi()};
+      es.onmessage=function(ev){try{var m=JSON.parse(ev.data);if(m.event==='message'&&acceptReport(JSON.parse(m.message))){softRender();updSyncUi()}}catch(e){}};
+    }catch(e){sync.status='This browser can’t listen live';}
+    updSyncUi();
+  }
+  // Catch up after the laptop sleeps or the tab sits in the background.
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)syncPoll()});
+  function syncLabel(){return 'Live sync'+(sync.phrase?': '+(sync.status||'…'):': off')}
+  function syncDetail(){
+    if(!sync.phrase) return 'Off. Enter the same phrase the players typed on their sheets.';
+    var w=sync.last&&when(sync.last.at);
+    return 'Status: '+(sync.status||'…')+(w?' · last update from '+sync.last.name+' '+w.rel+' ('+w.abs+')':' · no updates received yet');
+  }
+  function updSyncUi(){var b=document.getElementById('sync-btn');if(b)b.textContent=syncLabel();var d=document.getElementById('sync-detail');if(d)d.textContent=syncDetail()}
+  function openSync(){
+    var d=document.getElementById('sync-dlg');
+    if(!d){d=document.createElement('dialog');d.id='sync-dlg';d.setAttribute('aria-labelledby','sync-title');document.body.appendChild(d);}
+    d.innerHTML='<div class="dlg-head"><h2 id="sync-title">Live sync</h2><button data-close="1">Close</button></div>'+
+      '<p class="minor" style="white-space:normal">Type a phrase only you and your players know, and have each player type the same phrase in the <b>Live sync phrase</b> box on their sheet’s Spells tab. Their prepared and cast spells then show up in their Spells panel here within seconds, from any device. Updates travel through the free ntfy.sh relay, which keeps them for 12 hours; this sheet saves the newest one it gets. Anyone who knows the phrase could read the updates, so don’t use a real password.</p>'+
+      '<div class="lk-paste"><input id="sync-phrase" value="'+esc(sync.phrase)+'" placeholder="shared phrase" autocomplete="off" aria-label="Live sync phrase" style="flex:1;min-width:200px"><button class="primary" data-syncsave="1">Connect</button>'+(sync.phrase?'<button data-syncoff="1">Turn off</button>':'')+'</div>'+
+      '<p class="minor" id="sync-detail" style="white-space:normal">'+esc(syncDetail())+'</p>';
+    if(!d.open)d.showModal();
+  }
+  function spellPanel(p){
+    var list=getCasting(p), nl=negLv(p);
+    var LR=readLink(p.id), html=(!LR||LR.levels)?linkBlock(p):'';
+    html+=list.length?'':'<p class="minor" style="white-space:normal">No spellcasting class found in “'+esc(p.classes)+'”. Use Add casting class if this hero casts spells.</p>';
+    list.forEach(function(e){
+      var c=CLASSES[e.cls], s=slotsFor(p,e), ab=ABN[c[2]], a='data-cast="'+p.id+'" data-ci="'+esc(e.id)+'"';
+      html+='<div class="caster"><div class="cfg">'+
+        '<label>Class <select '+a+' data-f="cls">'+Object.keys(CLASSES).map(function(k){return '<option value="'+k+'"'+(k===e.cls?' selected':'')+'>'+CLASSES[k][0]+'</option>'}).join('')+'</select></label>'+
+        '<label>Levels <input class="n" '+a+' data-f="lvl" inputmode="numeric" value="'+esc(e.lvl)+'" title="Class levels plus any prestige levels that advance spellcasting"></label>'+
+        '<label>'+ab+' score <input class="n" '+a+' data-f="score" inputmode="numeric" value="'+esc(e.score)+'" placeholder="—"></label>'+
+        (c[3]?'<label><input type="checkbox" '+a+' data-f="extra"'+(e.extra?' checked':'')+'> +1 '+c[3]+' slot</label>':'')+
+        '<span class="minor">CL '+s.cl+(nl?' <span class="drained">(effective '+Math.max(0,s.cl-nl)+', neg. levels)</span>':'')+(s.mod!=null?' · '+ab+' mod '+fmt(s.mod,true):'')+'</span>'+
+        '<button class="ghost" data-uncast="'+p.id+'" data-ci="'+esc(e.id)+'">Remove</button></div>'+
+        (s.mod==null?'<p class="minor" style="white-space:normal;margin:0">Enter the '+ab+' score to add bonus slots and show spell DCs.</p>':'')+
+        '<div class="slots">'+
+        (c[4]?'<div class="slot"><div class="sl">0-level</div><div class="dc">'+(s.mod!=null?'DC '+(10+s.mod):'DC —')+'</div><div class="minor">at will</div></div>':'')+
+        s.levels.map(function(x){
+          var pips='';
+          for(var i=0;i<x.total;i++){var to=(i+1===x.rem)?i:i+1;pips+='<button class="spip'+(i<x.rem?' on':'')+'" data-slot="'+p.id+'" data-ci="'+esc(e.id)+'" data-sl="'+x.sl+'" data-to="'+to+'" aria-label="'+ord(x.sl)+'-level: set '+to+' left"></button>';}
+          var why=x.base+' base'+(x.bonus?' + '+x.bonus+' '+ab:'')+(x.dom?' + 1 '+c[3]:'');
+          return '<div class="slot'+(x.total&&!x.rem?' spent':'')+'"><div class="sl">'+ord(x.sl)+'</div><div class="dc">'+(x.dc!=null?'DC '+x.dc:'DC —')+'</div>'+
+            (x.blocked?'<div class="minor" style="white-space:normal">Needs '+ab+' '+(10+x.sl)+'</div>':
+             x.total?'<div class="pips">'+pips+'</div><div class="minor" title="'+esc(why)+'">'+x.rem+'/'+x.total+' left</div>':'<div class="minor" style="white-space:normal">0/day (bonus only)</div>')+'</div>';
+        }).join('')+'</div></div>';
+    });
+    html+='<div class="spellbar"><button data-addcast="'+p.id+'">Add casting class</button><button data-redetect="'+p.id+'">Re-detect from classes</button>'+(list.length?'<button class="primary" data-rest="'+p.id+'">Rest: refresh all slots</button>':'')+'</div>';
+    return '<tr class="spellrow"><td colspan="10"><div class="spells" aria-label="'+esc(p.name)+' spells">'+html+'</div></td></tr>';
+  }
+  // ---- Fervor (warpriest 2nd+): uses/day = ½ warpriest level + Wis mod; heals 1d6 per 3 warpriest levels ----
+  var openFervor={}, fervLog={};
+  if(!extras.res)extras.res={};
+  function fervor(p){
+    var e=getCasting(p).find(function(x){return x.cls==='warpriest'}); if(!e) return null;
+    var lv=n(e.lvl)||0; if(lv<2) return null;
+    var sc=n(e.score), mod=sc==null?null:Math.floor((sc-10)/2), half=Math.floor(lv/2);
+    var max=Math.max(0,half+(mod||0)), used=(extras.res[p.id]||{}).fervor||0;
+    return {lv:lv,mod:mod,half:half,max:max,rem:Math.max(0,max-used),dice:Math.floor(lv/3)};
+  }
+  // ---- Abilities: any daily-use abilities a hero's own sheet reports (shadow powers, rage, ki, wild shape…), live and read-only ----
+  // Report field `powers`: [key, name, used, max, unit]. unit 'ft' = distance (one pip per 10 ft.), '' = uses, anything else = that unit (e.g. 'rounds').
+  // Optional: `note` (one line under the title), `comp` {name, kind, status, hp, max}, `log` [{t, txt}].
+  var openShadow={};
+  function abilityTitle(L){return L.powersTitle||((L.powers||[]).some(function(x){return /^sd\./.test(x[0])})?'shadow powers':'abilities')}
+  function shadowBtn(p){
+    var L=readLink(p.id);
+    if(L&&!(L.powers&&L.powers.length)) return '';   // linked, but nothing to track here (e.g. a caster’s spells only)
+    var lab;
+    if(L){var j=L.powers.find(function(x){return x[0]==='sd.jump'});
+      lab=(/^shadow/.test(abilityTitle(L))?'Shadow':'Abilities')+(j?' · jump '+Math.max(0,j[3]-j[2])+' ft':'')+' · live';}
+    else lab=/shadowdancer/i.test(p.classes||'')?'Shadow':'Link sheet';
+    return ' <button class="spellsbtn" data-shadow="'+p.id+'" aria-expanded="'+(openShadow[p.id]?'true':'false')+'">'+lab+' '+(openShadow[p.id]?'▴':'▾')+'</button>';
+  }
+  function powerSlot(x){
+    var used=+x[2]||0, max=+x[3]||0, unit=x[4]||'', left=Math.max(0,max-used);
+    var ft=unit==='ft', step=ft&&max%10===0?10:1, pipsOk=max/step<=40;
+    var txt=ft?left+' of '+max+' ft. left':unit?left+' of '+max+' '+unit+' left':left+'/'+max+' left today';
+    return '<div class="slot'+(left?'':' spent')+'"'+(ft?' style="min-width:200px"':'')+'><div class="sl">'+esc(x[1])+'</div>'+(ft?'<div class="dc">'+esc(txt)+'</div>':'')+
+      (pipsOk&&max?readPips(used/step,max/step):'')+'<div class="minor">'+(ft?(step===10?'one pip = 10 ft. · ':'')+'resets after rest':esc(txt))+'</div></div>';
+  }
+  function shadowPanel(p){
+    var L=readLink(p.id), html='';
+    var paste=pasteOpen[p.id]?'<div class="lk-paste"><textarea id="lk-code-'+p.id+'" rows="3" placeholder="Paste the code from '+esc(p.name)+'’s sheet (starts with SPELLS1:)" aria-label="Report code"></textarea><button class="primary" data-lkimport="'+p.id+'">Import</button><button data-lkpaste="'+p.id+'">Cancel</button></div>':'';
+    var msg=linkMsg[p.id]?'<div class="lk-msg" role="status">'+esc(linkMsg[p.id])+'</div>':'';
+    if(!L||!L.powers){
+      html='<div class="lk-h"><b>'+(/shadowdancer/i.test(p.classes||'')?'Shadow powers':'Link '+esc(p.name)+'’s sheet')+'</b><span class="minor" style="white-space:normal">Not linked yet. On '+esc(p.name)+'’s own sheet, enter the same Live sync phrase as this sheet (it links by itself), or press <b>Send to DM</b> there and paste the code here.</span><button data-lkpaste="'+p.id+'">Paste update</button></div>'+paste+msg;
+    } else {
+      var w=when(L.at), note=L.note||((L.sd?'Shadowdancer '+L.sd:'')+(L.dim?' · <b>in dim light</b> (DR 10/—, +2 luck on saves)':''));
+      html+='<div class="lk-h"><b>'+esc(p.name)+'’s '+esc(abilityTitle(L))+'</b><span class="minor'+(w.old?' lk-stale':'')+'" title="'+esc(w.abs)+'">Updated '+esc(w.rel)+' ('+esc(w.abs)+')</span>'+
+        (note?'<span class="minor">'+(L.note?esc(note):note)+'</span>':'')+
+        '<span style="margin-left:auto;display:flex;gap:6px"><button data-lkpaste="'+p.id+'">Paste update</button>'+(extras.link[p.id]?'<button class="ghost" data-lkclear="'+p.id+'">Unlink</button>':'')+'</span></div>'+paste+msg;
+      html+='<div class="slots">'+L.powers.map(powerSlot).join('')+'</div>';
+      if(L.comp)html+='<div class="lk-row"><b>'+esc(L.comp.name)+'</b> ('+esc(L.comp.kind||(L.sd?'shadow companion':'companion'))+'): '+esc(L.comp.status)+(L.comp.hp!=null?' · '+L.comp.hp+'/'+L.comp.max+' HP':'')+'</div>';
+      if((L.log||[]).length)html+='<div><span class="lbl">Recent use</span><div class="lk-log">'+L.log.slice().reverse().map(function(e){var t=when(e.t);return '<div><span>'+esc(e.txt)+'</span><span>'+esc(t.abs||'')+'</span></div>'}).join('')+'</div></div>';
+    }
+    return '<tr class="spellrow"><td colspan="10"><div class="spells" aria-label="'+esc(p.name)+' abilities"><div class="linked">'+html+'</div></div></td></tr>';
+  }
+  // Linked hero: fervor comes from his own sheet (read-only here).
+  function liveFervor(p){var L=readLink(p.id);return L&&L.ferv?{L:L,f:L.ferv}:null}
+  function readPips(used,max,unit){var h='';for(var i=0;i<Math.min(max,40);i++)h+='<span class="spip'+(i<max-used?' on':'')+'" style="display:inline-block"></span>';return '<div class="pips" aria-label="'+(max-used)+' of '+max+(unit?' '+unit:'')+' left">'+h+'</div>'}
+  function liveFervorPanel(p,x){
+    var f=x.f, left=Math.max(0,f.max-f.used), w=when(x.L.at);
+    var uses=(x.L.log||[]).filter(function(e){return /^Fervor/.test(e.txt)}).slice().reverse();
+    return '<tr class="spellrow"><td colspan="10"><div class="spells" aria-label="'+esc(p.name)+' fervor"><div class="caster">'+
+      '<div class="slots"><div class="slot ferv'+(left?'':' spent')+'"><div class="sl">Fervor</div><div class="dc">'+(f.dice?'Heals '+f.dice+'d6':'')+'</div>'+readPips(f.used,f.max)+'<div class="minor">'+left+'/'+f.max+' left today</div></div>'+
+      '<div class="fervinfo"><p class="live'+(w.old?' stale':'')+'" title="'+esc(w.abs)+'">● Live from '+esc(p.name)+'’s sheet · '+esc(w.rel)+'</p>'+
+      '<p>Uses are marked on '+esc(p.name)+'’s own sheet; this shows what is left.'+(f.dc?' Channel energy: Will DC '+f.dc+' for half.':'')+'</p></div></div>'+
+      (uses.length?'<div><span class="lbl">Recent fervor use</span><div class="lk-log">'+uses.map(function(e){var t=when(e.t);return '<div><span>'+esc(e.txt.replace(/^Fervor:\s*/,''))+'</span><span>'+esc(t.abs||'')+'</span></div>'}).join('')+'</div></div>':'<div class="minor">No fervor used since the last update.</div>')+
+      '</div></div></td></tr>';
+  }
+  function fervorBtn(p){
+    var lf=liveFervor(p);
+    if(lf) return ' <button class="spellsbtn" data-fervor="'+p.id+'" aria-expanded="'+(openFervor[p.id]?'true':'false')+'">Fervor '+Math.max(0,lf.f.max-lf.f.used)+'/'+lf.f.max+' · live '+(openFervor[p.id]?'▴':'▾')+'</button>';
+    var f=fervor(p); if(!f) return '';
+    return ' <button class="spellsbtn" data-fervor="'+p.id+'" aria-expanded="'+(openFervor[p.id]?'true':'false')+'">Fervor '+f.rem+'/'+f.max+' '+(openFervor[p.id]?'▴':'▾')+'</button>';
+  }
+  function fervorPanel(p){
+    var lf=liveFervor(p); if(lf) return liveFervorPanel(p,lf);
+    var f=fervor(p); if(!f) return '';
+    var pips='';
+    for(var i=0;i<f.max;i++){var to=(i+1===f.rem)?i:i+1;pips+='<button class="spip'+(i<f.rem?' on':'')+'" data-ferv="'+p.id+'" data-to="'+to+'" aria-label="Fervor: set '+to+' left"></button>';}
+    var dis=f.rem?'':' disabled';
+    return '<tr class="spellrow"><td colspan="10"><div class="spells" aria-label="'+esc(p.name)+' fervor"><div class="caster">'+
+      '<div class="slots"><div class="slot ferv'+(f.rem?'':' spent')+'"><div class="sl">Fervor</div><div class="dc">Heals '+f.dice+'d6</div><div class="pips">'+pips+'</div><div class="minor">'+f.rem+'/'+f.max+' left today</div></div>'+
+      '<div class="fervinfo"><p>Uses per day: ½ warpriest level ('+f.half+') + Wis mod ('+(f.mod==null?'enter Wis score in the Spells panel':fmt(f.mod,true))+') = <b>'+f.max+'</b>.</p>'+
+      '<p><b>Heal:</b> '+f.dice+'d6 as a swift action on himself, or a standard action by touch on an ally. Harms undead instead (Will half).</p>'+
+      '<p><b>Swift spell:</b> cast a prepared warpriest spell (casting time 1 round or less) on himself only as a swift action. It still uses that spell slot.</p></div></div>'+
+      '<div class="spellbar"><button class="heal" data-fuse="self" data-fp="'+p.id+'"'+dis+'>Heal self (roll + apply)</button><button data-fuse="other" data-fp="'+p.id+'"'+dis+'>Heal ally (roll)</button><button data-fuse="spell" data-fp="'+p.id+'"'+dis+'>Swift self-spell</button><button class="primary" data-frest="'+p.id+'">Rest: refresh fervor</button></div>'+
+      (fervLog[p.id]?'<div class="log" role="status">'+esc(fervLog[p.id])+'</div>':'')+
+      '</div></div></td></tr>';
+  }
+  function useFervor(p,kind){
+    var f=fervor(p); if(!f||!f.rem) return;
+    var r=extras.res[p.id]||(extras.res[p.id]={}); r.fervor=(r.fervor||0)+1; saveExtras();
+    if(kind==='spell'){fervLog[p.id]='Spent 1 fervor on a swift self-spell. Mark the spell slot used in Spells.';return;}
+    var rolls=[],sum=0; for(var i=0;i<f.dice;i++){var d=1+Math.floor(Math.random()*6);rolls.push(d);sum+=d;}
+    if(kind==='self'){applyHp(p,sum,true);fervLog[p.id]='Rolled '+f.dice+'d6 = '+sum+' ['+rolls.join(', ')+'] and healed '+p.name+'. '+logs[p.id];}
+    else fervLog[p.id]='Rolled '+f.dice+'d6 = '+sum+' ['+rolls.join(', ')+']. Apply it with Heal on the ally’s row.';
+  }
+  function editCasting(p){if(!Array.isArray(p.casting))p.casting=detectCasting(p);return p.casting}
+  function slug(s){return (String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'hero')+'-'+Math.random().toString(36).slice(2,6)}
+
+  var backup=null;
+  document.addEventListener('click',function(e){
+    var t=e.target.closest('button'); if(!t) return;
+    if(t.id==='edit-btn'){backup=JSON.stringify(state);editing=true;statusMsg='';render();}
+    else if(t.id==='cancel-btn'){state=JSON.parse(backup);editing=false;dirty=false;confirmReset=false;render();}
+    else if(t.id==='restore-btn'){confirmReset=true;render();}
+    else if(t.id==='restore-no'){confirmReset=false;render();}
+    else if(t.id==='restore-yes'){state=JSON.parse(DEFAULTS);confirmReset=false;dirty=true;render();}
+    else if(t.id==='export-btn'){exportData();}
+    else if(t.id==='import-btn'){document.getElementById('import-file').click();}
+    else if(t.id==='add-btn'){state.party.push({id:slug('new'),name:'New hero',race:'',classes:'',level:'18',ac:'',touch:'',ff:'',hp:'',speed:'30',fly:'',flyNote:'',fort:'',ref:'',will:'',resist:'',notes:''});dirty=true;render();}
+    else if(t.dataset.del){state.party=state.party.filter(function(p){return p.id!==t.dataset.del});dirty=true;render();}
+    else if(t.id==='save-btn'){save();}
+    else if(t.dataset.full){delete cur[t.dataset.full];delete logs[t.dataset.full];saveCur();render();}
+    else if(t.id==='reset-hp'){cur={};logs={};saveCur();render();}
+    else if(t.dataset.dmg||t.dataset.heal){
+      var id=t.dataset.dmg||t.dataset.heal, p=state.party.find(function(x){return x.id===id});
+      var amt=n(document.getElementById('amt-'+id).value);
+      if(p&&amt!==null&&amt>0){applyHp(p,amt,!!t.dataset.heal);render();}
+    }
+    else if(t.id==='stats-btn'){openStats();}
+    else if(t.dataset.close){var dl=t.closest('dialog');if(dl)dl.close();}
+    else if(t.id==='sync-btn'){openSync();}
+    else if(t.dataset.syncsave||t.dataset.syncoff){
+      sync.phrase=t.dataset.syncoff?'':String((document.getElementById('sync-phrase')||{}).value||'').trim();
+      try{if(sync.phrase)localStorage.setItem(SYNCKEY,sync.phrase);else localStorage.removeItem(SYNCKEY)}catch(e){}
+      cloudPush();
+      sync.last=null;syncConnect();openSync();render();
+    }
+    else if(t.dataset.neg){
+      var np=state.party.find(function(x){return x.id===t.dataset.neg}), was=negLv(np), now=Math.max(0,was+(+t.dataset.d));
+      if(now!==was){
+        extras.neg[np.id]=now; saveExtras();
+        // Each new negative level also costs 5 current HP; removing one doesn't heal.
+        if(now>was&&cur[np.id]!=null){cur[np.id]-=5;saveCur();logs[np.id]='−5 HP from negative level → '+cur[np.id];}
+        render();
+      }
+    }
+    else if(t.dataset.shadow){openShadow[t.dataset.shadow]=!openShadow[t.dataset.shadow];render();}
+    else if(t.dataset.fervor){openFervor[t.dataset.fervor]=!openFervor[t.dataset.fervor];render();}
+    else if(t.dataset.ferv){
+      var fp=state.party.find(function(x){return x.id===t.dataset.ferv}), fv=fervor(fp);
+      var fr=extras.res[fp.id]||(extras.res[fp.id]={}); fr.fervor=fv.max-(+t.dataset.to); saveExtras(); render();
+    }
+    else if(t.dataset.fuse){useFervor(state.party.find(function(x){return x.id===t.dataset.fp}),t.dataset.fuse);render();}
+    else if(t.dataset.frest){var rr=extras.res[t.dataset.frest];if(rr)delete rr.fervor;delete fervLog[t.dataset.frest];saveExtras();render();}
+    else if(t.dataset.spells){openSpells[t.dataset.spells]=!openSpells[t.dataset.spells];render();}
+    else if(t.dataset.lkpaste){var lp=t.dataset.lkpaste;pasteOpen[lp]=!pasteOpen[lp];delete linkMsg[lp];render();if(pasteOpen[lp]){var ta=document.getElementById('lk-code-'+lp);if(ta)ta.focus();}}
+    else if(t.dataset.lkimport){
+      var li=t.dataset.lkimport, lhero=state.party.find(function(x){return x.id===li}), code=(document.getElementById('lk-code-'+li)||{}).value, d=decodeCode(code);
+      if(!d){linkMsg[li]='That isn’t a spell code. Copy the whole code from Send to DM (it starts with SPELLS1:).';render();return;}
+      var drow=rowFor(d);if(!drow||drow.id!==li){linkMsg[li]='That code is from '+d.name+'’s sheet, not '+(lhero?lhero.name:li)+'’s.';render();return;}
+      var prev=readLink(li);
+      if(prev&&prev.at>d.at){linkMsg[li]='That code is older than the report already shown, so it wasn’t used.';render();return;}
+      extras.link[li]=d;saveExtras();pasteOpen[li]=false;linkMsg[li]='';statusMsg=d.name+'’s spells updated';render();
+    }
+    else if(t.dataset.lkclear){delete extras.link[t.dataset.lkclear];saveExtras();render();}
+    else if(t.dataset.slot){
+      var sp2=state.party.find(function(x){return x.id===t.dataset.slot}), ce=getCasting(sp2).find(function(x){return x.id===t.dataset.ci});
+      var lv2=slotsFor(sp2,ce).levels[+t.dataset.sl-1];
+      var u=extras.spells[sp2.id]||(extras.spells[sp2.id]={}), uc=u[ce.id]||(u[ce.id]={});
+      uc[t.dataset.sl]=lv2.total-(+t.dataset.to); saveExtras(); render();
+    }
+    else if(t.dataset.rest){delete extras.spells[t.dataset.rest];saveExtras();render();}
+    else if(t.dataset.addcast){
+      var ap=state.party.find(function(x){return x.id===t.dataset.addcast});
+      editCasting(ap).push({id:'c'+Date.now().toString(36),cls:'wizard',lvl:String(n(ap.level)||1),score:'',extra:false});persist();render();
+    }
+    else if(t.dataset.uncast){
+      var rp=state.party.find(function(x){return x.id===t.dataset.uncast});
+      rp.casting=editCasting(rp).filter(function(x){return x.id!==t.dataset.ci});persist();render();
+    }
+    else if(t.dataset.redetect){
+      var dp=state.party.find(function(x){return x.id===t.dataset.redetect});
+      dp.casting=null;delete extras.spells[dp.id];saveExtras();persist();render();
+    }
+    else if(t.dataset.buff){
+      var bo=extras.buff[t.dataset.buff]||(extras.buff[t.dataset.buff]={});
+      bo[t.dataset.b]=!bo[t.dataset.b];saveExtras();render();
+    }
+    else if(t.dataset.pip){extras.hero[t.dataset.pip]=+t.dataset.to;saveExtras();render();}
+    else if(t.dataset.cond){
+      var o=extras.cond[t.dataset.cond]||(extras.cond[t.dataset.cond]={});
+      o[t.dataset.c]=!o[t.dataset.c];saveExtras();render();
+    }
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Enter'&&e.target.dataset&&e.target.dataset.amt){e.preventDefault();var b=document.querySelector('[data-dmg="'+e.target.dataset.amt+'"]');if(b)b.click();}
+  });
+  document.addEventListener('input',function(e){
+    var el=e.target;
+    if(el.dataset.k){var p=state.party.find(function(x){return x.id===el.dataset.id});if(p){p[el.dataset.k]=el.value;dirty=true}}
+    if(el.dataset.stat){
+      var sp=state.party.find(function(x){return x.id===el.dataset.stat});
+      if(sp){
+        sp[el.dataset.s]=el.value.trim();
+        persist();
+        var st=STATS.find(function(s){return s[0]===el.dataset.s});
+        document.getElementById('adj-'+st[0]+'-'+sp.id).textContent=adjText(sp,st[0],st[2]);
+      }
+    }
+  });
+  document.addEventListener('change',function(e){
+    var el=e.target;
+    if(el.dataset.type){lastType[el.dataset.type]=el.value;}
+    if(el.dataset.cast){
+      var cp=state.party.find(function(x){return x.id===el.dataset.cast});
+      var ent=cp&&editCasting(cp).find(function(x){return x.id===el.dataset.ci});
+      if(ent){ent[el.dataset.f]=el.type==='checkbox'?el.checked:el.value.trim();persist();render();}
+      return;
+    }
+    if(el.dataset.cur){var v=n(el.value);if(v===null)delete cur[el.dataset.cur];else cur[el.dataset.cur]=v;saveCur();render();}
+  });
+
+  function save(){
+    state.updated=new Date().toISOString().slice(0,10);
+    try{localStorage.setItem(STORE,JSON.stringify(state));statusMsg='Saved';}
+    catch(e){statusMsg=cloud?'Saved':'This browser blocked saving. Export a backup to keep your edits.';}
+    cloudPush();
+    editing=false;dirty=false;confirmReset=false;render();
+  }
+  function exportData(){
+    var json=JSON.stringify({sheet:'saviors-party',version:1,party:state.party,updated:state.updated,currentHp:cur,extras:extras},null,2);
+    var fname='saviors-party-backup-'+new Date().toISOString().slice(0,10)+'.json';
+    if(dl){
+      dl.save({filename:fname,data:json}).then(function(){statusMsg='Backup downloaded';render();}).catch(function(err){
+        var c=err&&err.code;statusMsg=c==='declined'?'':c==='rate_limited'?'A save prompt is already open.':'Downloads aren’t available here.';render();});
+      return;
+    }
+    var blob=new Blob([json],{type:'application/json'});
+    var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download=fname;
+    document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},500);
+    statusMsg='Backup downloaded';render();
+  }
+  document.addEventListener('change',function(e){
+    if(e.target.id!=='import-file'||!e.target.files[0])return;
+    var fr=new FileReader();
+    fr.onload=function(){
+      try{var d=JSON.parse(fr.result);if(!d||!Array.isArray(d.party))throw 0;
+        state={updated:d.updated||new Date().toISOString().slice(0,10),party:d.party};
+        cur=d.currentHp||{};saveCur();fillResist();logs={};
+        if(d.extras&&d.extras.cond&&d.extras.hero){extras=d.extras;if(!extras.neg)extras.neg={};if(!extras.buff)extras.buff={};if(!extras.spells)extras.spells={};if(!extras.res)extras.res={};if(!extras.link)extras.link={};saveExtras();}
+        persist();statusMsg='Backup imported';
+      }catch(err){statusMsg='That file isn’t a party sheet backup. Choose a file made with Export backup.';}
+      render();
+    };
+    fr.readAsText(e.target.files[0]);
+  });
+  window.addEventListener('beforeunload',function(e){if(editing&&dirty){e.preventDefault();e.returnValue='';}});
+  document.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.id==='sync-phrase'){e.preventDefault();var b=document.querySelector('[data-syncsave]');if(b)b.click();}});
+  // ---- Online saving: when opened as a published page, the whole sheet lives in one shared document. ----
+  var cloud=null, dl=null, cloudTimer=null, cloudPending=false, cloudBusy=false, cloudAgain=false, cloudRemote='';
+  function cloudBody(){return {state:state,cur:cur,extras:extras,phrase:sync.phrase||''}}
+  // Key-order-independent fingerprint, so a document read back from the server compares equal to what was sent.
+  function canon(v){
+    if(Array.isArray(v))return '['+v.map(canon).join(',')+']';
+    if(v&&typeof v==='object')return '{'+Object.keys(v).sort().filter(function(k){return v[k]!==undefined}).map(function(k){return JSON.stringify(k)+':'+canon(v[k])}).join(',')+'}';
+    return JSON.stringify(v);
+  }
+  function cloudPush(){
+    if(!cloud)return;
+    cloudPending=true;clearTimeout(cloudTimer);cloudTimer=setTimeout(function(){cloudPending=false;cloudWrite()},700);
+  }
+  function cloudWrite(){
+    if(!cloud)return;
+    if(cloudBusy){cloudAgain=true;return}
+    var body=JSON.parse(JSON.stringify(cloudBody())), sig=canon(body);
+    if(sig===cloudRemote)return;
+    cloudBusy=true;
+    cloud.set(body).then(function(){cloudRemote=sig;}).catch(function(err){
+      var c=err&&err.code;
+      if(c==='invalid_argument'){statusMsg='This copy is view-only; changes stay on this device.';cloud=null;}
+      else if(c==='quota_exceeded'){statusMsg='Online storage is full. Export a backup.';}
+      else {statusMsg='Couldn’t save online. Retrying…';setTimeout(cloudPush,3000);}
+      softRender();
+    }).then(function(){cloudBusy=false;if(cloudAgain){cloudAgain=false;cloudWrite();}});
+  }
+  // Take what another device saved, unless this device is mid-edit.
+  function cloudApply(d){
+    if(!d||!d.state||!Array.isArray(d.state.party))return;
+    // Local changes not yet sent win; they go out on the next write.
+    if(editing||cloudPending||cloudBusy)return;
+    var sig=canon(d);
+    if(sig===cloudRemote)return;
+    cloudRemote=sig;
+    if(sig===canon(cloudBody()))return;
+    state=JSON.parse(JSON.stringify(d.state));fillResist();
+    cur=JSON.parse(JSON.stringify(d.cur||{}));
+    var x=JSON.parse(JSON.stringify(d.extras||{}));
+    ['cond','hero','neg','buff','spells','res','link'].forEach(function(k){if(!x[k])x[k]={}});extras=x;
+    try{localStorage.setItem(STORE,JSON.stringify(state));localStorage.setItem(HPKEY,JSON.stringify(cur));localStorage.setItem(XKEY,JSON.stringify(extras))}catch(e){}
+    var ph=String(d.phrase||'');
+    if(ph!==sync.phrase){sync.phrase=ph;try{if(ph)localStorage.setItem(SYNCKEY,ph);else localStorage.removeItem(SYNCKEY)}catch(e){}syncConnect();}
+    softRender();
+  }
+  function cloudStart(){
+    var cl=window.claude; if(!cl||!cl.use)return;
+    cl.use('downloads').then(function(d){dl=d}).catch(function(){});
+    cl.use('db').then(function(db){
+      if(!db)return;
+      var ref=db.doc('party/main');
+      return ref.get().then(function(snap){
+        cloud=ref;
+        if(snap.exists)cloudApply(snap.data());
+        else cloudWrite();  // first time online: upload what this device has
+        statusMsg='Saved online';render();
+        ref.onSnapshot(function(s){if(s.exists&&!s.metadata.hasPendingWrites)cloudApply(s.data())},function(){});
+        // Character sheets on this site post their spells and HP here, live, without the sync phrase.
+        if(db.collection)db.collection('reports').onSnapshot(function(qs){
+          var changed=false;qs.docs.forEach(function(d){if(d.exists&&acceptReport(d.data()))changed=true});
+          if(changed){softRender();updSyncUi()}
+        },function(){});
+      });
+    }).catch(function(){});
+  }
+  render();
+  syncConnect();
+  cloudStart();
+})();
+</script>
+
+
+
+</body></html>

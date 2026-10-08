@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Saviors of Tal’Dorei</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus+SC&family=Alegreya+Sans:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg:#ecebf1; --surface:#f8f7fb; --ink:#1c1a24; --muted:#615c70; --line:#d3cfdd; --accent:#5a3fa0; --accent-soft:#e2dbf4;
+  --f-display:"Marcellus SC",Georgia,serif; --f-body:"Alegreya Sans","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121019; --surface:#1b1824; --ink:#e9e6f2; --muted:#a49eb6; --line:#2e2a3b; --accent:#b49cf0; --accent-soft:#2c2342; color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#121019; --surface:#1b1824; --ink:#e9e6f2; --muted:#a49eb6; --line:#2e2a3b; --accent:#b49cf0; --accent-soft:#2c2342; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.45 var(--f-body)}
+main{max-width:760px;margin:0 auto;padding:40px 16px 60px;display:grid;gap:28px}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(2rem,7vw,3rem);line-height:1.05;margin:0;letter-spacing:.03em}
+.sub{color:var(--muted);margin:6px 0 0}
+h2{font-family:var(--f-display);font-weight:400;font-size:1rem;letter-spacing:.08em;color:var(--accent);margin:0 0 10px}
+.list{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr))}
+a.card{display:grid;gap:2px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:8px;color:inherit;text-decoration:none}
+a.card:hover{border-color:var(--accent)}
+a.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a.card b{font-family:var(--f-display);font-weight:400;font-size:1.3rem;letter-spacing:.03em}
+a.card span{color:var(--muted);font-size:.92rem}
+a.card.party{background:var(--accent-soft);border-color:var(--accent)}
+.soon{color:var(--muted);font-size:.95rem}
+footer{color:var(--muted);font-size:.88rem}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Saviors of Tal’Dorei</h1>
+    <p class="sub">Pathfinder character sheets. Changes save online, so every device sees the same sheet.</p>
+  </header>
+  <section>
+    <h2>DM</h2>
+    <div class="list"><a class="card party" href="party.html"><b>Party Sheet</b><span>HP, saves, conditions and live spell reports</span></a></div>
+  </section>
+  <section>
+    <h2>Characters</h2>
+    <div class="list">
+      <a class="card" href="drax.html"><b>Drax</b><span>Tiefling warpriest</span></a>
+      <a class="card" href="sinafey.html"><b>Sinafey</b><span>Drow rogue / shadowdancer</span></a>
+      <a class="card" href="ensley.html"><b>Ensley</b><span>Pixie druid</span></a>
+    </div>
+    <p class="soon">Sheets for Lork, Namfoodle, Vex’ahlia and Owlbear Man are coming.</p>
+  </section>
+  <footer>The first time you open a sheet on a new device, it asks for the campaign passcode from your DM.</footer>
+</main>
+</body>
+</html>
