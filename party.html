@@ -537,7 +537,8 @@ table.stats{min-width:520px}
   function spellBtn(p){
     var s=spellTotals(p), has=getCasting(p).length;
     var L=readLink(p.id), lc='';
-    if(L&&L.levels){var tot=0,used=0;(L.levels||[]).forEach(function(x){if(x.s!=0){tot+=x.total;used+=x.used}});lc=' · linked '+(tot-used)+'/'+tot;}
+    if(L&&L.slots){var t2=0,u2=0;L.slots.forEach(function(x){if(x.s>0){t2+=x.total;u2+=x.used}});lc=' '+(t2-u2)+'/'+t2+' · live';}
+    else if(L&&L.levels){var tot=0,used=0;(L.levels||[]).forEach(function(x){if(x.s!=0){tot+=x.total;used+=x.used}});lc=' · linked '+(tot-used)+'/'+tot;}
     return '<button class="spellsbtn" data-spells="'+p.id+'" aria-expanded="'+(openSpells[p.id]?'true':'false')+'">Spells'+(lc||(has&&s.tot?' '+s.rem+'/'+s.tot:''))+' '+(openSpells[p.id]?'▴':'▾')+'</button>';
   }
   // ---- Linked spell report: sent from a hero's own character sheet (same-browser storage, or a pasted SPELLS1: code) ----
@@ -654,7 +655,20 @@ table.stats{min-width:520px}
       '<p class="minor" id="sync-detail" style="white-space:normal">'+esc(syncDetail())+'</p>';
     if(!d.open)d.showModal();
   }
+  // A hero whose sheet reports slots (Ensley): just the save DC and slots left per level, live.
+  function slotsPanel(p,L){
+    var w=when(L.at), lv=L.slots.filter(function(x){return x.s>0}), o=L.slots.filter(function(x){return x.s===0})[0];
+    var tot=0,left=0;lv.forEach(function(x){tot+=x.total;left+=Math.max(0,x.total-x.used)});
+    return '<tr class="spellrow"><td colspan="11"><div class="spells" aria-label="'+esc(p.name)+' spell slots"><div class="caster">'+
+      '<div class="lk-h"><b>'+esc(p.name)+'’s spell slots</b><span class="minor">'+left+' of '+tot+' left today'+(o&&o.dc!=null?' · orisons at will, DC '+o.dc:'')+'</span>'+
+      '<span class="live'+(w.old?' stale':'')+'" title="'+esc(w.abs)+'">● Live from '+esc(p.name)+'’s sheet · '+esc(w.rel)+'</span></div>'+
+      '<div class="slots">'+lv.map(function(x){var r=Math.max(0,x.total-x.used);
+        return '<div class="slot'+(r?'':' spent')+'"><div class="sl">'+ord(x.s)+'</div><div class="dc">DC '+(x.dc!=null?x.dc:'—')+'</div>'+readPips(x.used,x.total)+'<div class="minor">'+r+'/'+x.total+' left</div></div>'}).join('')+'</div>'+
+      '<p class="minor" style="white-space:normal;margin:6px 0 0">Slots are marked on '+esc(p.name)+'’s own sheet; this shows what’s left.</p>'+
+      '</div></div></td></tr>';
+  }
   function spellPanel(p){
+    var LS=readLink(p.id);if(LS&&LS.slots)return slotsPanel(p,LS);
     var list=getCasting(p), nl=negLv(p);
     var LR=readLink(p.id), html=(!LR||LR.levels)?linkBlock(p):'';
     html+=list.length?'':'<p class="minor" style="white-space:normal">No spellcasting class found in “'+esc(p.classes)+'”. Use Add casting class if this hero casts spells.</p>';
@@ -965,7 +979,7 @@ table.stats{min-width:520px}
   }
   // A hero whose latest report predates the current sheets (no class, level, Perception…) gets a quick
   // background visit so this sheet shows their real numbers without waiting for the player.
-  var LIVE_VERSION=2;
+  var LIVE_VERSION=3;
   function liveCurrent(id){var L=extras.link[id];return !!(L&&L.live&&L.live.rv>=LIVE_VERSION)}
   function refreshStale(){var stale=syncedIds().filter(function(id){return !liveCurrent(id)});if(stale.length)visitSheets(stale,liveCurrent)}
 

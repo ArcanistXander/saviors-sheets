@@ -1895,6 +1895,8 @@ function dmReport(){
   return {t:'saviors-hero',v:1,id:'ensley',name:S.info.name||'Ensley',at:new Date().toISOString(),
     hp:{cur:n(S.hp.cur),max:hpMaxNow(),temp:n(S.hp.temp),nl:n(S.hp.nl),neg:Math.max(0,n(S.neg))},
     powers,form:fm?(curCre()||{}).n||fm.n:'',ward:!!S.cond.queensward,
+    /* spell slots for the party sheet: save DC and slots left per spell level (orisons are at will) */
+    slots:[...Array(10).keys()].map(l=>{const si=l?slotInfo(l,C):{total:0};return {s:l,total:si.total,used:l?Math.min(si.total,prepOf(l).filter(x=>x.c).length):0,dc:C.O['dc.'+l]?C.O['dc.'+l].n:null}}).filter(x=>x.s===0||x.total>0),
     comp:{name:S.comp.name||'Companion',status:S.comp.status||'active',hp:cp?cp.n:null,max:cm?cm.n:null},
     log:(S.sdLog||[]).slice(-25)};
 }
@@ -1903,7 +1905,7 @@ const dmCode=()=>'SPELLS1:'+btoa(unescape(encodeURIComponent(JSON.stringify(dmRe
 function liveStats(){
   const A=compute(true),o=k=>A.O[k]?A.O[k].n:null,t=k=>A.O[k]?A.O[k].t:'';
   return {ac:o('ac.total'),touch:o('ac.touch'),ff:o('ac.ff'),fort:o('sv.fort'),ref:o('sv.ref'),will:o('sv.will'),
-    rv:2,init:t('init'),speed:t('speed'),cmb:t('cmb'),cmd:t('cmd'),perception:t('sk.perception'),neg:A.M.neg||0,
+    rv:3,init:t('init'),speed:t('speed'),cmb:t('cmb'),cmd:t('cmd'),perception:t('sk.perception'),neg:A.M.neg||0,
     level:A.L.total,classes:S.classes.filter(c=>n(c.level)>0).map(c=>`${c.name} ${Math.floor(n(c.level))}`).join(' / '),
     conds:A.M.active.map(c=>({n:String(cname(c)),buff:!!c.buff}))};
 }
