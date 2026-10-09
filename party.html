@@ -171,7 +171,7 @@ table.stats{min-width:520px}
   var DEFAULTS=dataEl.textContent;var STORE='saviors-party-sheet';
   var state=JSON.parse(DEFAULTS);
   try{var saved=localStorage.getItem(STORE);if(saved){var sp=JSON.parse(saved);if(sp&&Array.isArray(sp.party))state=sp;}}catch(e){}
-  var editing=false, dirty=false, statusMsg='', confirmReset=false;
+  var editing=false, dirty=false, statusMsg='', confirmReset=false, confirmRest=false;
   var HPKEY='saviors-current-hp';
   var cur={};
   try{cur=JSON.parse(localStorage.getItem(HPKEY)||'{}')||{}}catch(e){cur={}}
@@ -270,16 +270,22 @@ table.stats{min-width:520px}
   function n(v){var x=parseInt(v,10);return isNaN(x)?null:x}
   var FIELDS=['name','race','classes','level','ac','touch','ff','hp','speed','fly','flyNote','fort','ref','will','notes'];
 
+  // Live numbers from a hero's own sheet when it reports them; otherwise what's typed in here.
+  function live(p){var L=readLink(p.id);return L&&L.live?L.live:null}
+  function stat(p,k){
+    var l=live(p);if(l&&l[k]!=null)return l[k];
+    var v=n(p[k]);if(v!=null&&(k==='fort'||k==='ref'||k==='will'))v+=saveBonus(p);return v;
+  }
   function saveCls(p,key){
-    var v=[n(p.fort),n(p.ref),n(p.will)].filter(function(x){return x!==null});
-    var me=n(p[key]); if(me===null||!v.length) return '';
+    var v=[stat(p,'fort'),stat(p,'ref'),stat(p,'will')].filter(function(x){return x!==null});
+    var me=stat(p,key); if(me===null||!v.length) return '';
     if(me===Math.min.apply(null,v)) return 'weak';
     if(me===Math.max.apply(null,v)) return 'strong';
     return '';
   }
   function lowest(key){
     var best=null;
-    state.party.forEach(function(p){var x=n(p[key]);if(x!==null&&(!best||x<best.v))best={v:x,who:p.name}});
+    state.party.forEach(function(p){var x=stat(p,key);if(x!==null&&(!best||x<best.v))best={v:x,who:p.name}});
     return best;
   }
   function summary(){
@@ -354,7 +360,21 @@ table.stats{min-width:520px}
       return '<button class="chip buff'+(on[b.id]?' on':'')+'" data-buff="'+p.id+'" data-b="'+esc(b.id)+'" aria-pressed="'+(on[b.id]?'true':'false')+'">'+esc(b.name)+'</button>';
     }).join('')+'</div>'+(act.length?'<div class="bufffx">'+act.map(function(b){return esc(b.note||b.name)}).join('<br>')+'</div>':'');
   }
+  // Conditions straight from a hero's own sheet (read-only here).
+  function liveCondCell(p,l){
+    var c=(l.conds||[]).slice().sort(function(a,b){return (a.buff?1:0)-(b.buff?1:0)});
+    var chips=c.map(function(x){return '<span class="chip on'+(x.buff?' buff':'')+'">'+esc(x.n)+'</span>'});
+    if(l.neg)chips.push('<span class="chip on">'+l.neg+' neg. level'+(l.neg>1?'s':'')+'</span>');
+    return '<div class="conds">'+(chips.length?chips.join(''):'<span class="minor">No conditions</span>')+'</div>'+
+      '<div class="minor" style="white-space:normal">Set on '+esc(p.name)+'’s sheet.</div>';
+  }
+  function wsLine(p){
+    var L=readLink(p.id);if(!L||!L.powers)return '';
+    var ws=L.powers.filter(function(x){return x[0]==='ws'})[0];if(!ws&&!L.form)return '';
+    return '<div class="live" style="white-space:normal;max-width:220px">Wild Shape: '+esc(L.form||'own form')+(ws?' · '+Math.max(0,ws[3]-ws[2])+'/'+ws[3]+' left':'')+'</div>';
+  }
   function condCell(p){
+    var l=live(p);if(l)return liveCondCell(p,l);
     var on=extras.cond[p.id]||{};
     var fx=CONDS.filter(function(c){return on[c[0]]}).map(function(c){return c[2]});
     var nl=negLv(p), lv=n(p.level);
@@ -376,13 +396,15 @@ table.stats{min-width:520px}
   }
   function row(p){
     if(editing) return editRow(p);
-    return '<tr><td><div class="name">'+esc(p.name)+'</div><div class="race">'+esc(p.race)+'</div>'+liveLine(p)+heroCell(p)+buffCell(p)+condCell(p)+spellBtn(p)+fervorBtn(p)+shadowBtn(p)+'</td>'+
+    var l=live(p), spd=l&&l.speed?String(l.speed).replace(/\s*ft\.?$/,''):p.speed;
+    return '<tr><td><div class="name">'+esc(p.name)+'</div><div class="race">'+esc(p.race)+'</div>'+liveLine(p)+wsLine(p)+heroCell(p)+(l?'':buffCell(p))+condCell(p)+spellBtn(p)+fervorBtn(p)+shadowBtn(p)+'</td>'+
       '<td class="cls"><span class="lvl">'+esc(p.level)+'</span>'+esc(p.classes)+'</td>'+
-      '<td><div class="big">'+esc(p.ac)+'</div><div class="minor">T '+esc(p.touch)+' · FF '+esc(p.ff)+'</div></td>'+
+      '<td><div class="big">'+esc(l?l.ac:p.ac)+'</div><div class="minor">T '+esc(l?l.touch:p.touch)+' · FF '+esc(l?l.ff:p.ff)+'</div>'+(l?'<div class="live">● live</div>':'')+'</td>'+
       '<td>'+hpCell(p)+'</td>'+
-      '<td class="num"><span class="big">'+esc(p.speed)+'</span> <span class="minor">ft</span></td>'+
+      '<td class="num"><span class="big">'+esc(spd)+'</span> <span class="minor">ft</span>'+(l&&l.speed?'<div class="live">● live</div>':'')+'</td>'+
       '<td>'+flyCell(p)+'</td>'+
       ['fort','ref','will'].map(function(k){
+        if(l&&l[k]!=null)return '<td class="num"><span class="save '+saveCls(p,k)+'">'+(l[k]>=0?'+':'')+l[k]+'</span></td>';
         var v=n(p[k]), sb=saveBonus(p);
         return '<td class="num"><span class="save '+saveCls(p,k)+'">'+(v==null?'—':(v+sb>=0?'+':'')+(v+sb))+'</span>'+(v!=null&&sb?'<div class="buffed">incl. +'+sb+'</div>':'')+'</td>';
       }).join('')+
@@ -405,12 +427,12 @@ table.stats{min-width:520px}
     if(editing){
       tools=(confirmReset?'<button id="restore-yes">Yes, restore originals</button><button id="restore-no">Keep my edits</button>':'<button id="restore-btn">Restore original stats</button>')+'<button id="add-btn">Add character</button><button id="cancel-btn">Cancel</button><button class="primary" id="save-btn">Save changes</button>';
     } else {
-      tools='<button id="sync-btn">'+esc(syncLabel())+'</button><button id="stats-btn">Perception · CMB · CMD</button><button id="reset-hp">Reset all HP</button><button id="export-btn">Export backup</button><button id="import-btn">Import backup</button><input type="file" id="import-file" accept=".json,application/json" hidden><button class="primary" id="edit-btn">Edit sheet</button>';
+      tools=(confirmRest?'<button class="primary" id="rest-yes">Yes, long rest for everyone</button><button id="rest-no">Cancel</button>':'<button id="rest-all">Long rest (everyone)</button>')+'<button id="stats-btn">Perception · CMB · CMD</button><button id="reset-hp">Reset all HP</button><button id="export-btn">Export backup</button><button id="import-btn">Import backup</button><input type="file" id="import-file" accept=".json,application/json" hidden><button class="primary" id="edit-btn">Edit sheet</button>';
     }
     root.innerHTML=
       '<header><div><h1>Saviors of Tal’Dorei</h1><p class="sub">Party quick reference · Pathfinder 1e · updated '+esc(state.updated)+'</p></div>'+
       '<div class="tools">'+(statusMsg?'<span class="status" role="status">'+esc(statusMsg)+'</span>':'')+tools+'</div></header>'+
-      '<p class="notice">Stats are copied from the level 16 sheets (Owlbear Man 17). The party is now level 18, so edit any row once the new numbers are in. Weakest save per hero is shaded red, strongest in green.</p>'+
+      '<p class="notice">Heroes with their own sheet on this site (marked ● live) update here by themselves: HP, AC, saves, speed, conditions, spells and daily uses. Other rows are typed in here; use Edit sheet to change them. Weakest save per hero is shaded red, strongest in green.</p>'+
       summary()+
       '<div class="wrap"><table><thead><tr><th rowspan="2">Character</th><th rowspan="2">Level / class</th><th rowspan="2">AC</th><th rowspan="2">Hit points</th><th rowspan="2">Speed</th><th rowspan="2">Fly (magical)</th><th class="grp" colspan="3">Saving throws</th><th rowspan="2">Notes</th></tr>'+
       '<tr><th class="num">Fort</th><th class="num">Ref</th><th class="num">Will</th></tr></thead><tbody>'+
@@ -580,7 +602,8 @@ table.stats{min-width:520px}
   function acceptReport(d){
     if(!isReport(d)||typeof d.id!=='string'||typeof d.at!=='string') return false;
     var row=rowFor(d); if(!row) return false;
-    var prev=readLink(row.id); if(prev&&prev.at>=d.at) return false;
+    // compare with what this sheet has stored, not a same-browser copy, so online reports are always kept
+    var prev=extras.link[row.id]; if(prev&&prev.at>=d.at) return false;
     extras.link[row.id]=d; saveExtras(); sync.last={name:String(d.name||d.id),at:d.at}; return true;
   }
   function takeLines(txt){var changed=false;String(txt||'').split('\n').forEach(function(line){if(!line.trim())return;try{var m=JSON.parse(line);if(m.event==='message'&&acceptReport(JSON.parse(m.message)))changed=true}catch(e){}});return changed}
@@ -758,6 +781,9 @@ table.stats{min-width:520px}
       if(p&&amt!==null&&amt>0){applyHp(p,amt,!!t.dataset.heal);render();}
     }
     else if(t.id==='stats-btn'){openStats();}
+    else if(t.id==='rest-all'){confirmRest=true;statusMsg='';render();}
+    else if(t.id==='rest-no'){confirmRest=false;render();}
+    else if(t.id==='rest-yes'){confirmRest=false;restAll();}
     else if(t.dataset.close){var dl=t.closest('dialog');if(dl)dl.close();}
     else if(t.id==='sync-btn'){openSync();}
     else if(t.dataset.syncsave||t.dataset.syncoff){
@@ -888,8 +914,37 @@ table.stats{min-width:520px}
   });
   window.addEventListener('beforeunload',function(e){if(editing&&dirty){e.preventDefault();e.returnValue='';}});
   document.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.id==='sync-phrase'){e.preventDefault();var b=document.querySelector('[data-syncsave]');if(b)b.click();}});
+  // ---- Long rest for the whole party ----
+  // Synced heroes rest on their own sheets: each is opened out of sight in turn so the rest lands even if
+  // nobody has that sheet open. Heroes tracked only here get their spell slots and daily uses back.
+  var SHEET_PAGES={drax:'drax.html',sinafey:'sinafey.html',ensley:'ensley.html'};
+  function restAll(){
+    extras.spells={};extras.res={};saveExtras();
+    if(!cloudDb){statusMsg='Long rest: spell slots and daily uses reset here. Synced sheets only rest too when this sheet saves online.';render();return}
+    var at=new Date().toISOString();
+    var ids=state.party.map(function(p){return p.id}).filter(function(id){return SHEET_PAGES[id]}), done={}, queue=ids.slice();
+    function nm(id){var p=state.party.find(function(x){return x.id===id});return p?p.name:id}
+    function upd(){statusMsg='Long rest: '+ids.map(function(id){return nm(id)+(done[id]===true?' ✓':done[id]===false?' (will rest when their sheet is next opened)':' …')}).join(', ');softRender()}
+    function next(){
+      var id=queue.shift();if(!id)return;
+      var f=document.createElement('iframe');f.src=SHEET_PAGES[id];f.title='';f.tabIndex=-1;f.setAttribute('aria-hidden','true');
+      f.style.cssText='position:fixed;left:-10000px;top:0;width:1024px;height:768px;border:0;visibility:hidden';
+      document.body.appendChild(f);
+      var started=Date.now();
+      (function wait(){
+        // wait for the report to arrive through the online database (the sheet saves before it reports), then a moment more
+        var L=extras.link[id];
+        if(L&&L.restAt&&L.restAt>=at){done[id]=true;upd();setTimeout(function(){f.remove();next()},1500);return}
+        if(Date.now()-started>30000){done[id]=false;f.remove();upd();next();return}
+        setTimeout(wait,500);
+      })();
+    }
+    statusMsg='Calling a long rest…';render();
+    cloudDb.doc('party/rest').set({at:at}).then(function(){upd();next()},function(){statusMsg='Couldn’t send the long rest. Check the connection and try again.';render()});
+  }
+
   // ---- Online saving: when opened as a published page, the whole sheet lives in one shared document. ----
-  var cloud=null, dl=null, cloudTimer=null, cloudPending=false, cloudBusy=false, cloudAgain=false, cloudRemote='';
+  var cloudDb=null, cloud=null, dl=null, cloudTimer=null, cloudPending=false, cloudBusy=false, cloudAgain=false, cloudRemote='';
   function cloudBody(){return {state:state,cur:cur,extras:extras,phrase:sync.phrase||''}}
   // Key-order-independent fingerprint, so a document read back from the server compares equal to what was sent.
   function canon(v){
@@ -940,7 +995,7 @@ table.stats{min-width:520px}
       if(!db)return;
       var ref=db.doc('party/main');
       return ref.get().then(function(snap){
-        cloud=ref;
+        cloud=ref;cloudDb=db;
         if(snap.exists)cloudApply(snap.data());
         else cloudWrite();  // first time online: upload what this device has
         statusMsg='Saved online';render();

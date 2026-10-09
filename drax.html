@@ -3315,7 +3315,22 @@ function dmReport(){
 }
 const dmCode=()=>'SPELLS1:'+btoa(unescape(encodeURIComponent(JSON.stringify(dmReport()))));
 /* same browser, local files: the party sheet reads this key directly; with a sync phrase, it also goes out live */
-function pushLink(){try{localStorage.setItem('saviors-link-'+CHAR,JSON.stringify(dmReport()))}catch(e){}syncSend(false);if(window.sheetsReport)window.sheetsReport('drax',dmReport())}
+/* everything the DM's party sheet shows live: defenses, saves, speed and active conditions */
+function liveStats(){
+  const A=compute(true),o=k=>A.O[k]?A.O[k].n:null,t=k=>A.O[k]?A.O[k].t:'';
+  return {ac:o('ac.total'),touch:o('ac.touch'),ff:o('ac.ff'),fort:o('sv.fort'),ref:o('sv.ref'),will:o('sv.will'),
+    init:t('init'),speed:t('speed'),cmb:t('cmb'),cmd:t('cmd'),neg:A.M.neg||0,
+    conds:A.M.active.map(c=>({n:String(cname(c)),buff:!!c.buff}))};
+}
+/* a long rest called from the DM's party sheet: applied once per call, same as pressing Long rest here */
+function watchPartyRest(db){
+  db.doc('party/rest').onSnapshot(s=>{
+    if(!s.exists)return;const at=String((s.data()||{}).at||'');
+    if(!at||at<=(S.lastPartyRest||'2026-10-08'))return;
+    S.lastPartyRest=at;const h=longRest(true);hpLog(`Long rest (called by the DM), healed ${h}`);
+    render();setStatus(`Long rest from the DM: healed ${h} HP, daily uses reset`);scheduleSave(true);
+  },()=>{});
+}function pushLink(){const rep=Object.assign(dmReport(),{live:liveStats(),restAt:S.lastPartyRest||''});try{localStorage.setItem('saviors-link-drax',JSON.stringify(rep))}catch(e){}if(window.sheetsReport)window.sheetsReport('drax',rep)}
 /* ---------- live sync through ntfy.sh (free, no account): the shared phrase becomes a private topic name ---------- */
 function syncHost(){try{return localStorage.getItem('saviors-sync-host')||'https://ntfy.sh'}catch(e){return 'https://ntfy.sh'}}
 function syncTopic(phrase){const p=String(phrase||'').trim().toLowerCase();if(!p)return '';
@@ -3341,14 +3356,8 @@ function updSync(){const el=document.getElementById('sync-status');if(!el)return
 let dmOpen=false;
 function dmPanel(){
   const L=(S.spLog||[]).slice(-12).reverse();
-  return `<section class="panel" id="dmlink"><header><h2>Spell Log &amp; DM Link</h2><span class="muted">What he prepared and cast, for the DM’s party sheet</span>
-    <button class="btn pri" data-act="dmSend" style="margin-left:auto">Send to DM</button></header>
-   <div class="row" style="gap:8px 12px"><label class="rf">Live sync phrase <input type="text" id="sync-phrase" value="${esc((S.sync||{}).phrase||'')}" placeholder="same phrase as the DM" autocomplete="off" style="width:14em"></label>
-    <button class="btn" data-act="syncNow"${(S.sync||{}).phrase?'':' disabled'}>Send now</button><small id="sync-status" class="muted"></small></div>
-   <p class="note" style="margin:0">With a phrase set, his spell report goes to the DM’s party sheet a few seconds after each change, through the free ntfy.sh relay. Anyone who knows the phrase could read it, so pick something only you two know, not a real password.</p>
-   ${dmOpen?`<div class="row" style="align-items:start"><textarea id="dm-code" rows="3" readonly style="flex:1;min-width:0;font-family:monospace;font-size:.78rem">${esc(dmCode())}</textarea><button class="btn" data-act="dmCopy">Copy</button></div>
-    <p class="note">Copy this code and send it to the DM (text, Discord, email). They paste it into Drax’s Spells panel on the party sheet with <b>Paste update</b>. If both sheets are open as files in the same browser on one computer, the party sheet updates by itself and no code is needed.</p>`:''}
-   ${L.length?`<div class="hplog">${L.map(e=>`<div><span>${esc(e.txt)}</span><b>${esc(new Date(e.t).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}))}</b></div>`).join('')}<button class="btn x" data-act="spLogClear">Clear log</button></div>`:'<p class="muted" style="margin:0">Casts, ring use and rests show up here.</p>'}
+  return `<section class="panel" id="dmlink"><header><h2>Spell Log &amp; DM Link</h2><span class="muted">What he prepared and cast, for the DM’s party sheet</span></header>
+   <p class="note" style="margin:0">Live: everything on this sheet (HP, AC, saves, conditions and daily uses) reaches the DM’s party sheet a few seconds after each change. When the DM calls a long rest from the party sheet, it’s applied here too.</p>   ${L.length?`<div class="hplog">${L.map(e=>`<div><span>${esc(e.txt)}</span><b>${esc(new Date(e.t).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}))}</b></div>`).join('')}<button class="btn x" data-act="spLogClear">Clear log</button></div>`:'<p class="muted" style="margin:0">Casts, ring use and rests show up here.</p>'}
   </section>`;
 }
 /* ---------- Concentration: d20 + caster level + casting ability modifier (Core Rulebook, Magic) ---------- */
@@ -3965,7 +3974,7 @@ async function boot(){
     const [db,as]=await Promise.all([cl.use('db'),cl.use('assets').catch(()=>null)]);assets=as;
     if(db){dbRef=db.doc('sheets/'+CHAR);const snap=await dbRef.get();
       if(snap.exists&&!dirty){S=load(clone(snap.data()));render();if(migrated)scheduleSave(true);}
-      setStatus(dirty?'Unsaved changes':'Saved');if(dirty)flush();}
+      setStatus(dirty?'Unsaved changes':'Saved');if(dirty)flush();watchPartyRest(db);}
     else setStatus('Edits save in this browser');
   }catch(e){setStatus('Couldn’t load saved sheet; showing local copy')}
 }

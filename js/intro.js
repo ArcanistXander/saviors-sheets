@@ -5,6 +5,7 @@
   'use strict';
   var theme=(document.currentScript&&document.currentScript.dataset.intro)||'';
   if(!theme)return;
+  try{if(window.top!==window)return}catch(e){return}   // opened in the background by the party sheet (e.g. a long rest): no show
   if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
 
   var FADE_AT=4100, FADE_LEN=900;   // about 5 seconds in all
