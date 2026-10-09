@@ -166,8 +166,8 @@
   }
 
   /* =====================================================================
-     SINAFEY — shadowdancer: three daggers thrown into the sheet, then a shadowy hand
-     pulls each one out and both dissolve in a plume of shadow smoke
+     SINAFEY — shadowdancer: three daggers thrown into the sheet, each then bursting
+     into a cloud of shadowy smoke
      ===================================================================== */
   function sinafey(){
     var daggers=[];
@@ -184,44 +184,27 @@
       g.fillStyle=bg;g.beginPath();g.moveTo(72,-11);g.lineTo(200,-4);g.lineTo(238,0);g.lineTo(200,4);g.lineTo(72,11);g.closePath();g.fill();
       g.shadowBlur=0;g.strokeStyle='rgba(120,70,200,.8)';g.lineWidth=1.5;g.beginPath();g.moveTo(78,0);g.lineTo(196,0);g.stroke();
     });
-    var GRIP=-201;   // grip centre, in sprite units back from the tip
-    var REACH=340,CLOSE=150,PULL=380;
+    var MID=-124;   // middle of the dagger, in sprite units back from the tip
 
     function fling(t,i){
-      /* thrown downward from above, so the hilt, the pull and the smoke all stay on screen */
+      /* thrown downward from above, so the whole dagger and its smoke stay on screen */
       var tx=[.6,.4,.6][i]*W+rnd(-.05,.05)*W,ty=[.4,.57,.76][i]*H+rnd(-.04,.04)*H,sx,sy;
       if(i===0){sx=-140;sy=rnd(-.15,.1)*H}else if(i===1){sx=W+140;sy=rnd(-.15,.15)*H}else{sx=rnd(.35,.6)*W;sy=-140}
-      daggers.push({tx:tx,ty:ty,sx:sx,sy:sy,born:t,fly:380,ang:Math.atan2(ty-sy,tx-sx),spin:Math.random()<.5?1:-1,sc:rnd(.8,.95)*S,hand:null,gone:false});
+      daggers.push({tx:tx,ty:ty,sx:sx,sy:sy,born:t,fly:380,ang:Math.atan2(ty-sy,tx-sx),spin:Math.random()<.5?1:-1,sc:rnd(.8,.95)*S,poofAt:null,gone:false});
     }
-    function pullOut(t,d){if(d)d.hand={born:t,side:Math.random()<.5?1:-1}}
+    function vanish(t,d){if(d)d.poofAt=t}
     var plumeSmoke=sprite(128,128,function(g){var gr=g.createRadialGradient(64,64,0,64,64,64);gr.addColorStop(0,'rgba(150,95,235,.75)');gr.addColorStop(.35,'rgba(85,40,150,.6)');gr.addColorStop(.7,'rgba(30,10,55,.35)');gr.addColorStop(1,'rgba(10,4,20,0)');g.fillStyle=gr;g.fillRect(0,0,128,128)});
     function plume(x,y){
       emit({x:x,y:y,vx:0,vy:0,age:0,life:450,draw:function(p,k){cx.globalCompositeOperation='lighter';cx.globalAlpha=(1-k)*.9;var s=(70+120*k)*S;cx.drawImage(glow,p.x-s/2,p.y-s/2,s,s);cx.globalAlpha=1;cx.globalCompositeOperation='source-over'}});
-      for(var i=0;i<48;i++){var a=rnd(-Math.PI*.9,-Math.PI*.1),v=rnd(50,230)*S,dark=i%3===0;emit({x:x+rnd(-14,14)*S,y:y+rnd(-10,10)*S,vx:Math.cos(a)*v*.55,vy:Math.sin(a)*v,drag:.96,age:0,life:rnd(800,1300),sz:rnd(50,110)*S,dark:dark,
+      for(var i=0;i<48;i++){var a=rnd(-Math.PI*.9,-Math.PI*.1),v=rnd(50,230)*S,dark=i%2===0;emit({x:x+rnd(-14,14)*S,y:y+rnd(-10,10)*S,vx:Math.cos(a)*v*.55,vy:Math.sin(a)*v,drag:.96,age:0,life:rnd(800,1300),sz:rnd(50,110)*S,dark:dark,
         draw:function(p,k){cx.globalAlpha=Math.min(1,(1-k)*1.4);var s=p.sz*(.5+k*1.6);cx.drawImage(p.dark?smoke:plumeSmoke,p.x-s/2,p.y-s/2,s,s);cx.globalAlpha=1}})}
       for(var j=0;j<14;j++){var b=rnd(0,Math.PI*2),u=rnd(50,220)*S;emit({x:x,y:y,vx:Math.cos(b)*u,vy:Math.sin(b)*u-40,drag:.93,age:0,life:rnd(400,900),
         draw:function(p,k){cx.globalCompositeOperation='lighter';cx.globalAlpha=1-k;cx.drawImage(glow,p.x-6,p.y-6,12,12);cx.globalAlpha=1;cx.globalCompositeOperation='source-over'}})}
     }
 
-    /* A hand of living shadow, fingers along +x, trailing a wisp of an arm back along -x. curl 0 = open, 1 = gripping. */
-    function shadowHand(x,y,ang,curl,alpha,s,t){
-      cx.save();cx.translate(x,y);cx.rotate(ang);cx.scale(s,s);cx.globalAlpha=alpha;
-      cx.shadowColor='rgba(150,90,255,.95)';cx.shadowBlur=16;cx.fillStyle='#120a1e';cx.strokeStyle='#120a1e';
-      cx.beginPath();cx.ellipse(2,0,22,21,0,0,7);cx.fill();
-      cx.beginPath();cx.moveTo(-16,-14);cx.quadraticCurveTo(-30,0,-16,14);cx.lineTo(-6,10);cx.lineTo(-6,-10);cx.closePath();cx.fill();   // heel of the hand, no arm
-      cx.lineCap='round';cx.lineJoin='round';
-      [[-15,30,9],[-5,36,10],[5,34,10],[15,26,8]].forEach(function(f){
-        var l1=f[1]*.55,l2=f[1]*.45,s1=curl*.95,s2=curl*2.4;
-        var x1=16+Math.cos(s1)*l1,y1=f[0]+Math.sin(s1)*l1;
-        cx.lineWidth=f[2];cx.beginPath();cx.moveTo(14,f[0]);cx.lineTo(x1,y1);cx.lineTo(x1+Math.cos(s2)*l2,y1+Math.sin(s2)*l2);cx.stroke();
-      });
-      var ta=-1.05+curl*1.5;cx.lineWidth=10;cx.beginPath();cx.moveTo(6,-14);cx.lineTo(6+Math.cos(ta)*24,-14+Math.sin(ta)*24);cx.stroke();
-      cx.restore();
-    }
-
     var plan=[];
     [250,600,950].forEach(function(at,i){plan.push({at:at,fn:function(t){fling(t,i)}})});
-    [1550,2150,2750].forEach(function(at,i){plan.push({at:at,fn:function(t){pullOut(t,daggers[i])}})});
+    [1700,2200,2700].forEach(function(at,i){plan.push({at:at,fn:function(t){vanish(t,daggers[i])}})});
 
     return {plan:plan,dim:'rgba(10,4,22,0.45)',draw:function(t){
       daggers.forEach(function(d){
@@ -234,17 +217,9 @@
         else{x=d.tx;y=d.ty;var q=age-d.fly;a=d.ang+(q<450?Math.sin(q/22)*.12*(1-q/450):0);
           if(!d.hit){d.hit=true;shake(4,150,t);for(var i=0;i<12;i++){var b=d.ang+Math.PI+rnd(-1,1),u=rnd(80,300)*S;emit({x:x,y:y,vx:Math.cos(b)*u,vy:Math.sin(b)*u,drag:.92,age:0,life:rnd(250,550),
             draw:function(pp,k){cx.globalCompositeOperation='lighter';cx.globalAlpha=1-k;cx.drawImage(glow,pp.x-5,pp.y-5,10,10);cx.globalAlpha=1;cx.globalCompositeOperation='source-over'}})}}}
-        /* the shadow hand: reach in from the side, close on the grip, draw the blade back out */
-        var H2=d.hand,h=H2?t-H2.born:-1,pull=0,curl=0;
-        if(h>=REACH+CLOSE){var pp=clamp((h-REACH-CLOSE)/PULL,0,1);pull=pp*pp*100*S;a=d.ang+Math.sin(h/40)*.04*(1-pp)}
-        x-=dx*pull;y-=dy*pull;
-        if(H2&&h>=REACH+CLOSE+PULL){d.gone=true;shake(3,140,t);plume(x+dx*GRIP*d.sc,y+dy*GRIP*d.sc);return}
+        /* poof: the dagger is gone, leaving a cloud of shadow smoke where it stood */
+        if(d.poofAt!=null&&t>=d.poofAt){d.gone=true;shake(3,140,t);plume(x+dx*MID*d.sc,y+dy*MID*d.sc);return}
         cx.save();cx.translate(x,y);cx.rotate(a);cx.scale(d.sc,d.sc);cx.drawImage(blade,-248,-35);cx.restore();
-        if(H2&&h>=0){
-          var px=-dy*H2.side,py=dx*H2.side,gx=x+Math.cos(a)*GRIP*d.sc,gy=y+Math.sin(a)*GRIP*d.sc,off=(1-easeOut(h/REACH))*190*S;
-          curl=clamp((h-REACH)/CLOSE,0,1);
-          shadowHand(gx+px*off,gy+py*off,Math.atan2(-py,-px),curl,clamp(h/260,0,1),1.35*S,t);
-        }
       });
     }};
   }
