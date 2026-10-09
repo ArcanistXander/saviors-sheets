@@ -1,4 +1,4 @@
-/* Opening flourish for each character sheet: a ~10 s canvas overlay played once per page load.
+/* Opening flourish for each character sheet: a ~5 s canvas overlay played once per page load.
    <script src="js/intro.js" data-intro="drax|ensley|sinafey"></script>
    The canvas ignores the pointer, so the sheet stays usable underneath; any click or key fades it out early. */
 (function(){
@@ -7,7 +7,7 @@
   if(!theme)return;
   if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
 
-  var FADE_AT=8600, FADE_LEN=1300;
+  var FADE_AT=4100, FADE_LEN=900;   // about 5 seconds in all
   var cv=document.createElement('canvas'), cx=cv.getContext('2d');
   cv.setAttribute('aria-hidden','true');
   cv.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:900';
@@ -89,13 +89,13 @@
       for(var k=0;k<3;k++){var a=rnd(0,Math.PI*2),l=rnd(50,110)*S;bolts.push({paths:makeBolt(x,y,x+Math.cos(a)*l,y+Math.sin(a)*l,2),born:t+k*60,life:260,w:.55})}
     }
     var plan=[];
-    [250,1050,1850,2700,3500,4500,5800,7200].forEach(function(at,i){plan.push({at:at,fn:function(t){strike(t,null,null,i===0||i===4)}})});
-    [700,1150,1550,1950,2950,3800,4300,5200,6300,6700].forEach(function(at,i){plan.push({at:at,fn:function(t){palm(t,i)}})});
+    [150,650,1150,1700,2300,2900,3500].forEach(function(at,i){plan.push({at:at,fn:function(t){strike(t,null,null,i===0||i===3)}})});
+    [400,650,900,1150,1750,2150,2550,3050].forEach(function(at,i){plan.push({at:at,fn:function(t){palm(t,i)}})});
 
     return {plan:plan,dim:'rgba(6,10,28,0.42)',draw:function(t,dt){
       /* palm prints: slam in, crackle, fade */
       palms.forEach(function(p){
-        var age=t-p.born;if(age<0)return;var life=3600;if(age>life)return;
+        var age=t-p.born;if(age<0)return;var life=2400;if(age>life)return;
         var k=age/life,pop=age<120?1.35-.35*(age/120):1,a=age<120?age/120:1-Math.pow(k,2);
         cx.save();cx.translate(p.x,p.y);cx.rotate(p.rot);cx.scale(p.flip*p.sc*pop*.85,p.sc*pop*.85);
         cx.globalAlpha=a*.95;cx.globalCompositeOperation='lighter';cx.drawImage(hand,-100,-150);
@@ -123,7 +123,7 @@
   }
 
   /* =====================================================================
-     ENSLEY — pixie druid: a beast's roar, then vines climbing the sheet
+     ENSLEY — pixie druid: vines climbing the sheet
      ===================================================================== */
   function ensley(){
     var vines=[];
@@ -136,7 +136,7 @@
       for(var k=0;k<len;k++){ang+=Math.sin(k*.18*sway+ph)*.07+rnd(-.05,.05);ang=clamp(ang,-Math.PI+.25,-.25);x+=Math.cos(ang)*step;y+=Math.sin(ang)*step;pts.push([x,y])}
       var leaves=[],flowers=[];
       for(var j=4;j<pts.length-1;j+=rnd(3,5)|0){leaves.push({i:j,side:leaves.length%2?1:-1,size:rnd(.8,1.25),col:leafCols[(Math.random()*leafCols.length)|0]});if(Math.random()<.12)flowers.push({i:j,col:Math.random()<.5?'#f6c2df':'#fff4c2'})}
-      return {pts:pts,leaves:leaves,flowers:flowers,start:200+i*140,grow:rnd(2800,3800),w:rnd(6,10)*S,curl:Math.random()<.6};
+      return {pts:pts,leaves:leaves,flowers:flowers,start:60+i*70,grow:rnd(1600,2200),w:rnd(6,10)*S,curl:Math.random()<.6};
     }
     var n=Math.max(6,Math.round(W/170));for(var i=0;i<n+2;i++)vines.push(makeVine(i,n));
 
@@ -160,43 +160,9 @@
       cx.restore();
     }
 
-    var plan=[{at:0,fn:function(t){roar();shake(12,1100,t)}}];
-    return {plan:plan,fadeAt:7200,dim:'rgba(8,22,10,0.38)',draw:function(t){
+    return {plan:[],dim:'rgba(8,22,10,0.38)',draw:function(t){
       vines.forEach(function(v){drawVine(v,t,1)});
     }};
-  }
-
-  /* A beast's roar, synthesized: filtered noise for breath plus a distorted low growl. */
-  function roar(){
-    var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
-    var ctx,done=false,openedAt=Date.now();
-    try{ctx=new AC()}catch(e){return}
-    function play(){
-      if(done||Date.now()-openedAt>9000)return;done=true;
-      var t0=ctx.currentTime+.02,dur=2.5,sr=ctx.sampleRate;
-      var comp=ctx.createDynamicsCompressor();comp.connect(ctx.destination);
-      var master=ctx.createGain();master.gain.value=.85;master.connect(comp);
-      var buf=ctx.createBuffer(1,Math.floor(sr*dur),sr),d=buf.getChannelData(0),last=0;
-      for(var i=0;i<d.length;i++){last=(last+.06*(Math.random()*2-1))/1.06;d[i]=last*3.5}
-      var noise=ctx.createBufferSource();noise.buffer=buf;
-      var bp=ctx.createBiquadFilter();bp.type='bandpass';bp.Q.value=.8;bp.frequency.setValueAtTime(260,t0);bp.frequency.linearRampToValueAtTime(700,t0+.55);bp.frequency.exponentialRampToValueAtTime(240,t0+dur);
-      var ng=ctx.createGain();ng.gain.setValueAtTime(0,t0);ng.gain.linearRampToValueAtTime(1,t0+.18);ng.gain.linearRampToValueAtTime(.75,t0+1.5);ng.gain.linearRampToValueAtTime(0,t0+dur);
-      noise.connect(bp);bp.connect(ng);ng.connect(master);
-      var shaper=ctx.createWaveShaper(),curve=new Float32Array(1024);for(var j=0;j<1024;j++){var x=j/511.5-1;curve[j]=Math.tanh(x*5)}shaper.curve=curve;
-      var lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.setValueAtTime(500,t0);lp.frequency.linearRampToValueAtTime(1300,t0+.5);lp.frequency.exponentialRampToValueAtTime(350,t0+dur);
-      var og=ctx.createGain();og.gain.setValueAtTime(0,t0);og.gain.linearRampToValueAtTime(.55,t0+.22);og.gain.linearRampToValueAtTime(.4,t0+1.6);og.gain.linearRampToValueAtTime(0,t0+dur);
-      var lfo=ctx.createOscillator(),lg=ctx.createGain();lfo.frequency.value=9;lg.gain.value=7;lfo.connect(lg);
-      [1,1.49,.5].forEach(function(m){var o=ctx.createOscillator();o.type='sawtooth';o.frequency.setValueAtTime(58*m,t0);o.frequency.linearRampToValueAtTime(88*m,t0+.45);o.frequency.exponentialRampToValueAtTime(50*m,t0+dur);
-        lg.connect(o.frequency);o.connect(shaper);o.start(t0);o.stop(t0+dur)});
-      shaper.connect(lp);lp.connect(og);og.connect(master);
-      noise.start(t0);noise.stop(t0+dur);lfo.start(t0);lfo.stop(t0+dur);
-      setTimeout(function(){try{ctx.close()}catch(e){}},(dur+.5)*1000);
-    }
-    /* Browsers only allow sound after the visitor interacts with the page; if it's blocked now, roar on their first tap. */
-    function onGesture(){removeEventListener('pointerdown',onGesture,true);removeEventListener('keydown',onGesture,true);ctx.resume().then(play)}
-    var p=ctx.resume();
-    setTimeout(function(){if(ctx.state==='running')play();else{addEventListener('pointerdown',onGesture,true);addEventListener('keydown',onGesture,true)}},250);
-    if(p&&p.then)p.then(function(){if(ctx.state==='running')play()});
   }
 
   /* =====================================================================
@@ -219,7 +185,7 @@
       g.shadowBlur=0;g.strokeStyle='rgba(120,70,200,.8)';g.lineWidth=1.5;g.beginPath();g.moveTo(78,0);g.lineTo(196,0);g.stroke();
     });
     var GRIP=-201;   // grip centre, in sprite units back from the tip
-    var REACH=520,CLOSE=220,PULL=560;
+    var REACH=340,CLOSE=150,PULL=380;
 
     function fling(t,i){
       /* thrown downward from above, so the hilt, the pull and the smoke all stay on screen */
@@ -231,7 +197,7 @@
     var plumeSmoke=sprite(128,128,function(g){var gr=g.createRadialGradient(64,64,0,64,64,64);gr.addColorStop(0,'rgba(150,95,235,.75)');gr.addColorStop(.35,'rgba(85,40,150,.6)');gr.addColorStop(.7,'rgba(30,10,55,.35)');gr.addColorStop(1,'rgba(10,4,20,0)');g.fillStyle=gr;g.fillRect(0,0,128,128)});
     function plume(x,y){
       emit({x:x,y:y,vx:0,vy:0,age:0,life:450,draw:function(p,k){cx.globalCompositeOperation='lighter';cx.globalAlpha=(1-k)*.9;var s=(70+120*k)*S;cx.drawImage(glow,p.x-s/2,p.y-s/2,s,s);cx.globalAlpha=1;cx.globalCompositeOperation='source-over'}});
-      for(var i=0;i<48;i++){var a=rnd(-Math.PI*.9,-Math.PI*.1),v=rnd(50,230)*S,dark=i%3===0;emit({x:x+rnd(-14,14)*S,y:y+rnd(-10,10)*S,vx:Math.cos(a)*v*.55,vy:Math.sin(a)*v,drag:.965,age:0,life:rnd(1100,1900),sz:rnd(50,110)*S,dark:dark,
+      for(var i=0;i<48;i++){var a=rnd(-Math.PI*.9,-Math.PI*.1),v=rnd(50,230)*S,dark=i%3===0;emit({x:x+rnd(-14,14)*S,y:y+rnd(-10,10)*S,vx:Math.cos(a)*v*.55,vy:Math.sin(a)*v,drag:.96,age:0,life:rnd(800,1300),sz:rnd(50,110)*S,dark:dark,
         draw:function(p,k){cx.globalAlpha=Math.min(1,(1-k)*1.4);var s=p.sz*(.5+k*1.6);cx.drawImage(p.dark?smoke:plumeSmoke,p.x-s/2,p.y-s/2,s,s);cx.globalAlpha=1}})}
       for(var j=0;j<14;j++){var b=rnd(0,Math.PI*2),u=rnd(50,220)*S;emit({x:x,y:y,vx:Math.cos(b)*u,vy:Math.sin(b)*u-40,drag:.93,age:0,life:rnd(400,900),
         draw:function(p,k){cx.globalCompositeOperation='lighter';cx.globalAlpha=1-k;cx.drawImage(glow,p.x-6,p.y-6,12,12);cx.globalAlpha=1;cx.globalCompositeOperation='source-over'}})}
@@ -241,9 +207,8 @@
     function shadowHand(x,y,ang,curl,alpha,s,t){
       cx.save();cx.translate(x,y);cx.rotate(ang);cx.scale(s,s);cx.globalAlpha=alpha;
       cx.shadowColor='rgba(150,90,255,.95)';cx.shadowBlur=16;cx.fillStyle='#120a1e';cx.strokeStyle='#120a1e';
-      var w1=Math.sin(t/130)*7,w2=Math.sin(t/170+1)*7;
-      cx.beginPath();cx.moveTo(-10,-17);cx.bezierCurveTo(-60,-22,-120,-10+w1,-210,-3+w2);cx.lineTo(-210,3+w2);cx.bezierCurveTo(-120,12+w1,-60,22,-10,17);cx.closePath();cx.fill();
       cx.beginPath();cx.ellipse(2,0,22,21,0,0,7);cx.fill();
+      cx.beginPath();cx.moveTo(-16,-14);cx.quadraticCurveTo(-30,0,-16,14);cx.lineTo(-6,10);cx.lineTo(-6,-10);cx.closePath();cx.fill();   // heel of the hand, no arm
       cx.lineCap='round';cx.lineJoin='round';
       [[-15,30,9],[-5,36,10],[5,34,10],[15,26,8]].forEach(function(f){
         var l1=f[1]*.55,l2=f[1]*.45,s1=curl*.95,s2=curl*2.4;
@@ -255,10 +220,10 @@
     }
 
     var plan=[];
-    [500,1100,1700].forEach(function(at,i){plan.push({at:at,fn:function(t){fling(t,i)}})});
-    [2700,3900,5100].forEach(function(at,i){plan.push({at:at,fn:function(t){pullOut(t,daggers[i])}})});
+    [250,600,950].forEach(function(at,i){plan.push({at:at,fn:function(t){fling(t,i)}})});
+    [1550,2150,2750].forEach(function(at,i){plan.push({at:at,fn:function(t){pullOut(t,daggers[i])}})});
 
-    return {plan:plan,fadeAt:7700,dim:'rgba(10,4,22,0.45)',draw:function(t){
+    return {plan:plan,dim:'rgba(10,4,22,0.45)',draw:function(t){
       daggers.forEach(function(d){
         if(d.gone)return;
         var age=t-d.born;if(age<0)return;
@@ -278,8 +243,6 @@
         if(H2&&h>=0){
           var px=-dy*H2.side,py=dx*H2.side,gx=x+Math.cos(a)*GRIP*d.sc,gy=y+Math.sin(a)*GRIP*d.sc,off=(1-easeOut(h/REACH))*190*S;
           curl=clamp((h-REACH)/CLOSE,0,1);
-          if(Math.random()<.35)emit({x:gx+px*rnd(40,170)*S,y:gy+py*rnd(40,170)*S,vx:rnd(-20,20),vy:rnd(-50,-15),age:0,life:rnd(600,1000),sz:rnd(24,46)*S,
-            draw:function(p2,k){cx.globalAlpha=(1-k)*.7;var s=p2.sz*(.7+k);cx.drawImage(smoke,p2.x-s/2,p2.y-s/2,s,s);cx.globalAlpha=1}});
           shadowHand(gx+px*off,gy+py*off,Math.atan2(-py,-px),curl,clamp(h/260,0,1),1.35*S,t);
         }
       });
