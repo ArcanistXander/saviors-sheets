@@ -90,8 +90,23 @@
             });
           }).then(function(ok){return ok?adapter(F,fs):null});
         });
-    }).catch(function(e){console.warn('Online saving unavailable:',e);return null});
+    }).catch(function(e){console.warn('Online saving unavailable:',e);warn(e);return null});
     return ready;
+  }
+  /* Say so on the page when online saving can't start, instead of quietly saving only in this browser. */
+  function warn(e){
+    var c=String(e&&e.code||''), offline=navigator.onLine===false||/network-request-failed/.test(c);
+    var txt=offline?'You’re offline, so changes save only on this device for now. Reload once you’re back online.'
+      :'Online saving isn’t working right now, so changes save only on this device. Tell your DM'+(c?' (error: '+c+')':'')+'.';
+    function show(){
+      var b=document.createElement('div');b.setAttribute('role','alert');
+      b.style.cssText='position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:999;max-width:min(560px,calc(100% - 32px));background:#b3261e;color:#fff;border-radius:8px;padding:10px 40px 10px 14px;font:15px/1.4 system-ui,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.3)';
+      b.textContent=txt;
+      var x=document.createElement('button');x.textContent='×';x.setAttribute('aria-label','Dismiss');
+      x.style.cssText='position:absolute;top:4px;right:6px;background:none;border:0;color:#fff;font-size:20px;cursor:pointer;padding:2px 8px';
+      x.onclick=function(){b.remove()};b.appendChild(x);document.body.appendChild(b);
+    }
+    if(document.body)show();else document.addEventListener('DOMContentLoaded',show);
   }
 
   /* Character sheets hand their DM report here; the party sheet watches the `reports` collection. */
