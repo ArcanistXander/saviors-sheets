@@ -1,0 +1,1748 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}</style>
+<title>Namfoodle · Pathfinder Character Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus+SC&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap">
+<style>
+/* Layout: persistent header (identity left, portrait top-right, stat strip below), sticky tab bar, one panel grid per tab */
+:root{
+  --bg:#f1ece2; --surface:#faf7f1; --sunk:#e9e1d2; --ink:#221a10; --muted:#6b5c46; --line:#dccfb8;
+  --accent:#8a5a12; --accent-ink:#ffffff; --accent-soft:#f1e3c4;
+  --bad:#b3261e; --bad-soft:#f6dedb; --buff:#16657f; --buff-soft:#d7ecf3; --good:#2c7a4b;
+  --storm:#2d5aa8; --storm-soft:#dde6f6;
+  --f-display:"Marcellus SC","Trajan Pro",Georgia,serif;
+  --f-body:"Alegreya Sans","Segoe UI",system-ui,sans-serif;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#16120c; --surface:#1f1910; --sunk:#18130c; --ink:#f1e8d8; --muted:#b5a585; --line:#3a3020;
+  --accent:#e8b55a; --accent-ink:#1a1206; --accent-soft:#3a2c14;
+  --bad:#f2867c; --bad-soft:#3a1d1c; --buff:#7ccbe6; --buff-soft:#173039; --good:#7fcf9b;
+  --storm:#9dbcff; --storm-soft:#1b2640; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#16120c; --surface:#1f1910; --sunk:#18130c; --ink:#f1e8d8; --muted:#b5a585; --line:#3a3020;
+  --accent:#e8b55a; --accent-ink:#1a1206; --accent-soft:#3a2c14;
+  --bad:#f2867c; --bad-soft:#3a1d1c; --buff:#7ccbe6; --buff-soft:#173039; --good:#7fcf9b;
+  --storm:#9dbcff; --storm-soft:#1b2640; color-scheme:dark }
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font:16px/1.45 var(--f-body);font-variant-numeric:tabular-nums}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:20px 60px}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;margin:0;text-wrap:balance}
+h2{font-size:1.05rem;letter-spacing:.06em;color:var(--accent)}
+h3{font-size:.95rem;letter-spacing:.05em}
+.lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:500}
+.muted{color:var(--muted)}
+small{font-size:.82rem}
+button{font:inherit;color:inherit;cursor:pointer}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:3px 6px;min-width:0}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+input[type=number]{width:4.2em;text-align:center;-moz-appearance:textfield}
+input[type=number]::-webkit-inner-spin-button{opacity:.4}
+textarea{width:100%;resize:vertical;min-height:4.5em;line-height:1.4}
+
+/* header */
+.head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:start}
+.ident{display:grid;gap:6px;min-width:0}
+.namein{font-family:var(--f-display);font-size:clamp(2rem,6vw,3.2rem);line-height:1.05;border:0;background:transparent;padding:0;width:100%;letter-spacing:.03em}
+.namein:hover{background:var(--sunk)}
+.sub{font-size:1.05rem;color:var(--muted)}
+.sub b{color:var(--ink);font-weight:500}
+.chips{display:flex;flex-wrap:wrap;gap:6px;min-height:26px}
+.chip{border:1px solid var(--bad);color:var(--bad);background:var(--bad-soft);border-radius:999px;padding:1px 10px;font-size:.82rem}
+.chip.buff{border-color:var(--buff);color:var(--buff);background:var(--buff-soft)}
+.quick{display:flex;flex-wrap:wrap;gap:8px}
+.qt{display:inline-flex;align-items:center;gap:8px;border:1.5px solid var(--buff);color:var(--buff);background:transparent;border-radius:999px;padding:4px 14px 4px 10px;font-weight:700;font-size:.9rem}
+.qt::before{content:"";width:12px;height:12px;border-radius:50%;border:1.5px solid currentColor}
+.qt[aria-pressed=true]{background:var(--buff);color:var(--surface)}
+.qt[aria-pressed=true]::before{background:currentColor;border-color:var(--surface)}
+.qt.dim{border-color:var(--accent);color:var(--accent)}
+.qt.dim[aria-pressed=true]{background:var(--accent);color:var(--accent-ink)}
+.souls{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:6px;padding:2px 8px;font-size:.88rem}
+details.more summary{cursor:pointer;color:var(--accent);font-size:.88rem}
+details.more p{white-space:pre-line;margin:.4em 0 0;font-size:.92rem}
+.ovr{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-top:4px;font-size:.82rem;color:var(--muted)}
+.ovr input[type=number]{width:3.6em}
+.ovr textarea{min-height:2.4em;font-size:.88rem}
+.weapon .wtop{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:6px 18px;align-items:center}
+.weapon .wname{display:grid;gap:2px;min-width:0}
+.weapon .wname input{font-weight:700;font-size:1.05rem;border-color:transparent;background:transparent;padding-left:0}
+.weapon .wname input:hover,.weapon .wname input:focus{border-color:var(--line);background:var(--surface);padding-left:6px}
+.weapon .wstat{display:grid;text-align:right}
+.weapon .wstat b{font-size:1.2rem}
+.weapon .wbtns{display:flex;gap:0}
+.btn:disabled{opacity:.3;cursor:default}
+@media (max-width:640px){.weapon .wtop{grid-template-columns:1fr 1fr}.weapon .wname{grid-column:1/-1}.weapon .wbtns{grid-column:1/-1}.weapon .wstat{text-align:left}}
+.critbox,.sneakbox{font-weight:700}
+.roundtot{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline;background:var(--accent-soft);border-radius:var(--r);padding:10px 14px}
+.rtot{font-size:1.6rem;color:var(--ink)}
+.backup{margin-top:24px;display:flex;flex-wrap:wrap;gap:10px 20px;align-items:center;justify-content:space-between;border:1px dashed var(--line);border-radius:var(--r);padding:12px 16px;font-size:.9rem}
+.pots td{vertical-align:middle}
+.pots td:first-child{min-width:16em}
+.nowrap{white-space:nowrap}
+.geartbl{table-layout:fixed;min-width:640px}
+.geartbl .c-item{width:36%}.geartbl .c-desc{width:40%}.geartbl .c-loc{width:14%}.geartbl .c-wt{width:5.5em}.geartbl .c-x{width:2.5em}
+.geartbl td input[type=text]{width:100%}
+.geartbl td:first-child input{font-weight:700}
+.geartbl tr.future td{color:var(--muted)}
+.roll{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font-size:.88rem;padding:4px 0}
+.roll select{font-size:.85rem}
+.rgrp{display:inline-flex;align-items:center;gap:4px;flex-wrap:wrap}
+.rf{display:inline-flex;align-items:center;gap:4px;color:var(--muted)}
+.rf input{width:3.6em}
+.rres b{font-size:1.15rem;color:var(--ink)}
+.crit{color:var(--good);font-style:normal;font-weight:700}
+.miss{color:var(--bad);font-style:normal;font-weight:700}
+.rollrow td{border-top:0;padding-top:0}
+.rolltools{margin-left:auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.drbox{display:flex;gap:8px;align-items:flex-start;background:var(--accent-soft);border-radius:var(--r);padding:8px 10px;font-size:.88rem}
+.hplog{display:grid;gap:2px;font-size:.86rem;border-top:1px solid var(--line);padding-top:6px}
+.hplog div{display:flex;justify-content:space-between;gap:10px;color:var(--muted)}
+.hplog b{color:var(--ink)}
+.hplog .btn{justify-self:start}
+.ord{display:inline-block;min-width:2.6em;padding:1px 6px;border-radius:4px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:.85rem}
+.lvlup{border-color:var(--accent)}
+.summary{background:var(--accent-soft);border-radius:var(--r);padding:10px 14px}
+.summary h3{font-size:1.05rem}
+.summary ul{margin:6px 0 0;padding-left:1.2em;display:grid;gap:3px}
+.power .ty{font-size:.85rem;color:var(--muted)}
+.pstats{display:flex;flex-wrap:wrap;gap:6px}
+.pstats span{background:var(--sunk);border-radius:4px;padding:3px 9px;font-size:.88rem}
+.pstats b{color:var(--accent);font-weight:700;margin-right:4px}
+.rules p{margin:0 0 .5em;font-size:.94rem}
+.spell{background:var(--sunk);border-radius:var(--r);padding:10px 12px;margin-top:6px}
+.spell dl{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin:0 0 8px;font-size:.88rem}
+.spell dt{color:var(--muted)}
+.spell dd{margin:0}
+.spell p{white-space:pre-line;font-size:.92rem;margin:0 0 6px}
+.locked{opacity:.55}
+.prog tr.cur td{background:var(--accent-soft);font-weight:700}
+.prog tr.future td{color:var(--muted)}
+.example{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:.85rem;background:var(--accent-soft);border-radius:var(--r);padding:6px 10px}
+.example button{border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:4px;padding:1px 8px;font-size:.8rem}
+
+.art{width:170px;aspect-ratio:4/5;max-width:100%;border:1px solid var(--line);border-radius:var(--r);background:var(--sunk);position:relative;overflow:hidden;display:grid;place-items:center;text-align:center}
+.art img{width:100%;height:100%;object-fit:cover;display:block}
+.art .ph{padding:12px;color:var(--muted);font-size:.85rem;display:grid;gap:6px;justify-items:center}
+.art .ph svg{width:34px;height:34px;opacity:.6}
+.art .tools{position:absolute;inset:auto 0 0 0;display:flex;gap:4px;justify-content:center;padding:6px;background:linear-gradient(transparent,rgba(0,0,0,.6));opacity:0;transition:opacity .15s}
+.art:hover .tools,.art:focus-within .tools{opacity:1}
+.art .tools button{background:rgba(255,255,255,.9);color:#1c1a24;border:0;border-radius:4px;font-size:.78rem;padding:2px 8px}
+.art.drag{outline:2px dashed var(--accent);outline-offset:3px}
+.art .pick{position:absolute;inset:0;background:transparent;border:0}
+
+.strip{display:flex;flex-wrap:wrap;gap:0;margin-top:16px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden}
+.stat{padding:8px 14px;border-right:1px solid var(--line);display:grid;gap:0;min-width:70px;flex:1 0 auto}
+.stat:last-child{border-right:0}
+.stat .v{font-size:1.35rem;font-weight:500;line-height:1.2}
+.hpstat{flex:3 1 220px}
+.hpbar{height:6px;background:var(--sunk);border-radius:3px;overflow:hidden;margin-top:4px}
+.hpbar i{display:block;height:100%;background:var(--good);transition:width .2s}
+.hpbar i.low{background:var(--bad)}
+
+/* tabs */
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);margin-top:18px;border-bottom:1px solid var(--line);display:flex;gap:2px;overflow-x:auto;scrollbar-width:thin}
+.tab{border:0;background:transparent;padding:10px 14px;white-space:nowrap;color:var(--muted);border-bottom:2px solid transparent;font-weight:500}
+.tab[aria-selected=true]{color:var(--ink);border-bottom-color:var(--accent)}
+.tab .dot{display:inline-block;min-width:18px;padding:0 5px;margin-left:4px;border-radius:9px;background:var(--bad);color:var(--surface);font-size:.72rem;line-height:18px;text-align:center}
+.status{margin-left:auto;align-self:center;font-size:.78rem;color:var(--muted);white-space:nowrap;padding-inline:8px}
+
+.page{display:grid;gap:18px;margin-top:18px}
+.cols{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));align-items:start}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:grid;gap:10px;min-width:0}
+.panel>header{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.panel>header .muted{font-size:.85rem}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%}
+th{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:500;text-align:center;padding:4px 4px;white-space:nowrap}
+th.l,td.l{text-align:left}
+td{padding:4px;text-align:center;border-top:1px solid var(--line);vertical-align:middle}
+td.tot{font-weight:700;font-size:1.08rem;min-width:3em}
+.op{color:var(--muted);font-size:.8rem;padding:0 1px}
+[data-d=down]{color:var(--bad)!important}
+[data-d=up]{color:var(--buff)!important}
+.abtbl td:first-child{font-family:var(--f-display);font-size:1.05rem;text-align:left}
+.mod{display:inline-block;min-width:2.6em;padding:2px 6px;border-radius:4px;background:var(--accent-soft);font-weight:700}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:center}
+.kv label{font-size:.85rem;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:8px 14px}
+.field{display:grid;gap:2px;min-width:0}
+.field input,.field select{width:100%}
+.big3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.big3>div{background:var(--sunk);border-radius:var(--r);padding:8px 4px}
+.big3 .v{font-size:1.7rem;font-weight:500;line-height:1.1}
+.formula{font-size:.88rem;color:var(--muted);line-height:1.8}
+.formula b{color:var(--ink)}
+.note{font-size:.86rem;color:var(--muted);border-left:3px solid var(--line);padding-left:10px}
+.note.warn{border-color:var(--bad);color:var(--ink)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:4px;padding:3px 10px;font-size:.88rem}
+.btn:hover{border-color:var(--accent)}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.x{border:0;background:transparent;color:var(--muted);padding:2px 6px}
+.btn.x:hover{color:var(--bad)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.cs{width:16px;height:16px;accent-color:var(--accent)}
+.skilltbl td:nth-child(2){text-align:left;white-space:nowrap}
+.skilltbl input.sub{width:7.5em}
+.untr{color:var(--muted);font-weight:400!important}
+.counter{font-size:.9rem}
+.counter b.over{color:var(--bad)}
+
+/* abilities list */
+.ab-list{display:grid;gap:0}
+.ab{display:grid;grid-template-columns:3.2em minmax(0,1fr);gap:4px 12px;padding:10px 0;border-top:1px solid var(--line)}
+.ab:first-child{border-top:0}
+.ab .lv{font-family:var(--f-display);color:var(--accent);font-size:.95rem;padding-top:1px}
+.ab .nm{font-weight:700}
+.ab .ty{font-size:.78rem;color:var(--muted);margin-left:4px}
+.ab .ds{color:var(--ink);font-size:.93rem;margin-top:2px}
+.pips{display:inline-flex;gap:4px;flex-wrap:wrap;margin-left:8px;vertical-align:middle}
+.pip{width:15px;height:15px;border-radius:50%;border:1.5px solid var(--accent);background:transparent;padding:0}
+.pip[aria-pressed=true]{background:var(--accent)}
+.custom{display:grid;gap:6px;padding:10px 0;border-top:1px solid var(--line)}
+.custom .row input.nm{flex:1 1 200px;font-weight:700}
+
+/* conditions */
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{border:0;background:var(--surface);padding:5px 14px;color:var(--muted)}
+.seg button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink)}
+.condgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));gap:8px}
+.cond{display:grid;gap:3px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:8px 10px;min-width:0}
+.cond .n{font-weight:700;display:flex;justify-content:space-between;gap:6px}
+.cond .e{font-size:.8rem;color:var(--muted);line-height:1.3}
+.cond:hover{border-color:var(--accent)}
+.cond[aria-pressed=true]{border-color:var(--bad);background:var(--bad-soft)}
+.cond[aria-pressed=true] .n::after{content:"ON";font-size:.68rem;letter-spacing:.08em;color:var(--bad);align-self:center}
+.cond.buffc[aria-pressed=true]{border-color:var(--buff);background:var(--buff-soft)}
+.splhd{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline}
+.prepl{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:6px}
+.pbtns{display:flex;gap:4px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.prep{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 6px;border:1px solid var(--line);background:var(--sunk);border-radius:6px;padding:5px 6px 6px 10px;font-size:.92rem}
+.prep.cast .pn{text-decoration:line-through;color:var(--muted)}
+.prep .btn,.spr .btn{padding:1px 8px;font-size:.8rem}
+.pd{grid-column:1/-1;font-size:.82rem;color:var(--muted);line-height:1.35}
+.fxtag{color:var(--accent);font-weight:600;letter-spacing:.03em}
+.splist{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:6px;margin-top:6px}
+.spr{display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 8px;border:1px solid var(--line);border-radius:6px;padding:6px 8px 7px 10px;font-size:.92rem}
+.spr[hidden]{display:none}
+.spr a{color:var(--accent)}
+.slots{display:grid;gap:4px}
+.slot{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;align-items:center}
+.slot input[type=text]{width:100%}
+.slot.cast input[type=text]{text-decoration:line-through;color:var(--muted)}
+.splv{display:grid;gap:8px}
+.splv .hd{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline}
+.splv .hd h3{font-size:1.05rem}
+.charge{display:inline-flex;align-items:center;gap:6px}
+.charge b{min-width:2.2em;text-align:center;font-size:1.1rem}
+/* bard additions */
+.hpctl{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.hpctl input{width:5em}
+.stepper{display:inline-flex;align-items:center;gap:6px}
+.stepper button{border:1px solid var(--line);background:var(--surface);border-radius:4px;width:28px;height:26px;padding:0}
+.net{display:grid;gap:3px;font-size:.92rem}
+.net div{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:3px}
+.net .neg{color:var(--bad);font-weight:700}.net .pos{color:var(--buff);font-weight:700}
+.seg button:disabled{opacity:.45;cursor:default}
+/* bardic performance */
+.perfnow{display:grid;gap:8px;background:var(--accent-soft);border:1px solid var(--accent);border-radius:var(--r);padding:12px 14px}
+.perfnow .big{font-family:var(--f-display);font-size:1.35rem;letter-spacing:.03em}
+.rounds{display:flex;flex-wrap:wrap;gap:3px}
+.rounds i{width:11px;height:11px;border-radius:2px;background:var(--accent);display:block}
+.rounds i.u{background:transparent;outline:1.5px solid var(--line);outline-offset:-1.5px}
+.perfgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:10px}
+.perf{display:grid;gap:6px;align-content:start;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:10px 12px}
+.perf.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset;background:var(--accent-soft)}
+.perf.linger{border-style:dashed;border-color:var(--accent)}
+.perf .top{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.perf .top b{font-size:1.02rem}
+.perf .lv{font-family:var(--f-display);color:var(--accent);font-size:.85rem}
+.perf .e{font-size:.88rem;color:var(--ink)}
+.perf .k{display:flex;flex-wrap:wrap;gap:4px}
+.perf .k span{background:var(--sunk);border-radius:4px;padding:1px 7px;font-size:.8rem}
+.perf .k b{color:var(--accent)}
+.perf .act{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:2px}
+.perf.locked{opacity:.5}
+/* Mythcarver: silvered blade */
+.vestige{border-color:#9aa3ad;background:linear-gradient(160deg,var(--surface) 60%,rgba(170,180,195,.14))}
+.vestige>header h2{color:#5d6773}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .vestige>header h2{color:#d4dbe3}}
+:root[data-theme="dark"] .vestige>header h2{color:#d4dbe3}
+.state{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.state button{display:grid;gap:2px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:8px 10px}
+.state button b{font-family:var(--f-display);font-weight:400;font-size:1.05rem;letter-spacing:.04em}
+.state button small{color:var(--muted)}
+.state button[aria-pressed=true]{border-color:#7f8b98;background:rgba(160,172,188,.2);box-shadow:0 0 0 1px #7f8b98 inset}
+@media (max-width:560px){.state{grid-template-columns:1fr}}
+.tier{border-top:1px solid var(--line);padding-top:8px;display:grid;gap:4px}
+.tier.off{opacity:.5}
+.tier h3{color:var(--accent)}
+/* Harp of the Storm */
+.harp{border-color:var(--storm)}
+.harp>header h2{color:var(--storm)}
+.charges{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.charges i{width:18px;height:24px;display:block;clip-path:polygon(55% 0,10% 55%,45% 55%,30% 100%,90% 40%,55% 40%,75% 0);background:var(--storm)}
+.charges i.u{background:var(--line)}
+.hpow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;border-top:1px solid var(--line);padding:8px 0}
+.hpow .nm{font-weight:700}
+.hpow .cost{font-size:.78rem;color:var(--storm);border:1px solid var(--storm);border-radius:999px;padding:0 7px;margin-left:6px}
+.hpow .ds{grid-column:1/-1;font-size:.9rem}
+.hpow .res{grid-column:1/-1;font-size:.88rem;background:var(--storm-soft);border-radius:4px;padding:4px 8px}
+/* cape of the mountebank: gray smoke on dimension door */
+.fx-smoke{position:fixed;z-index:60;pointer-events:none;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle,rgba(150,150,155,.85),rgba(120,120,125,.5) 45%,rgba(110,110,115,0) 70%);transform:translate(-50%,-50%) scale(1);animation:fxSmoke 1.6s ease-out forwards}
+@keyframes fxSmoke{0%{opacity:.95;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(var(--s))}}
+@media (prefers-reduced-motion:reduce){.fx-smoke{display:none}}
+.dctbl td.tot{font-size:1.1rem}
+.vers{font-size:.78rem;color:var(--accent);white-space:nowrap}
+.known{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <div class="ident">
+      <input class="namein" id="f-name" data-p="info.name" aria-label="Character name">
+      <div class="sub" id="subline"></div>
+      <div class="quick" id="quick" role="group" aria-label="Quick toggles"></div>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="art" id="art"></div>
+  </div>
+
+  <div class="strip" id="strip">
+    <div class="stat hpstat"><span class="lbl">Hit points</span><span class="v"><span data-o="hp.cur"></span> <span class="muted" style="font-size:1rem">/ <span data-o="hp.max"></span></span> <small class="muted" data-o="hp.extra"></small></span><div class="hpbar"><i id="hpfill"></i></div></div>
+    <div class="stat"><span class="lbl">AC</span><span class="v" data-o="ac.total"></span></div>
+    <div class="stat"><span class="lbl">Touch</span><span class="v" data-o="ac.touch"></span></div>
+    <div class="stat"><span class="lbl">Flat</span><span class="v" data-o="ac.ff"></span></div>
+    <div class="stat"><span class="lbl">Init</span><span class="v" data-o="init"></span></div>
+    <div class="stat"><span class="lbl">Fort</span><span class="v" data-o="sv.fort"></span></div>
+    <div class="stat"><span class="lbl">Ref</span><span class="v" data-o="sv.ref"></span></div>
+    <div class="stat"><span class="lbl">Will</span><span class="v" data-o="sv.will"></span></div>
+    <div class="stat"><span class="lbl">CMB / CMD</span><span class="v"><span data-o="cmb"></span> / <span data-o="cmd"></span></span></div>
+    <div class="stat"><span class="lbl">Speed</span><span class="v" data-o="speed"></span></div>
+  </div>
+
+  <nav class="tabs" id="tabs" role="tablist"></nav>
+  <main class="page" id="page"></main>
+  <footer class="backup" id="backup" hidden>
+    <div><b>Saved in this browser.</b> <span class="muted">Clearing browser data erases it, and it won’t follow the file to another computer. Keep a backup.</span></div>
+    <div class="row"><button class="btn pri" data-act="exportSheet">Download backup</button><button class="btn" data-act="importSheet">Restore from backup</button></div>
+  </footer>
+</div>
+<input type="file" id="importfile" accept=".json,application/json" hidden>
+<input type="file" id="artfile" accept="image/*" hidden>
+
+<script src="js/firebase-config.js"></script>
+<script src="js/cloud.js"></script>
+<script>
+(() => {
+'use strict';
+/* ---------- rules data ---------- */
+const ABIL=['str','dex','con','int','wis','cha'];
+const ABN={str:'Strength',dex:'Dexterity',con:'Constitution',int:'Intelligence',wis:'Wisdom',cha:'Charisma'};
+const SIZES=['Fine','Diminutive','Tiny','Small','Medium','Large','Huge','Gargantuan','Colossal'];
+const SZ_ATK=[8,4,2,1,0,-1,-2,-4,-8], SZ_STL=[16,12,8,4,0,-4,-8,-12,-16], SZ_FLY=[8,6,4,2,0,-2,-4,-6,-8];
+const HEAVY=[0,10,20,30,40,50,60,70,80,90,100,115,130,150,175,200,230,260,300,350,400,460,520,600,700,800,920,1040,1200,1400];
+
+const K=(k,n,a,o={})=>Object.assign({k,n,a},o);
+const SKILLS=[
+ K('acrobatics','Acrobatics','dex',{acp:1}), K('appraise','Appraise','int'), K('bluff','Bluff','cha'),
+ K('climb','Climb','str',{acp:1}), K('craft1','Craft','int',{sub:1}), K('craft2','Craft','int',{sub:1}),
+ K('diplomacy','Diplomacy','cha'), K('disable','Disable Device','dex',{acp:1,tr:1}), K('disguise','Disguise','cha'),
+ K('escape','Escape Artist','dex',{acp:1}), K('fly','Fly','dex',{acp:1}), K('handle','Handle Animal','cha',{tr:1}),
+ K('heal','Heal','wis'), K('intimidate','Intimidate','cha'),
+ K('kArc','Knowledge (arcana)','int',{tr:1,kn:1}), K('kDun','Knowledge (dungeoneering)','int',{tr:1,kn:1}),
+ K('kEng','Knowledge (engineering)','int',{tr:1,kn:1}), K('kGeo','Knowledge (geography)','int',{tr:1,kn:1}),
+ K('kHis','Knowledge (history)','int',{tr:1,kn:1}), K('kLoc','Knowledge (local)','int',{tr:1,kn:1}),
+ K('kNat','Knowledge (nature)','int',{tr:1,kn:1}), K('kNob','Knowledge (nobility)','int',{tr:1,kn:1}),
+ K('kPla','Knowledge (planes)','int',{tr:1,kn:1}), K('kRel','Knowledge (religion)','int',{tr:1,kn:1}),
+ K('linguistics','Linguistics','int',{tr:1}), K('perception','Perception','wis'),
+ K('perform1','Perform','cha',{sub:1}), K('perform2','Perform','cha',{sub:1}), K('perform3','Perform','cha',{sub:1}), K('perform4','Perform','cha',{sub:1}),
+ K('profession1','Profession','wis',{sub:1,tr:1}),
+ K('ride','Ride','dex',{acp:1}), K('sense','Sense Motive','wis'), K('sleight','Sleight of Hand','dex',{acp:1,tr:1}),
+ K('spellcraft','Spellcraft','int',{tr:1}), K('stealth','Stealth','dex',{acp:1}), K('survival','Survival','wis'),
+ K('swim','Swim','str',{acp:1}), K('umd','Use Magic Device','cha',{tr:1})
+];
+const PRESETS={
+ Bard:{name:'Bard',hd:8,bab:'3/4',fort:'poor',ref:'good',will:'good',prestige:false,sp:6,
+  skills:'Acrobatics, Appraise, Bluff, Climb, Craft, Diplomacy, Disguise, Escape Artist, Intimidate, Knowledge (all), Linguistics, Perception, Perform, Profession, Sense Motive, Sleight of Hand, Spellcraft, Stealth, Use Magic Device'},
+ Barbarian:{name:'Barbarian',hd:12,bab:'full',fort:'good',ref:'poor',will:'poor',prestige:false,sp:4,
+  skills:'Acrobatics, Climb, Craft, Handle Animal, Intimidate, Knowledge (nature), Perception, Ride, Survival, Swim'},
+ Cleric:{name:'Cleric',hd:8,bab:'3/4',fort:'good',ref:'poor',will:'good',prestige:false,sp:2,
+  skills:'Appraise, Craft, Diplomacy, Heal, Knowledge (arcana), Knowledge (history), Knowledge (nobility), Knowledge (planes), Knowledge (religion), Linguistics, Profession, Sense Motive, Spellcraft'},
+ Druid:{name:'Druid',hd:8,bab:'3/4',fort:'good',ref:'poor',will:'good',prestige:false,sp:4,
+  skills:'Climb, Craft, Fly, Handle Animal, Heal, Knowledge (geography), Knowledge (nature), Perception, Profession, Ride, Spellcraft, Survival, Swim'},
+ Fighter:{name:'Fighter',hd:10,bab:'full',fort:'good',ref:'poor',will:'poor',prestige:false,sp:2,
+  skills:'Climb, Craft, Handle Animal, Intimidate, Knowledge (dungeoneering), Knowledge (engineering), Profession, Ride, Survival, Swim'},
+ Rogue:{name:'Rogue',hd:8,bab:'3/4',fort:'poor',ref:'good',will:'poor',prestige:false,sp:8,
+  skills:'Acrobatics, Appraise, Bluff, Climb, Craft, Diplomacy, Disable Device, Disguise, Escape Artist, Intimidate, Knowledge (dungeoneering), Knowledge (local), Linguistics, Perception, Perform, Profession, Sense Motive, Sleight of Hand, Stealth, Swim, Use Magic Device'},
+ Sorcerer:{name:'Sorcerer',hd:6,bab:'1/2',fort:'poor',ref:'poor',will:'good',prestige:false,sp:2,
+  skills:'Appraise, Bluff, Craft, Fly, Intimidate, Knowledge (arcana), Profession, Spellcraft, Use Magic Device'},
+ Wizard:{name:'Wizard',hd:6,bab:'1/2',fort:'poor',ref:'poor',will:'good',prestige:false,sp:2,
+  skills:'Appraise, Craft, Fly, Knowledge (all), Linguistics, Profession, Spellcraft'},
+};
+const ORD=['1st','2nd','3rd','4th','5th','6th','7th','8th','9th'];
+const SPL=['Cantrips','1st level','2nd level','3rd level','4th level','5th level','6th level'];
+
+/* bard spells per day and spells known (Core Rulebook tables), by bard level; index = spell level 0–6 */
+const BPD=[null,[0,1],[0,2],[0,3],[0,3,1],[0,4,2],[0,4,3],[0,4,3,1],[0,4,4,2],[0,5,4,3],[0,5,4,3,1],[0,5,4,4,2],[0,5,5,4,3],[0,5,5,4,3,1],[0,5,5,4,4,2],[0,5,5,5,4,3],[0,5,5,5,4,3,1],[0,5,5,5,4,4,2],[0,5,5,5,5,4,3],[0,5,5,5,5,5,4],[0,5,5,5,5,5,5]];
+const BKN=[null,[4,2],[5,3],[6,4],[6,4,2],[6,4,3],[6,4,4],[6,5,4,2],[6,5,4,3],[6,5,4,4],[6,5,5,4,2],[6,6,5,4,3],[6,6,5,4,4],[6,6,5,5,4,2],[6,6,6,5,4,3],[6,6,6,5,4,4],[6,6,6,5,5,4,2],[6,6,6,6,5,4,3],[6,6,6,6,5,4,4],[6,6,6,6,5,5,4],[6,6,6,6,6,5,5]];
+
+/* condition / buff definitions: fx = [target, value, bonusType] */
+const FEAR=()=>[['atk',-2,'fear'],['save',-2,'fear'],['skill',-2,'fear'],['ability',-2,'fear']];
+const CONDS=[
+ {id:'blinded',n:'Blinded',e:'−2 AC, loses Dex to AC, −4 on most Str/Dex skills. Foes have total concealment.',fx:[['ac',-2],['skillStrDex',-4]],fl:['loseDex']},
+ {id:'confused',n:'Confused',e:'Roll d% each round for the action.'},
+ {id:'cowering',n:'Cowering',e:'No actions. −2 AC, loses Dex to AC.',fx:[['ac',-2]],fl:['loseDex']},
+ {id:'dazed',n:'Dazed',e:'Can take no actions. No AC penalty.'},
+ {id:'dazzled',n:'Dazzled',e:'−1 attack and sight-based Perception.',fx:[['atk',-1]]},
+ {id:'deafened',n:'Deafened',e:'−4 initiative, fails sound-based Perception, 20% verbal spell failure. Bardic performance with audible components has a 20% chance to fail.',fx:[['init',-4]]},
+ {id:'entangled',n:'Entangled',e:'Half speed, no run/charge, −2 attack, −4 Dex. Concentration check to cast.',fx:[['atk',-2],['dex',-4,'entangle']],fl:['halfSpeed']},
+ {id:'exhausted',n:'Exhausted',e:'Half speed, no run/charge, −6 Str and Dex.',fx:[['str',-6,'fatigue'],['dex',-6,'fatigue']],fl:['halfSpeed']},
+ {id:'fatigued',n:'Fatigued',e:'No run/charge, −2 Str and Dex.',fx:[['str',-2,'fatigue'],['dex',-2,'fatigue']]},
+ {id:'flatfooted',n:'Flat-footed',e:'Loses Dex to AC and CMD, no attacks of opportunity.',fl:['flatFooted']},
+ {id:'frightened',n:'Frightened',e:'Flees. −2 attack, saves, skills, ability checks.',fx:FEAR()},
+ {id:'grappled',n:'Grappled',e:'Can’t move, −4 Dex, −2 attack and most maneuvers. Concentration check to cast.',fx:[['atk',-2],['dex',-4,'grapple']]},
+ {id:'helpless',n:'Helpless',e:'Dex treated as 0. Open to coup de grace.',fl:['dexZero','loseDex']},
+ {id:'nauseated',n:'Nauseated',e:'Only one move action per turn. Can’t cast or perform.'},
+ {id:'panicked',n:'Panicked',e:'Drops items, flees. −2 saves, skills, ability checks.',fx:[['save',-2,'fear'],['skill',-2,'fear'],['ability',-2,'fear']]},
+ {id:'paralyzed',n:'Paralyzed',e:'Helpless; Str and Dex treated as 0.',fl:['dexZero','strZero','loseDex']},
+ {id:'pinned',n:'Pinned',e:'Loses Dex to AC and takes an extra −4 AC.',fx:[['ac',-4]],fl:['loseDex']},
+ {id:'prone',n:'Prone',e:'−4 melee attack. −4 AC vs melee, +4 AC vs ranged.',fx:[['atkMelee',-4]],fl:['prone']},
+ {id:'shaken',n:'Shaken',e:'−2 attack, saves, skills, ability checks.',fx:FEAR()},
+ {id:'sickened',n:'Sickened',e:'−2 attack, weapon damage, saves, skills, ability checks.',fx:[['atk',-2,'sick'],['dmg',-2,'sick'],['save',-2,'sick'],['skill',-2,'sick'],['ability',-2,'sick']]},
+ {id:'staggered',n:'Staggered',e:'Only one move or standard action per round.'},
+ {id:'stunned',n:'Stunned',e:'Drops items, no actions, −2 AC, loses Dex to AC.',fx:[['ac',-2]],fl:['loseDex']},
+ {id:'spiritspent',n:'Spirit-spent (1 exhaustion)',e:'Mythcarver’s Exalted ability: one point of exhaustion until a long rest. That is a 5th-edition rule; the sheet doesn’t change any numbers for it, so ask the DM how it plays.'},
+];
+const BUFFS=[
+ {id:'courage',n:()=>`Inspire Courage ${sg(icBonus())}`,e:()=>`Bardic performance: ${sg(icBonus())} competence on attack and weapon damage rolls, ${sg(icBonus())} morale on saves against charm and fear.`,fx:()=>[['atk',icBonus(),'competence'],['dmg',icBonus(),'competence']]},
+ {id:'greatness',n:'Inspire Greatness',e:'Bardic performance on himself: 2 bonus Hit Dice (2d10 + Con as temp HP), +2 competence on attacks, +1 competence on Fortitude. Mythcarver adds +5 luck on its melee attacks while he performs it.',fx:[['atk',2,'competence'],['fort',1,'competence']]},
+ {id:'heroics',n:'Inspire Heroics',e:'Bardic performance on himself: +4 morale on saving throws, +4 dodge to AC.',fx:[['save',4,'morale'],['acDodge',4,'dodge']]},
+ {id:'haste',n:'Haste',e:'+1 attack, +1 dodge AC and Reflex, +30 ft. speed, extra attack on a full attack.',fx:[['atk',1,'haste'],['acDodge',1,'dodge'],['ref',1,'dodge'],['speed',30,'enh']]},
+ {id:'heroism',n:'Heroism',e:'+2 morale on attacks, saves, skill checks.',fx:[['atk',2,'morale'],['save',2,'morale'],['skill',2,'morale']]},
+ {id:'gheroism',n:'Greater Heroism',e:'+4 morale on attacks, saves, skill checks; immune to fear; temp HP equal to caster level (max 20).',fx:[['atk',4,'morale'],['save',4,'morale'],['skill',4,'morale']]},
+ {id:'goodhope',n:'Good Hope',e:'+2 morale on attacks, saves, ability checks, skill checks, weapon damage.',fx:[['atk',2,'morale'],['save',2,'morale'],['skill',2,'morale'],['dmg',2,'morale'],['ability',2,'morale']]},
+ {id:'catsgrace',n:'Cat’s Grace',e:'+4 enhancement to Dex. (Doesn’t stack with the belt’s +2.)',fx:[['dex',4,'enh']]},
+ {id:'eagles',n:'Eagle’s Splendor',e:'+4 enhancement to Cha: raises spell DCs, performance rounds and every Cha skill.',fx:[['cha',4,'enh']]},
+ {id:'invisible',n:'Invisible',e:'+2 attack vs sighted foes; they lose Dex to AC against him.',fx:[['atk',2,'invis']]},
+ {id:'pbs',n:'Within 30 ft. (Point Blank Shot)',e:'+1 on ranged attack and damage rolls against targets within 30 ft.',fx:[['atkRanged',1,'pbs'],['dmgRanged',1,'pbs']]},
+ {id:'giant',n:'Fighting a giant',e:'Defensive training: +4 dodge bonus to AC against creatures of the giant subtype.',fx:[['acDodge',4,'dodge']]},
+ {id:'flanking',n:'Flanking',e:'+2 melee attack.',fx:[['atkMelee',2,'flank']]},
+ {id:'charging',n:'Charging',e:'+2 attack on the charge, −2 AC until the next turn.',fx:[['atkMelee',2,'charge'],['ac',-2]]},
+ {id:'fightdef',n:'Fighting defensively',e:'−4 attack; +2 dodge AC (+3 with 3+ Acrobatics ranks).',fx:(S)=>[['atk',-4],['acDodge',(+((S.skills.acrobatics||{}).ranks)||0)>=3?3:2,'dodge']]},
+ {id:'bless',n:'Bless',e:'+1 morale on attacks (and saves vs fear).',fx:[['atk',1,'morale']]},
+ {id:'stormward',n:'Storm Ward (harp)',e:'Harp of the Storm is playing: he and the allies he picks within 30 ft. take half damage from lightning.'},
+];
+BUFFS.forEach(b=>b.buff=true);
+const ok=k=>k.replace(/\./g,'_');
+const cname=c=>typeof c.n==='function'?c.n():c.n, cdesc=c=>typeof c.e==='function'?c.e():c.e;
+const ALLC=[...CONDS,...BUFFS];
+
+/* ---------- bard spell list (Core Rulebook, plus the Advanced Player’s Guide spells on his scrolls) ----------
+   [name, short summary at caster level 16, tags]  tags: E = evocation (Spell Focus +1 DC), L = language-dependent or writing/glyph (Magical Linguist +1 DC) */
+const BS={
+ 0:[['Dancing Lights','Up to four lights or one glowing shape, moved within medium range. 1 min.','E'],['Daze','One humanoid of 4 HD or less loses its next action. Will negates.',''],['Detect Magic','Senses magic auras in a 60-ft. cone. Concentration, up to 16 min.',''],['Flare','Burst of light dazzles one creature for 1 minute. Fort negates.','E'],['Ghost Sound','Figment sounds, as loud as 4 humans per caster level (max 40). Will disbelief.',''],['Know Direction','He knows which way is north.',''],['Light','An object shines like a torch for 160 min.','E'],['Lullaby','Creatures in a 10-ft. burst take −5 Perception and −2 Will vs sleep. Will negates.',''],['Mage Hand','Telekinesis of 5 lb. within close range.',''],['Mending','Repairs 1d4 damage to an object.',''],['Message','Whispered conversation at a distance (long range).','L'],['Open/Close','Opens or closes a small or light thing.',''],['Prestidigitation','Minor tricks: clean, soil, chill, warm, flavor. 1 hour.',''],['Read Magic','Reads scrolls and spellbooks. 160 min.','L'],['Resistance','+1 resistance on saves for 1 minute.',''],['Summon Instrument','Summons one handheld instrument for 16 min.','']],
+ 1:[['Alarm','Wards a 20-ft. radius for 32 hours; mental or audible alert.',''],['Animate Rope','Makes a rope move at his command; entangle a target.',''],['Cause Fear','One creature of 5 HD or less is frightened 1d4 rounds (shaken 1 round on a save). Will partial.',''],['Charm Person','One humanoid treats him as a friend for 16 hours. Will negates.',''],['Comprehend Languages','Understands all spoken and written languages. 160 min.','L'],['Confusion, Lesser','One creature is confused for 1 round. Will negates.',''],['Cure Light Wounds','Touch heals 1d8+5.',''],['Detect Secret Doors','Reveals hidden doors within a 60-ft. cone.',''],['Disguise Self','Changes his appearance. 160 min. Will disbelief if interacted with.',''],['Erase','Removes mundane or magical writing.','L'],['Expeditious Retreat','+30 ft. base land speed for 16 min.',''],['Feather Fall','Up to 16 falling creatures fall slowly.',''],['Grease','Makes a 10-ft. square or an object slippery. Reflex or fall.',''],['Hideous Laughter','One creature falls prone laughing for 16 rounds. Will negates.',''],['Hypnotism','Fascinates 2d4 HD of creatures for 2d4 rounds. Will negates.',''],['Identify','+10 on Spellcraft to identify magic items. 3 rounds.',''],['Magic Aura','Alters an object’s magic aura. 16 days.',''],['Magic Mouth','An object speaks a message once when triggered.','L'],['Obscure Object','Masks an object from divination. 8 hours.',''],['Remove Fear','+4 morale vs fear for 16 targets, 10 min; suppresses fear.',''],['Saving Finale','Immediate action when a performance ends: one ally within 30 ft. rerolls a failed save.',''],['Silent Image','Visual figment of up to 20 10-ft. cubes. Concentration. Will disbelief.',''],['Sleep','4 HD of creatures fall asleep for 16 min. Will negates.',''],['Summon Monster I','Summons an extraplanar creature for 16 rounds.',''],['Timely Inspiration','Immediate action: +1 competence on an ally’s failed attack roll or skill check, which may turn it into a success.',''],['Undetectable Alignment','Conceals a creature’s alignment for 24 hours.',''],['Unseen Servant','Invisible force obeys simple commands. 16 hours.',''],['Vanish','As invisibility, but lasts only 1 round per level (max 5 rounds). APG.',''],['Ventriloquism','Throws his voice for 16 min. Will disbelief.','']],
+ 2:[['Alter Self','Small or Medium humanoid form: +2 size bonus to an ability, natural armor. 16 min.',''],['Animal Messenger','A Tiny animal carries a message.',''],['Animal Trance','Fascinates 2d6 HD of animals. Will negates.',''],['Blindness/Deafness','Makes one creature blind or deaf permanently. Fort negates.',''],['Blur','Attacks against the subject have 20% miss chance. 16 min.',''],['Cacophonous Call','One creature is nauseated for 16 rounds. Will negates each round.',''],['Calm Emotions','Calms creatures in a 20-ft. spread, ending morale bonuses and fear. Will negates.',''],['Cat’s Grace','+4 enhancement to Dex for 16 min.',''],['Cure Moderate Wounds','Touch heals 2d8+10.',''],['Darkness','A touched object sheds supernatural darkness, 20-ft. radius, 16 min.','E'],['Daze Monster','A living creature of 6 HD or less loses its next action. Will negates.',''],['Delay Poison','Stops poison from harming the subject for 16 hours.',''],['Detect Thoughts','Hears surface thoughts in a 60-ft. cone. Will negates.',''],['Eagle’s Splendor','+4 enhancement to Cha for 16 min.',''],['Enthrall','Captivates all within 100 ft. + 10 ft./level for up to 1 hour. Will negates.','L'],['Fox’s Cunning','+4 enhancement to Int for 16 min.',''],['Glitterdust','Blinds creatures in a 10-ft. spread and outlines invisible ones for 16 rounds. Will negates the blindness.',''],['Haunting Mists','Fog in a 20-ft. spread: 20% concealment, 1 Wis damage and shaken. Will negates.',''],['Heroism','+2 morale on attacks, saves and skill checks for 160 min.',''],['Hold Person','Paralyzes one humanoid for 16 rounds. Will negates each round.',''],['Hypnotic Pattern','Fascinates 2d4 + 16 HD of creatures. Will negates.',''],['Invisibility','The subject is invisible for 16 min or until it attacks.',''],['Locate Object','Senses the direction toward an object within 1,040 ft.',''],['Minor Image','As silent image, plus some sound.',''],['Mirror Image','Creates 1d4+4 decoy duplicates (max 8) for 16 min.',''],['Misdirection','Misleads divinations for one creature or object. 16 hours.',''],['Pyrotechnics','Turns a fire into blinding light (Will) or choking smoke (Fort).',''],['Rage','+2 Str and Con, +1 Will, −2 AC for allies. Concentration + 16 rounds.',''],['Scare','Creatures of less than 6 HD are frightened for 1d4 rounds. Will partial.',''],['Shatter','Sonic vibration damages objects or crystalline creatures (8d6). Will negates.','E'],['Silence','Negates sound in a 20-ft. radius for 16 rounds. Will negates if targeted on a creature.',''],['Sonic Scream','15-ft. cone of sonic damage, 4d4 (Reflex half), then three more cones on later rounds: 2d4, 2d4, 1d4. 1 round per level. ACG p. 193.','E'],['Sound Burst','1d8 sonic in a 10-ft. spread; stunned 1 round. Fort negates the stun.','E'],['Suggestion','Compels one creature to follow a reasonable course of action. 16 hours. Will negates.','L'],['Summon Monster II','Summons an extraplanar creature for 16 rounds.',''],['Summon Swarm','Summons a swarm of bats, rats or spiders. Concentration + 2 rounds.',''],['Tongues','Speaks and understands any language. 160 min.',''],['Whispering Wind','Sends a short message or sound up to 16 miles.','L']],
+ 3:[['Blink','He blinks back and forth between planes for 16 rounds.',''],['Campfire Wall','A campfire ward: creatures crossing it take 1d6 fire and are outlined; shadows creep away.','E'],['Charm Monster','Makes one monster friendly for 16 days. Will negates.',''],['Clairaudience/Clairvoyance','Hears or sees at a distance for 16 min.',''],['Confusion','Makes creatures in a 15-ft. burst behave randomly for 16 rounds. Will negates.',''],['Crushing Despair','Creatures in a 30-ft. cone take −2 on attacks, damage, saves, skills, ability checks. 16 min. Will negates.',''],['Cure Serious Wounds','Touch heals 3d8+15.',''],['Daylight','60-ft. radius of bright light for 160 min.','E'],['Deep Slumber','Puts 10 HD of creatures to sleep. Will negates.',''],['Dispel Magic','Cancels spells or suppresses magic items: d20 + 16 vs DC 11 + caster level.',''],['Displacement','Attacks miss the subject 50% of the time. 16 rounds.',''],['Fear','Creatures in a 30-ft. cone flee for 16 rounds (shaken 1 round on a save). Will partial.',''],['Gaseous Form','Subject becomes insubstantial and can fly slowly. 32 min.',''],['Geas, Lesser','Commands a creature of 7 HD or less. Will negates.','L'],['Glibness','+20 on Bluff checks to convince, and his lies can escape magical discernment. 160 min.',''],['Good Hope','+2 morale on attacks, damage, saves, skills, ability checks for 16 creatures. 16 min.',''],['Haste','One creature per level: +1 attack, AC, Reflex, +30 ft., extra attack on a full attack. 16 rounds.',''],['Illusory Script','Only intended readers can decipher the writing.','L'],['Invisibility Sphere','Makes everyone within 10 ft. invisible.',''],['Major Image','As silent image, plus sound, smell and thermal effects.',''],['Phantom Steed','A magic horse appears for 16 hours.',''],['Purging Finale','Immediate action when a performance ends: one ally within 30 ft. is freed of confusion, daze, fear, paralysis or stagger.',''],['Remove Curse','Frees an object or person from a curse: d20 + 16 vs the curse DC.',''],['Scrying','Spies on a subject from a distance. Will negates.',''],['Sculpt Sound','Changes the sounds made by 16 creatures or objects.',''],['Secret Page','Changes a page to hide its real content.','L'],['See Invisibility','Reveals invisible creatures and objects for 160 min.',''],['Sepia Snake Sigil','A glyph that paralyzes the first creature to read it. Reflex negates.','L'],['Slow','One creature per level: one action per round, −1 AC, Reflex, attacks. Will negates.',''],['Speak with Animals','Communicates with animals for 16 min.',''],['Summon Monster III','Summons an extraplanar creature for 16 rounds.',''],['Thundering Drums','15-ft. cone of booming drums: 5d8 sonic and knocked prone. Fort half and stays standing. APG p. 249.','E'],['Tiny Hut','Creates a shelter for 10 creatures for 32 hours.','E'],['Triggered Suggestion','One living creature carries a hidden suggestion that fires once when its trigger happens. 1 day per level. Will negates. Material: snake’s tongue and honeycomb.','L']],
+ 4:[['Break Enchantment','Frees subjects from enchantments, transmutations and curses: d20 + 15.',''],['Cure Critical Wounds','Touch heals 4d8+16.',''],['Detect Scrying','Alerts him to magical eavesdropping. 24 hours.',''],['Discordant Blast','Wave of thunder and force in a 10-ft. burst or 30-ft. cone: 3d6 sonic and a bull rush (CMB = caster level + Cha). No save. APG.','E'],['Heroic Finale','When his performance ends, one creature within close range gets an extra move or standard action. APG.',''],['Dimension Door','Teleports him (and touched allies) up to 1,040 ft.',''],['Dominate Person','Controls a humanoid telepathically for 16 days. Will negates.',''],['Freedom of Movement','Subject moves normally despite impediments. 160 min.',''],['Hallucinatory Terrain','Makes one type of terrain look like another. 32 hours.',''],['Hold Monster','As hold person, but any creature. Will negates each round.',''],['Invisibility, Greater','As invisibility, but the subject can attack and stay invisible. 16 rounds.',''],['Legend Lore','Lore about a person, place or thing.',''],['Locate Creature','Indicates the direction to a familiar creature.',''],['Modify Memory','Changes 5 minutes of a subject’s memories. Will negates.',''],['Neutralize Poison','Detoxifies poison in or on the subject: d20 + 16.',''],['Rainbow Pattern','Lights fascinate 24 HD of creatures. Will negates.',''],['Repel Vermin','Insects, spiders and other vermin stay 10 ft. away for 160 min.',''],['Secure Shelter','Creates a sturdy cottage for 32 hours.',''],['Shadow Conjuration','Mimics conjuration below 4th level, 20% real.',''],['Shout','Deafens all within a 30-ft. cone and deals 5d6 sonic. Fort partial.','E'],['Speak with Plants','Talks to plants and plant creatures. 16 min.',''],['Summon Monster IV','Summons an extraplanar creature for 16 rounds.',''],['Zone of Silence','Keeps eavesdroppers from overhearing conversations. 16 hours.','']],
+ 5:[['Cacophonous Call, Mass','One creature per level is nauseated for 1 round per level: it can only move, not attack, cast or concentrate. Will negates. APG.',''],['Deafening Song Bolt','Up to 3 bolts of song at creatures within 30 ft. of each other: ranged touch, 3d10 sonic each and deafened 1d6 rounds. No save. APG.','E'],['Dispel Magic, Greater','As dispel magic, but d20 + 16 (max +20) and area dispels.',''],['Dream','Sends a message to anyone sleeping.','L'],['False Vision','Fools scrying with an illusion. 16 hours.',''],['Heroism, Greater','+4 morale on attacks, saves and skills; immune to fear; 16 temp HP. 16 min.',''],['Cure Light Wounds, Mass','Cures 1d8+16 damage for many creatures within 30 ft.',''],['Mind Fog','Subjects in the fog take −10 on Wisdom checks and Will saves. Will negates.',''],['Mirage Arcana','As hallucinatory terrain, plus structures. Concentration + 16 hours.',''],['Mislead','He turns invisible and an illusory double appears. 16 rounds.',''],['Nightmare','Sends a vision dealing 1d10 damage and fatigue. Will negates.',''],['Persistent Image','As major image, but no concentration required. 16 min.',''],['Seeming','Changes the appearance of one person per two levels. 12 hours.',''],['Shadow Evocation','Mimics evocation below 5th level, 20% real.',''],['Shadow Walk','Steps into shadow to travel rapidly. 16 hours.',''],['Song of Discord','Forces targets in a 20-ft. spread to attack each other. Will negates.',''],['Suggestion, Mass','As suggestion, plus one subject per level (16).','L'],['Summon Monster V','Summons an extraplanar creature for 16 rounds.','']],
+ 6:[['Analyze Dweomer','Reveals the magical aspects of the subject.',''],['Animate Objects','Objects attack his foes. 16 rounds.',''],['Brilliant Inspiration','Immediate action: one ally rolls a d20 twice on skill checks and keeps the better roll. 16 rounds.',''],['Cat’s Grace, Mass','As cat’s grace, 16 subjects.',''],['Charm Monster, Mass','As charm monster, all within 30 ft. Will negates.',''],['Cure Moderate Wounds, Mass','Cures 2d8+16 damage for many creatures.',''],['Eagle’s Splendor, Mass','As eagle’s splendor, 16 subjects.',''],['Eyebite','Target becomes panicked, sickened and comatose. Fort negates.',''],['Find the Path','Shows the most direct way to a location.',''],['Fox’s Cunning, Mass','As fox’s cunning, 16 subjects.',''],['Geas/Quest','As lesser geas, but affects any creature.','L'],['Heroes’ Feast','Food for 16 creatures cures and grants combat bonuses.',''],['Irresistible Dance','Touch: the subject dances for 1d4+1 rounds (1 round on a save): −4 AC, −10 Reflex, no actions but dancing. Will partial.',''],['Permanent Image','Includes sight, sound and smell. Permanent.',''],['Programmed Image','As major image, plus triggered by an event.',''],['Project Image','An illusory double can talk and cast spells. 16 rounds.',''],['Scrying, Greater','As scrying, but faster and longer.',''],['Shout, Greater','Devastating yell deals 10d6 sonic, stuns creatures and damages objects. Fort partial.','E'],['Sonic Form','He becomes incorporeal, semi-solid sound for 1 round per level: melee touch 1d6 + 1 per level sonic. Only magic attacks, magic items and spells affect him; he can’t use nonmagical items. ACG p. 193.',''],['Summon Monster VI','Summons an extraplanar creature for 16 rounds.',''],['Sympathetic Vibration','Deals 2d10 damage per round to a freestanding structure.',''],['Veil','Changes the appearance of a group of creatures. Will negates.','']],
+};
+/* spells that switch on their effect on this sheet when cast (on himself) */
+const SP_BUFF={'Haste':'haste','Heroism':'heroism','Heroism, Greater':'gheroism','Good Hope':'goodhope','Cat’s Grace':'catsgrace','Cat’s Grace, Mass':'catsgrace','Eagle’s Splendor':'eagles','Eagle’s Splendor, Mass':'eagles','Invisibility':'invisible','Invisibility, Greater':'invisible','Vanish':'invisible'};
+const spEntry=n=>{for(const l in BS){const x=BS[l].find(s=>s[0]===n);if(x)return x}return null};
+const spDesc=n=>{const x=spEntry(n);return x?x[1]:''};
+const spTags=n=>{const x=spEntry(n);return x?x[2]:''};
+
+/* ---------- Mythcarver: legendary shortsword, Vestige of Divergence ---------- */
+const VEST={dormant:{n:'Dormant',b:2,lv:0},awakened:{n:'Awakened',b:3,lv:1},exalted:{n:'Exalted',b:4,lv:2}};
+const vestS=()=>VEST[(S.vest||{}).state]||VEST.dormant;
+
+/* ---------- Harp of the Storm: 10 charges, 1d10 back each night; save DCs use his spell DC ---------- */
+/* [key, name, charges, spell level, evocation?, summary] */
+const HARP=[
+ ['burst','Sound Burst',1,2,true,'As the spell: every creature in a 10-ft. burst takes 1d8 sonic and must make a Fortitude save or be stunned for 1 round.'],
+ ['step','Thunder Step',3,3,false,'He teleports up to 90 ft. to an unoccupied space he can see. A thunderous boom (heard 300 ft. away) hits each creature within 10 ft. of where he left: 3d10 thunder, Fortitude half.'],
+ ['call','Call Lightning',4,3,true,'As the spell: a 5-ft.-wide, 30-ft.-tall bolt strikes a spot within 120 ft. for 3d8 lightning, Reflex half. He can call 5 bolts in all, one per action.'],
+ ['bolt','Lightning Bolt',1,3,true,'As the spell: a 120-ft. line of lightning, 4d6 for one charge and +1d6 for each extra charge spent (up to 10 charges, 13d6), Reflex half.'],
+];
+
+/* ---------- default state: Namfoodle’s paper sheet ---------- */
+const sk=(r,m=0,sub='')=>({ranks:r,misc:m,sub});
+const DEFAULT={
+ v:2, levelLog:[],
+ acItems:[{name:'Ring of Protection +4',slot:'Ring',type:'deflection',bonus:4,on:true}],
+ potions:[{name:'Cure Moderate Wounds (party bag)',dice:'2d8',bonus:3,qty:1},{name:'Cure Light Wounds (party bag)',dice:'1d8',bonus:1,qty:4}],
+ otherPotions:[{name:'Water Breathing',qty:3,effect:'Breathe water freely for 10 hours (CL 5). Can still breathe air.',clr:''},{name:'Remove Blindness/Deafness',qty:1,effect:'Cures blindness or deafness (pick one), magical or mundane.',clr:'blinded,deafened'},{name:'Lesser Restoration',qty:1,effect:'Ends magical ability penalties, heals 1d4 ability damage to one ability, ends fatigue, and turns exhaustion into fatigue.',clr:'fatigued'},{name:'Neutralize Poison',qty:1,effect:'Removes one poison from him: d20 + 7 against the poison’s DC. Also immune to it for 70 minutes.',clr:''},{name:'Remove Curse',qty:1,effect:'Removes one curse: d20 + 5 against the curse’s DC.',clr:''}],
+ info:{name:'Namfoodle Nackle',nick:'Noodle',player:'',race:'Gnome',alignment:'Neutral Good',deity:'',size:'Small',gender:'',age:'',height:'3′4″',weight:'39 lb.',hair:'Long straight light brown hair, goatee',eyes:'Green',speed:20,
+  languages:'Common, Gnome, Sylvan, Draconic, Elven, Goblin, Dwarven, Orc, Giant, Abyssal, Celestial, Infernal, Gnoll, Terran, Undercommon, Ignan, Aquan, Auran, Halfling, Ancient Draconic, Ancient Common',
+  xp:'',campaign:'Realm of Tal’Dorei · The Belhaim Saviors',homeland:'Issylra'},
+ classes:[Object.assign({preset:'Bard',level:16},PRESETS.Bard)],
+ fcbHp:0, fcbSkill:0,
+ ab:{str:{base:10,temp:0},dex:{base:18,temp:0},con:{base:13,temp:0},int:{base:15,temp:0},wis:{base:14,temp:0},cha:{base:24,temp:0}},
+ hp:{mode:'manual',max:118,cur:118,temp:0,nl:0,misc:0,conAdj:0},
+ ac:{natural:0,deflection:0,dodge:1,misc:0},
+ armor:{name:'+1 Mithril Chain Shirt',bonus:5,maxDex:6,acp:0,fail:10,wt:6.25,speed:0},
+ shield:{name:'',bonus:0,acp:0,fail:0,wt:0},
+ init:{misc:0}, speedMisc:0,
+ saves:{fort:{magic:0,misc:2,temp:0},ref:{magic:0,misc:0,temp:0},will:{magic:0,misc:0,temp:0}},
+ saveNotes:'Well-Versed: +4 on saves against bardic performance, sonic effects and language-dependent effects.\nMagical Linguist: +2 on saves against spells and effects that use symbols, glyphs or magical writing (and spells with the language-dependent descriptor).\n+5 vs poison (from the paper sheet; source not written down).\nInspire Courage adds its morale bonus on saves against charm and fear.\nGreat Fortitude: +2 Fortitude (in Misc).',
+ resist:'Acid 10 (Ring of Acid Resistance)', dr:'', sr:'',
+ cmbAbil:'dex', cmbMisc:0, cmdMisc:0,
+ skills:{acrobatics:sk(1),appraise:sk(1),bluff:sk(1,1),diplomacy:sk(1,1),disable:sk(10),disguise:sk(1),escape:sk(5),intimidate:sk(1),
+  kArc:sk(10),kDun:sk(1),kEng:sk(1),kGeo:sk(1),kHis:sk(5),kLoc:sk(1),kNob:sk(1),kPla:sk(1),kRel:sk(1),
+  linguistics:sk(8),perception:sk(15,2),perform1:sk(16,0,'strings'),perform2:sk(2,0,'sing'),perform3:sk(3,0,'dance'),perform4:sk(2,0,'percussion'),
+  sense:sk(1),sleight:sk(4),spellcraft:sk(14),stealth:sk(10),swim:sk(1),umd:sk(10)},
+ versatile:['strings','sing','dance','percussion'],
+ attacks:[
+  {id:'myth',name:'Mythcarver',vest:true,kind:'melee',abil:'dex',enh:0,misc:0,dice:'1d4',dmgAbil:'str',dmgMisc:0,extra:'',crit:'19–20/×2',range:'',type:'P',uses:0,notes:'Silvered shortsword, Weapon Finesse. Bonus and force damage follow the vestige state on the Treasures tab. Paper sheet: 22/17/12, d4+5+d6.',
+   desc:'Legendary shortsword, Vestige of Divergence. Once wielded by the White Duke and many master bards before him. It resonates with nearby musical tones.'},
+  {id:'xbow',name:'+1 Flaming Burst Light Crossbow',kind:'ranged',abil:'dex',enh:1,misc:0,dice:'1d4',dmgAbil:'none',dmgMisc:0,extra:'+1d6 fire',crit:'19–20/×2 (+1d10 fire)',range:'30 ft.',type:'P',uses:0,
+   notes:'Rapid Reload makes reloading a free action, so he gets every iterative attack. Point Blank Shot: +1 attack and damage within 30 ft. (toggle on the Conditions tab). Paper sheet: 19/14/9, d4+1+d6.',desc:'Bolts and screaming bolts on the paper sheet. On a critical hit, flaming burst adds +1d10 fire.'},
+  {id:'whip',name:'+1 Dagger Whip',kind:'melee',abil:'dex',enh:1,misc:0,dice:'1d3',dmgAbil:'str',dmgMisc:0,extra:'',crit:'19–20/×2',range:'reach 5–15 ft.',type:'P/S',uses:0,
+   notes:'+2 CMB to disarm, can trip. Reach 5–15 ft. Paper sheet: 19/14/9, d3+1.',desc:''},
+  {id:'dagger',name:'Masterwork Dagger',kind:'melee',abil:'dex',enh:0,misc:1,dice:'1d3',dmgAbil:'str',dmgMisc:0,extra:'',crit:'19–20/×2',range:'10 ft.',type:'P/S',uses:0,
+   notes:'Masterwork +1 to hit. Paper sheet: 18/13/8 (the masterwork +1 seems left out there).',desc:''},
+ ],
+ atkNotes:'Weapon Finesse: Dex on attack rolls with light weapons, rapiers and whips. Agile Maneuvers: Dex on CMB.\nPaper sheet: melee and ranged 18/13/8, CMB 15, CMD 33.',
+ feats:[
+  {name:'Weapon Finesse',desc:'Use Dex instead of Str on attack rolls with light weapons, rapiers, whips and spiked chains. (1st)'},
+  {name:'Dodge',desc:'+1 dodge bonus to AC. (3rd)'},
+  {name:'Agile Maneuvers',desc:'Use Dex instead of Str for CMB. (5th)'},
+  {name:'Great Fortitude',desc:'+2 on Fortitude saves. (7th)'},
+  {name:'Lingering Performance',desc:'The bonuses and penalties of his bardic performance continue for 2 rounds after he stops performing. Starting a new performance in that time ends the old effect. (9th)'},
+  {name:'Point Blank Shot',desc:'+1 on ranged attack and damage rolls against targets within 30 ft. (11th)'},
+  {name:'Rapid Reload',desc:'Reloading the crossbow is a free action. (13th)'},
+  {name:'Spell Focus (evocation)',desc:'+1 to the save DC of evocation spells. (15th)'},
+ ],
+ profs:'Bard: simple weapons, longsword, rapier, sap, shortsword, short bow, whip. Light armor and shields; casts bard spells in light armor without arcane spell failure.',
+ talents:[
+  {name:'Use Magic Device',desc:'Scrolls: DC 20 + the scroll’s caster level. Wands: DC 20. Activate an item blindly: DC 25. A natural 1 when activating means he can’t try that item again for 24 hours.',uses:0},
+ ],
+ racial:[
+  {name:'Small',desc:'+1 size bonus to AC and attack rolls, −1 CMB and CMD, +4 Stealth, +2 Fly. Base speed 20 ft.',uses:0},
+  {name:'Low-Light Vision',desc:'Sees twice as far as a human in dim light.',uses:0},
+  {name:'Keen Senses',desc:'+2 Perception (in skill Misc).',uses:0},
+  {name:'Obsessive',desc:'+2 on one Craft or Profession skill.',uses:0},
+  {name:'Defensive Training',desc:'+4 dodge bonus to AC against the giant subtype. Toggle “Fighting a giant” on the Conditions tab.',uses:0},
+  {name:'Magical Linguist',desc:'+1 to the DC of spells with the language-dependent descriptor, or that create glyphs, symbols or other magical writing. +2 on saves against such spells. Spell-like abilities, 1/day each: arcane mark, comprehend languages, message, read magic.',uses:0},
+  {name:'Gift of Tongues',desc:'+1 on Bluff and Diplomacy (in skill Misc). Learns one extra language for every rank in Linguistics.',uses:0},
+ ],
+ ov:{}, known:{0:['Detect Magic','Ghost Sound','Mage Hand','Open/Close','Prestidigitation','Resistance'],1:['Cure Light Wounds','Erase','Grease','Identify','Remove Fear','Vanish'],2:['Cat’s Grace','Locate Object','Mirror Image','Shatter','Silence','Sonic Scream'],3:['Deep Slumber','Good Hope','Haste','Thundering Drums','Triggered Suggestion','Tiny Hut'],4:['Break Enchantment','Hold Monster','Invisibility, Greater','Shout','Discordant Blast'],5:['Dispel Magic, Greater','Song of Discord','Deafening Song Bolt','Cacophonous Call, Mass'],6:['Irresistible Dance','Shout, Greater','Sonic Form']},
+ /* his paper sheet: 8/8/7/6/5/4 spells per day and 6/6/6/6/5/4/3 known, more than the bard tables give at Cha 24 */
+ cast:{}, spx:{1:1,2:1,4:1,5:1,6:2}, knx:{3:1,6:1}, cone:false,
+ perf:{cur:'',linger:0,lingerOf:'',self:{greatness:true,heroics:true},ghp:0},
+ vest:{state:'exalted'},
+ harp:{ch:10,bolts:0},
+ brooch:87,
+ mitems:[{name:'Belt of Incredible Dexterity +2',slot:'Belt',target:'dex',bonus:2,type:'enh',on:true},{name:'Circlet of Persuasion',slot:'Head',target:'skillCha',bonus:3,type:'competence',on:true}],
+ charged:[
+  {name:'Wand of Magic Missile (CL 3)',ch:37,notes:'2 missiles, 1d4+1 force each, 130 ft. Never misses.'},
+  {name:'Wand of Magic Missile (CL 7)',ch:11,notes:'4 missiles, 1d4+1 force each, 170 ft.'},
+  {name:'Wand of Shocking Grasp (CL 2)',ch:'',notes:'Melee touch, 2d6 electricity, +3 to hit against metal armor. Charges aren’t on the paper sheet.'},
+  {name:'Wand of Web (CL 3)',ch:35,notes:'20-ft.-radius spread, 130 ft., Reflex DC 17.'},
+  {name:'Wand of Fireball (CL 12)',ch:4,notes:'12d6 fire, 20-ft. radius, Reflex DC 19 half (paper sheet). The charges read “4/5”.'},
+  {name:'Wand of Cure Serious Wounds, “Good Girl”',ch:38,notes:'Heals 3d8+10 (paper sheet).'},
+ ],
+ scrolls:[
+  {name:'Permanency',cls:'Wizard',lvl:5,cl:9,qty:1},{name:'Glitterdust',cls:'Bard',lvl:2,cl:4,qty:2},{name:'Campfire Wall',cls:'Bard',lvl:3,cl:7,qty:1},
+  {name:'Excruciating Deformation',cls:'Wizard',lvl:3,cl:5,qty:1},{name:'Magic Circle against Chaos',cls:'Wizard',lvl:3,cl:5,qty:1},{name:'Haunting Mists',cls:'Bard',lvl:2,cl:4,qty:1},
+  {name:'Marionette Possession',cls:'Wizard',lvl:3,cl:5,qty:1},{name:'Plane Shift',cls:'Wizard',lvl:7,cl:13,qty:1},
+ ],
+ used:{hero:0}, cond:{}, neg:0,
+ gear:[
+  {item:'Handy Haversack',desc:'Coins live in the right pouch.',loc:'Back',wt:5},
+  {item:'Explorer’s Outfit',desc:'',loc:'Body',wt:2},
+  {item:'+1 Mithril Chain Shirt',desc:'Armor +5, max Dex +6, no check penalty.',loc:'Body',wt:6.25},
+  {item:'Belt pouches, locked ×2',desc:'',loc:'Belt',wt:0.25},
+  {item:'Mandolin',desc:'',loc:'Shoulder',wt:2},
+  {item:'Mythcarver',desc:'Legendary shortsword, Vestige of Divergence. Treasures tab.',loc:'Hip',wt:2},
+  {item:'Harp of the Storm',desc:'Two hands to play. 10 charges. Treasures tab.',loc:'',wt:0},
+  {item:'+1 Flaming Burst Light Crossbow',desc:'Bolts and screaming bolts.',loc:'',wt:2},
+  {item:'+1 Dagger Whip',desc:'',loc:'',wt:2},
+  {item:'Masterwork Dagger',desc:'',loc:'',wt:1},
+  {item:'Cape of the Mountebank',desc:'Dimension door 1/day. Treasures tab.',loc:'Shoulders',wt:1},
+  {item:'Ring of Protection +4',desc:'Deflection (AC items table).',loc:'Right hand',wt:0},
+  {item:'Ring of Feather Fall',desc:'Activates when he falls more than 5 ft.',loc:'Left hand',wt:0},
+  {item:'Ring of Acid Resistance',desc:'Acid resistance 10.',loc:'Left hand',wt:0},
+  {item:'Circlet of Persuasion',desc:'+3 competence on Cha-based checks.',loc:'Head',wt:0},
+  {item:'Brooch of Shielding',desc:'Absorbs magic missiles. Treasures tab.',loc:'Cape brooch',wt:0},
+  {item:'Belt of Incredible Dexterity +2',desc:'Silver buckle shaped like a tiger.',loc:'Waist',wt:1},
+  {item:'Boots of Spider Climbing',desc:'As spider climb: climb speed 20 ft. on walls and ceilings.',loc:'Feet',wt:1},
+  {item:'Earring of Whisper',desc:'Acts as the message cantrip.',loc:'Left ear',wt:0},
+  {item:'Glove of Blasting',desc:'Scorching ray 1/day.',loc:'Hand',wt:0},
+  {item:'Cone of Clarity',desc:'+2 DC on spells with a verbal component. Swift action to use.',loc:'Belt',wt:0},
+  {item:'Amulet of Endure Elements',desc:'',loc:'Neck',wt:0},
+  {item:'Force Lute',desc:'Pale-ash lute with strings of blue magical force. Repelling Strum; Acoustic Sphere 1/day. Treasures tab.',loc:'',wt:0},
+  {item:'Flute',desc:'1/day: heals everyone within 30 ft. 1d10 + Cha. 1/week: tree stride.',loc:'',wt:0},
+  {item:'Singing Dawn Blade',desc:'',loc:'',wt:0},
+  {item:'Message string to Maffei',desc:'Acts as sending to Maffei.',loc:'',wt:0},
+  {item:'Emon Council Badge',desc:'',loc:'',wt:0},
+  {item:'Winter clothes',desc:'',loc:'',wt:0},
+  {item:'Gems',desc:'Emeralds (40 gp ×2, 70 gp), obsidian (50 gp, 10 gp).',loc:'Pouch',wt:0},
+ ],
+ coins:{pp:10,gp:49,sp:26,cp:0}, bank:'730 gp at Brittan & Sons Money Lenders, Belhaim',
+ bag:[
+  {item:'Mithril scroll case',desc:'Holds the scrolls on the Spells tab.',wt:0},
+  {item:'Magical amulets, Cult of Remnants',desc:'',wt:8},
+  {item:'Cask of black powder',desc:'',wt:0},
+  {item:'Fire crown of fireballs',desc:'From the drider.',wt:4},
+  {item:'Aero automaton & manual',desc:'Full body, with gem.',wt:0},
+  {item:'Beads of Sustenance',desc:'',wt:40},
+  {item:'Whispered One / Vecna diary books',desc:'',wt:0},
+  {item:'Trail rations, 50 days',desc:'',wt:0},
+  {item:'Elven wine, 1 bottle',desc:'',wt:0},
+  {item:'200 ft. rope, pitons, snowshoes, trail rations (11 days)',desc:'',wt:0},
+ ],
+ treasure:'Coins: 5,548 pp · 35,433 gp · 18,389 sp · 6,609 cp\nGems: assorted bag (1,120 gp); aquamarine (600 gp), garnet (100 gp), coral (120 gp), topaz (500 gp), jet (120 gp), onyx (20 gp), red spinel (100 gp), pearl (60 gp), rose quartz (80 gp), pearl (90 gp)\nBag of diamonds: 50 gp ×2, 500 gp ×2, 3,000 gp ×2\nBank in Belhaim: Brittan & Sons Money Lenders',
+ notes:'',
+ traits:'Bold, confident, inquisitive, obsessed with exploring ancient sites. Likes to perform, entertain and party.',
+ history:'World of Exandria, realm of Tal’Dorei. Born in Issylra.\nTraveled to Vasselheim to study at the Bardic College.\nDislikes intelligent reptiles; hates lizardfolk.\nLeft his homeland at a young age with wanderlust, focused on exploring ancient runes full of secrets from the past, and languages.\nStudent of the Alabaster Lyceum (magic arts).\nMember of the Cobalt Reserve.\nMember of the Golden Grin (contact: Dr.).',
+ art:null
+};
+
+/* ---------- state + helpers ---------- */
+const clone=o=>JSON.parse(JSON.stringify(o));
+function merge(d,s){ if(Array.isArray(d)||typeof d!=='object'||d===null) return s===undefined?d:s;
+  const o={...d}; if(s&&typeof s==='object'&&!Array.isArray(s)) for(const k in s) o[k]=(k in d)?merge(d[k],s[k]):s[k]; return o; }
+let S=clone(DEFAULT);
+const n=v=>{const x=parseFloat(v);return isFinite(x)?x:0};
+const sg=v=>(v>=0?'+':'−')+Math.abs(v);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function getP(p){return p.split('.').reduce((o,k)=>o==null?o:o[k],S)}
+function setP(p,v){const ks=p.split('.');let o=S;for(let i=0;i<ks.length-1;i++){if(o[ks[i]]==null)o[ks[i]]={};o=o[ks[i]]}o[ks.at(-1)]=v}
+const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}}};
+const dice=(c,s)=>{let t=0;for(let i=0;i<c;i++)t+=1+Math.floor(Math.random()*s);return t};
+
+/* input builders */
+const num=(p,o={})=>`<input type="number" id="i-${p.replace(/\W/g,'_')}" data-p="${p}" value="${esc(getP(p))}" ${o.step?`step="${o.step}"`:''} ${o.w?`style="width:${o.w}"`:''} ${o.ph?`placeholder="${esc(o.ph)}"`:''} aria-label="${esc(o.label||p)}"${o.rr?' data-rr':''}>`;
+const txt=(p,o={})=>`<input type="text" id="i-${p.replace(/\W/g,'_')}" data-p="${p}" value="${esc(getP(p))}" placeholder="${esc(o.ph||'')}" ${o.cls?`class="${o.cls}"`:''} ${o.w?`style="width:${o.w}"`:''} aria-label="${esc(o.label||o.ph||p)}"${o.rr?' data-rr':''}>`;
+const area=(p,o={})=>`<textarea id="i-${p.replace(/\W/g,'_')}" data-p="${p}" rows="${o.rows||3}" placeholder="${esc(o.ph||'')}" aria-label="${esc(o.label||p)}">${esc(getP(p))}</textarea>`;
+const sel=(p,opts,o={})=>`<select id="i-${p.replace(/\W/g,'_')}" data-p="${p}"${o.rr?' data-rr':''} aria-label="${esc(o.label||p)}">${opts.map(x=>{const [v,l]=Array.isArray(x)?x:[x,x];return `<option value="${esc(v)}"${String(getP(p))===String(v)?' selected':''}>${esc(l)}</option>`}).join('')}</select>`;
+const out=(k,cls='')=>`<span data-o="${k}"${cls?` class="${cls}"`:''}></span>`;
+const field=(label,html)=>`<label class="field"><span class="lbl">${label}</span>${html}</label>`;
+
+/* ---------- rules engine ---------- */
+function agg(list){
+  const by={};list.forEach(e=>(by[e.t]=by[e.t]||[]).push(e));
+  const out={};
+  for(const t in by){let tot=0;const pos={},neg={};
+    for(const e of by[t]){const ty=e.ty||'untyped';
+      if(e.v>=0){ if(ty==='untyped'||ty==='dodge'||ty==='circumstance') tot+=e.v; else pos[ty]=Math.max(pos[ty]||0,e.v); }
+      else { if(ty==='untyped') tot+=e.v; else neg[ty]=Math.min(neg[ty]||0,e.v); } }
+    for(const k in pos) tot+=pos[k]; for(const k in neg) tot+=neg[k]; out[t]=tot;}
+  return out;
+}
+function gather(map,neg){
+  const list=[],flags={},active=[];
+  for(const c of ALLC){ if(!map||!map[c.id]) continue;
+    active.push(c); const fx=typeof c.fx==='function'?c.fx(S):(c.fx||[]);
+    fx.forEach(([t,v,ty])=>list.push({t,v,ty})); (c.fl||[]).forEach(f=>flags[f]=true); }
+  if(map)(S.mitems||[]).forEach(x=>{if(x.on&&n(x.bonus)&&x.target)list.push({t:x.target,v:n(x.bonus),ty:x.type||'untyped'})});
+  neg=Math.max(0,Math.floor(n(neg)));
+  if(neg) ['atk','save','skill','ability','cmd'].forEach(t=>list.push({t,v:-neg}));
+  const tot=agg(list);
+  return {g:t=>tot[t]||0,tot,flags,active,neg};
+}
+const babFor=(p,l)=>p==='full'?l:p==='1/2'?Math.floor(l/2):Math.floor(l*3/4);
+const saveFor=(t,l,pr)=>t==='good'?(pr?Math.floor((l+1)/2):2+Math.floor(l/2)):(pr?Math.floor((l+1)/3):Math.floor(l/3));
+function levels(){const by={};let total=0;for(const c of S.classes){const l=Math.max(0,Math.floor(n(c.level)));total+=l;by[c.preset]=(by[c.preset]||0)+l}return{total,by,bard:by.Bard||0}}
+function classSkillSet(){const s=new Set();S.classes.forEach(c=>String(c.skills||'').split(',').forEach(x=>{x=x.trim().toLowerCase();if(x)s.add(x)}));return s}
+const famOf=s=>s.n.toLowerCase();
+/* Jack-of-All-Trades at bard 16: every skill is a class skill */
+const isCS=(s,cs)=>levels().bard>=16||cs.has(famOf(s))||(/^knowledge/i.test(s.n)&&cs.has('knowledge (all)'));
+function conMod(){return Math.floor((n(S.ab.con.base)+n(S.ab.con.temp)-10)/2)}
+const avgHD=hd=>hd/2+1;
+function hpBase(){
+  if(S.hp.mode!=='auto')return n(S.hp.max);
+  const con=conMod();let tot=0,first=true;
+  S.classes.forEach(c=>{const hd=Math.max(1,n(c.hd)||8),l=Math.max(0,Math.floor(n(c.level)));for(let i=0;i<l;i++){tot+=Math.max(1,(first?hd:avgHD(hd))+con);first=false}});
+  return tot+n(S.fcbHp)+n(S.hp.misc);
+}
+const AC_TYPES=[['natural','Natural armor'],['deflection','Deflection'],['armor','Armor'],['shield','Shield'],['dodge','Dodge'],['insight','Insight'],['luck','Luck'],['sacred','Sacred'],['profane','Profane']];
+const AC_SLOTS=['Neck','Ring','Wrists','Body','Shoulders','Head','Headband','Eyes','Belt','Hands','Feet','Slotless'];
+function acItemBonuses(){const o={};(S.acItems||[]).forEach(x=>{if(!x.on)return;const v=n(x.bonus),t=x.type;if(!t||!v)return;o[t]=t==='dodge'?(o[t]||0)+v:Math.max(o[t]||0,v)});return o}
+
+/* spell slots: bard table, plus bonus spells for a high Charisma (only at levels he can already cast) */
+const bLv=b=>Math.max(0,Math.min(20,b));
+const slotsBase=(L,b)=>{const r=BPD[bLv(b)];return r?(r[L]||0):0};
+const knownBase=(L,b)=>{const r=BKN[bLv(b)];return r?(r[L]||0):0};
+const bonusSp=(L,mod)=>L<1||mod<L?0:Math.floor((mod-L)/4)+1;
+function slotInfo(L,C){const b=levels().bard,base=slotsBase(L,b),bo=base?bonusSp(L,C.ab.cha.mod):0,x=n((S.spx||{})[L]);return{base,bonus:bo,extra:x,total:L?Math.max(0,base+bo+x):0,known:Math.max(0,knownBase(L,b)+n((S.knx||{})[L]))}}
+const castOf=L=>Math.max(0,Math.floor(n((S.cast||{})[L])));
+/* save DC for a spell: 10 + level + Cha, Spell Focus (evocation) +1, Magical Linguist +1, Cone of Clarity +2 on verbal spells while it’s in use */
+function spDC(L,tags,C){const cha=(C||compute(true)).ab.cha.mod;tags=tags||'';
+  return 10+L+cha+(tags.includes('E')&&hasFeat(/spell focus.*evoc/i)?1:0)+(tags.includes('L')?1:0)+(S.cone?2:0)}
+const hasFeat=re=>(S.feats||[]).some(x=>re.test(x.name||''));
+
+/* ---------- bardic performance ---------- */
+const icBonus=()=>{const b=levels().bard;return b<1?0:1+(b>=5)+(b>=11)+(b>=17)};
+const compBonus=()=>{const b=levels().bard;return b<3?0:2+Math.floor((b-3)/4)};
+const perfDC=C=>10+Math.floor(levels().bard/2)+C.ab.cha.mod;
+function perfMax(C){const b=levels().bard;if(b<1)return 0;const o=(S.ov||{}).perf;if(o&&String(o.uses??'').trim()!=='')return Math.max(0,Math.floor(n(o.uses)));return Math.max(0,4+C.ab.cha.mod+2*(b-1))}
+const perfLeft=C=>Math.max(0,perfMax(C)-n(S.used.perf));
+const performTotal=(sub,C)=>{const k=['perform1','perform2','perform3','perform4'].find(k=>String((S.skills[k]||{}).sub||'').toLowerCase().startsWith(sub));return k?C.O['sk.'+k].n:null};
+/* each performance: what it does at his level, and whether it changes his own numbers */
+const PERF=[
+ {id:'countersong',n:'Countersong',lvl:1,kind:'Audible',e:C=>`Counters magical attacks that depend on sound (not language-dependent effects) within 30 ft. Each ally in range, himself included, may use his Perform check result instead of their saving throw. Uses Perform (keyboard, percussion, wind, string or sing).`,k:C=>[['Perform (strings)',sg(performTotal('string',C)??0)],['Range','30 ft.']]},
+ {id:'distraction',n:'Distraction',lvl:1,kind:'Visual',e:C=>`Counters magic that depends on sight (illusion patterns and figments) within 30 ft. Allies use his Perform check result instead of their save. Uses Perform (act, comedy, dance or oratory).`,k:C=>[['Perform (dance)',sg(performTotal('dance',C)??0)],['Range','30 ft.']]},
+ {id:'fascinate',n:'Fascinate',lvl:1,kind:'Audible + visual',e:C=>`Up to ${1+Math.floor((levels().bard-1)/3)} creatures within 90 ft. that can see and hear him must make a Will save or sit fascinated while he plays: −4 on skill checks made as reactions. Any obvious threat breaks it.`,k:C=>[['Will DC',perfDC(C)],['Targets',1+Math.floor((levels().bard-1)/3)],['Range','90 ft.']]},
+ {id:'courage',n:'Inspire Courage',lvl:1,kind:'Audible',self:'courage',e:C=>`Allies within 30 ft. who hear him, himself included: ${sg(icBonus())} competence on attack and weapon damage rolls, ${sg(icBonus())} morale on saves against charm and fear.`,k:C=>[['Bonus',sg(icBonus())],['Range','30 ft.']]},
+ {id:'competence',n:'Inspire Competence',lvl:3,kind:'Audible',e:C=>`One ally within 30 ft. gets ${sg(compBonus())} competence on checks with one skill while he keeps performing (the DM may limit how long). He can’t use it on himself.`,k:C=>[['Bonus',sg(compBonus())],['Range','30 ft.']]},
+ {id:'suggestion',n:'Suggestion',lvl:6,kind:'Audible',free:true,e:C=>`A creature he has already fascinated gets a <i>suggestion</i> (as the spell). It doesn’t break the fascinate or cost extra rounds, but takes a standard action. Will save negates; language-dependent, mind-affecting.`,k:C=>[['Will DC',perfDC(C)],['Needs','Fascinate first']]},
+ {id:'dirge',n:'Dirge of Doom',lvl:8,kind:'Audible + visual',e:C=>`Enemies within 30 ft. are shaken (−2 attack, saves, skills, ability checks) while they can hear him and stay in range. No save. Fear, mind-affecting; doesn’t stack with other shaken effects.${vestS().lv>=1?' <b>Mythcarver (awakened):</b> pick one creature in range: it rolls its next saving throw twice and takes the lower, even if it is immune to mind-affecting fear.':''}`,k:C=>[['Range','30 ft.'],['Save','none']]},
+ {id:'greatness',n:'Inspire Greatness',lvl:9,kind:'Audible',self:'greatness',e:C=>`Up to ${1+Math.floor((levels().bard-9)/3)} willing creatures within 30 ft., himself included: 2 bonus Hit Dice (d10s, Con applies, so 2d10 ${sg(2*C.ab.con.mod)} temp HP), +2 competence on attacks, +1 competence on Fortitude. <b>Mythcarver:</b> while he performs this, his melee attacks with the blade get +5 luck.`,k:C=>[['Targets',1+Math.floor((levels().bard-9)/3)],['Range','30 ft.']]},
+ {id:'soothing',n:'Soothing Performance',lvl:12,kind:'Audible',cost:4,e:C=>`Takes 4 rounds of performance: as <i>mass cure serious wounds</i> (3d8 + ${Math.min(35,levels().bard)}) on every creature within 30 ft. that hears it, and removes fatigued, sickened and shaken.`,k:C=>[['Heals',`3d8 + ${Math.min(35,levels().bard)}`],['Cost','4 rounds']]},
+ {id:'frightening',n:'Frightening Tune',lvl:14,kind:'Audible',e:C=>`Enemies within 30 ft. that hear him make a Will save or become frightened and flee while they can hear the performance. A creature that saves is immune for 24 hours. Fear, mind-affecting.`,k:C=>[['Will DC',perfDC(C)],['Range','30 ft.']]},
+ {id:'heroics',n:'Inspire Heroics',lvl:15,kind:'Audible + visual',self:'heroics',e:C=>`Up to ${1+Math.floor((levels().bard-15)/3)} creature(s) within 30 ft., himself included: +4 morale on saving throws and +4 dodge bonus to AC while they can see and hear him.`,k:C=>[['Targets',1+Math.floor((levels().bard-15)/3)],['Range','30 ft.']]},
+ {id:'masssugg',n:'Mass Suggestion',lvl:18,kind:'Audible',free:true,e:C=>`As Suggestion, on any number of creatures he has fascinated. Will save negates.`,k:C=>[['Will DC',perfDC(C)]]},
+ {id:'deadly',n:'Deadly Performance',lvl:20,kind:'Audible + visual',e:C=>`One enemy within 30 ft. that can see and hear him for a full round must make a Will save or die (on a success it is staggered for 1d4 rounds and immune for 24 hours).`,k:C=>[['Will DC',perfDC(C)]]},
+];
+const perfDef=id=>PERF.find(p=>p.id===id);
+const lingerOn=id=>n(S.perf.linger)>0&&S.perf.lingerOf===id;
+const perfActive=id=>S.perf.cur===id||lingerOn(id);
+const lingers=()=>hasFeat(/lingering performance/i);
+
+/* ---------- versatile performance: a Perform type stands in for two skills ---------- */
+const VP={act:['bluff','disguise'],comedy:['bluff','intimidate'],dance:['acrobatics','fly'],keyboard:['diplomacy','intimidate'],oratory:['diplomacy','sense'],percussion:['handle','intimidate'],sing:['bluff','sense'],string:['bluff','diplomacy'],wind:['diplomacy','handle']};
+const vpKey=s=>{s=String(s||'').toLowerCase().trim();return Object.keys(VP).find(k=>s.startsWith(k))||''};
+const vpMax=()=>{const b=levels().bard;return b<2?0:1+Math.floor((b-2)/4)};
+
+function abModNow(a){return compute(true).ab[a].mod}
+
+function compute(useC){
+  const O={};const put=(k,v,signed,t)=>{O[k]={n:v,t:t!=null?t:(signed?sg(v):String(v))}};
+  const M=useC?gather(S.cond,S.neg):gather(null,0);
+  const L=levels();
+  const ab={};
+  for(const a of ABIL){const s=S.ab[a]||{};let sc=n(s.base)+n(s.temp)+M.g(a);
+    if(a==='dex'&&M.flags.dexZero)sc=0; if(a==='str'&&M.flags.strZero)sc=0; sc=Math.max(0,sc);
+    const mod=Math.floor((sc-10)/2);ab[a]={sc,mod};put(`ab.${a}.sc`,sc);put(`ab.${a}.mod`,mod,true);}
+  let si=SIZES.indexOf(S.info.size);if(si<0)si=4;
+  const szA=SZ_ATK[si];put('size',szA,true);put('sizeName',si,false,SIZES[si]);
+  let bab=0;const base={fort:0,ref:0,will:0};
+  S.classes.forEach(c=>{const l=Math.max(0,Math.floor(n(c.level)));bab+=babFor(c.bab,l);
+    ['fort','ref','will'].forEach(s=>base[s]+=saveFor(c[s],l,!!c.prestige))});
+  put('bab',bab,true);
+  const iter=[];for(let b=bab,i=0;i<4&&(i===0||b>=1);i++,b-=5)iter.push(b);
+  put('bab.iter',bab,false,iter.map(sg).join('/'));
+  put('lvl',L.total);
+  // AC
+  const IT=acItemBonuses();
+  const armorB=Math.max(n(S.armor.bonus),IT.armor||0), shieldB=Math.max(n(S.shield.bonus),IT.shield||0);
+  const natT=n(S.ac.natural)+(IT.natural||0)+M.g('acNat'),defT=n(S.ac.deflection)+(IT.deflection||0),othT=(IT.insight||0)+(IT.luck||0)+(IT.sacred||0)+(IT.profane||0);
+  const md=String(S.armor.maxDex).trim()===''?99:n(S.armor.maxDex);
+  const dexAC=Math.min(ab.dex.mod,md);
+  const lose=M.flags.loseDex||M.flags.flatFooted;
+  const dexUse=lose?Math.min(0,dexAC):dexAC;
+  const dodge=lose?0:n(S.ac.dodge)+M.g('acDodge')+(IT.dodge||0);
+  const condAC=M.g('ac');
+  const common=szA+defT+othT+n(S.ac.misc)+condAC;
+  const ac=10+armorB+shieldB+dexUse+natT+dodge+common;
+  const touch=10+dexUse+dodge+common;
+  const ff=10+armorB+shieldB+Math.min(0,dexAC)+natT+common;
+  put('ac.total',ac);put('ac.touch',touch);put('ac.ff',ff);
+  put('ac.armor',armorB,true);put('ac.shield',shieldB,true);put('ac.dex',dexUse,true);put('ac.dexRaw',ab.dex.mod,true);put('ac.dodgeT',dodge,true);put('ac.nat',natT,true);put('ac.defl',defT,true);put('ac.oth',othT+n(S.ac.misc),true);put('ac.cond',condAC,true);
+  put('ac.vsMelee',ac-(M.flags.prone?4:0));put('ac.vsRanged',ac+(M.flags.prone?4:0));
+  // init, speed
+  put('init',ab.dex.mod+n(S.init.misc)+M.g('init'),true);
+  const armSpd=n(S.armor.speed);
+  let spd=(armSpd>0?Math.min(armSpd,n(S.info.speed)):n(S.info.speed))+n(S.speedMisc)+M.g('speed');if(M.flags.halfSpeed)spd=Math.floor(spd/2/5)*5;
+  put('speed',spd,false,spd+' ft.');put('speed.land',spd,false,spd+' ft.');
+  // saves
+  const svA={fort:'con',ref:'dex',will:'wis'};const sv={};
+  for(const s of ['fort','ref','will']){const x=S.saves[s];const cond=M.g('save')+M.g(s);
+    const t=base[s]+ab[svA[s]].mod+n(x.magic)+n(x.misc)+n(x.temp)+cond;sv[s]=t;
+    put(`sv.${s}`,t,true);put(`sv.${s}.base`,base[s],true);put(`sv.${s}.ab`,ab[svA[s]].mod,true);put(`sv.${s}.cond`,cond,true);}
+  // CMB/CMD
+  const cmbAb=ab[S.cmbAbil==='dex'?'dex':'str'].mod;
+  put('cmb',bab+cmbAb-szA+n(S.cmbMisc)+M.g('atk')+M.g('cmb'),true);
+  put('cmd',10+bab+ab.str.mod+dexUse+dodge-szA+defT+othT+n(S.cmdMisc)+M.g('cmd'));
+  // HP
+  const hpAdj=(ab.con.mod-conMod())*L.total; put('hp.adj',hpAdj,true);
+  const hpMax=hpBase()+hpAdj-5*M.neg; put('hp.max',hpMax); put('hp.cur',Math.min(n(S.hp.cur),hpMax));
+  put('hp.why',0,false,hpAdj||M.neg?`${hpBase()} base${hpAdj?` ${sg(hpAdj)} from Con`:''}${M.neg?` −${5*M.neg} negative levels`:''}`:'');
+  put('hp.extra',0,false,[n(S.hp.temp)?`+${n(S.hp.temp)} temp`:'',n(S.hp.nl)?`${n(S.hp.nl)} nonlethal`:''].filter(Boolean).join(' · '));
+  // skills
+  const cs=classSkillSet(); const acp=-Math.abs(n(S.armor.acp))-Math.abs(n(S.shield.acp));
+  const bk=L.bard?Math.max(1,Math.floor(L.bard/2)):0;   // Bardic Knowledge
+  let spent=0;
+  for(const s of SKILLS){const x=S.skills[s.k]||{};const r=n(x.ranks);spent+=r;
+    const isC=isCS(s,cs)||!!x.csx; const cb=isC&&r>0?3:0; const am=ab[s.a].mod;
+    let other=(s.acp?acp:0)+M.g('skill')+M.g('sk.'+s.k)+((s.a==='str'||s.a==='dex')?M.g('skillStrDex'):0)+(s.a==='cha'?M.g('skillCha'):0)+(s.kn?bk:0);
+    if(s.k==='stealth')other+=SZ_STL[si]; if(s.k==='fly')other+=SZ_FLY[si];
+    const t=r+cb+am+n(x.misc)+other;
+    /* Bardic Knowledge covers Knowledge untrained; Jack-of-All-Trades (10th) covers every skill */
+    const untr=s.tr&&r<=0&&!(s.kn&&L.bard)&&L.bard<10;
+    put(`sk.${s.k}`,t,true,untr?'—':sg(t)); put(`sk.${s.k}.ab`,am,true); put(`sk.${s.k}.cb`,cb,false,cb?'+3':'—'); put(`sk.${s.k}.oth`,other,true);
+    O[`sk.${s.k}`].cs=isC;}
+  /* versatile performance: the Perform total can replace the skill */
+  const vChosen=(S.versatile||[]).slice(0,vpMax()).map(vpKey).filter(Boolean);
+  for(const s of SKILLS){let best=null;
+    ['perform1','perform2','perform3','perform4'].forEach(pk=>{const ty=vpKey((S.skills[pk]||{}).sub);if(!ty||!vChosen.includes(ty)||!VP[ty].includes(s.k))return;
+      const v=O['sk.'+pk].n;if(best===null||v>best.v)best={v,ty:(S.skills[pk]||{}).sub}});
+    if(best)put(`sk.${s.k}.vp`,best.v,false,best.v>O[`sk.${s.k}`].n?`or ${sg(best.v)} via Perform (${best.ty})`:`Perform (${best.ty}) ${sg(best.v)}`);
+    else put(`sk.${s.k}.vp`,0,false,'');}
+  const intMod=Math.floor((n(S.ab.int.base)+n(S.ab.int.temp)-10)/2);
+  const avail=S.classes.reduce((a,c)=>a+Math.max(1,n(c.sp)+intMod)*Math.max(0,Math.floor(n(c.level))),0)+n(S.fcbSkill);
+  put('sk.spent',spent);put('sk.avail',avail);
+  // attacks
+  const V=vestS(),gr=perfActive('greatness');
+  const atkCalc=a=>{const am=ab[a.abil==='str'?'str':'dex'].mod;
+    const vb=a.vest?V.b:0, luck=a.vest&&gr&&a.kind==='melee'?5:0;
+    const hit=bab+am+szA+n(a.enh)+vb+luck+n(a.misc)+M.g('atk')+(a.kind==='melee'?M.g('atkMelee'):M.g('atkRanged'));
+    const dmA=String(a.dmgAbil||'str');let da=0;
+    if(dmA!=='none'){const sm=dmA.startsWith('dex')?ab.dex.mod:ab.str.mod;const mul=/15$/.test(dmA)?1.5:/05$/.test(dmA)?0.5:1;da=sm>0?Math.floor(sm*mul):sm;}
+    const db=n(a.enh)+vb+n(a.dmgMisc)+da+M.g('dmg')+(a.kind==='melee'?M.g('dmgMelee'):M.g('dmgRanged'));
+    const extra=[a.vest&&V.lv>=1?'+1d6 force':'',a.extra?String(a.extra).trim():''].filter(Boolean).join(' ');
+    return {hit,db,luck,dmg:`${a.dice||'—'}${db?sg(db):''}${extra?' '+extra:''}`};};
+  S.attacks.forEach((a,i)=>{const r=atkCalc(a);
+    const its=[];for(let b=r.hit,k=0;k<4&&(k===0||bab-5*k>=1);k++,b-=5)its.push(b);
+    put(`atk.${i}.hit`,r.hit,true,its.map(sg).join('/')); put(`atk.${i}.dmg`,r.db,false,r.dmg); put(`atk.${i}.luck`,r.luck);});
+  // bard numbers
+  const b=L.bard,cha=ab.cha.mod;
+  put('cl',b);put('conc',b+cha,true);
+  for(let l=0;l<=6;l++){put(`dc.${l}`,10+l+cha+(S.cone?2:0));}
+  put('spatk.melee',bab+Math.max(ab.str.mod,hasFeat(/weapon finesse/i)?ab.dex.mod:-99)+szA+M.g('atk')+M.g('atkMelee'),true);
+  put('spatk.ranged',bab+ab.dex.mod+szA+M.g('atk')+M.g('atkRanged'),true);
+  put('perf.dc',10+Math.floor(b/2)+cha);put('perf.max',perfMax({ab}));put('bk',bk,true);
+  return {O,M,L,ab,bab,lose,acp,si,base};
+}
+
+/* ---------- class abilities (auto) ---------- */
+const loreUses=b=>b>=17?3:b>=11?2:b>=5?1:0;
+function autoAbilities(L){
+  const A=[];const add=(cls,lvl,name,ty,ds,o={})=>A.push(Object.assign({cls,lvl,name,ty,ds},o));
+  const b=L.bard;
+  if(b>=1){
+    add('Bard',1,'Spells','',`Casts arcane spells from the bard list without preparing them, up to his spells per day. Caster level ${out('cl')}. Save DC 10 + spell level + Cha. Concentration ${out('conc')}. Light armor doesn’t cause spell failure. See the Spells tab.`);
+    add('Bard',1,'Cantrips','','Knows a number of 0-level spells and casts them at will.');
+    add('Bard',1,'Bardic Knowledge','Ex',`+${Math.max(1,Math.floor(b/2))} (half his bard level) on all Knowledge checks, and can make every Knowledge check untrained. Already in the skill totals.`);
+    add('Bard',1,'Bardic Performance','',`<b>${out('perf.max')}</b> rounds per day (4 + Cha + 2 per level after 1st). Starting one is a ${b>=13?'swift':b>=7?'move':'standard'} action; keeping it going is free. See the Performance tab.`,{key:'perf'});
+    add('Bard',1,'Countersong, Distraction, Fascinate, Inspire Courage','Su','Performances. See the Performance tab.');}
+  if(b>=2){add('Bard',2,'Versatile Performance','Ex',`Uses his bonus in a Perform skill in place of two other skills (${vpMax()} type${vpMax()>1?'s':''} chosen: ${(S.versatile||[]).slice(0,vpMax()).map(esc).join(', ')||'none'}). Shown on the Skills tab.`);
+    add('Bard',2,'Well-Versed','Ex','+4 on saves against bardic performance, sonic effects and language-dependent effects.');}
+  if(b>=3)add('Bard',3,'Inspire Competence','Su',`${sg(compBonus())} competence on one ally’s skill checks. See the Performance tab.`);
+  if(b>=5)add('Bard',5,'Lore Master','Ex',`Can take 10 on any Knowledge check he has ranks in. ${loreUses(b)}/day, he can take 20 on a Knowledge check as a standard action.`,{key:'lore',uses:loreUses(b)});
+  if(b>=6)add('Bard',6,'Suggestion','Sp','Plants a suggestion in a fascinated creature. See the Performance tab.');
+  if(b>=8)add('Bard',8,'Dirge of Doom','Su','Enemies within 30 ft. are shaken. See the Performance tab.');
+  if(b>=9)add('Bard',9,'Inspire Greatness','Su','Bonus Hit Dice, +2 attack, +1 Fortitude. See the Performance tab.');
+  if(b>=10)add('Bard',10,'Jack-of-All-Trades','Ex',b>=16?'Uses any skill untrained, and every skill counts as a class skill (16th). Already in the skill totals.':'Uses any skill untrained.');
+  if(b>=12)add('Bard',12,'Soothing Performance','Su','Mass cure serious wounds from 4 rounds of performance. See the Performance tab.');
+  if(b>=14)add('Bard',14,'Frightening Tune','Sp','Enemies within 30 ft. become frightened. See the Performance tab.');
+  if(b>=15)add('Bard',15,'Inspire Heroics','Su','+4 morale on saves, +4 dodge AC. See the Performance tab.');
+  if(b>=18)add('Bard',18,'Mass Suggestion','Sp','Suggestion on every fascinated creature.');
+  if(b>=19)add('Bard',19,'Jack-of-All-Trades (take 10)','Ex','Can take 10 on any skill check, even when it normally isn’t allowed.');
+  if(b>=20)add('Bard',20,'Deadly Performance','Su','One enemy within 30 ft. saves or dies.');
+  A.forEach(a=>{a.key=a.key||('ab.'+a.name.replace(/\W+/g,''));a.base=a.uses;const o=(S.ov||{})[ok(a.key)];
+    if(a.uses&&o&&String(o.uses??'').trim()!=='')a.uses=Math.max(0,Math.floor(n(o.uses)));});
+  return A.sort((a,b)=>a.lvl-b.lvl);
+}
+
+/* ---------- rendering ---------- */
+const TABS=[['overview','Overview'],['skills','Skills'],['saves','Saving Throws'],['attacks','Attacks'],['spells','Spells'],['perform','Performance'],['treasures','Treasures'],['abilities','Class Abilities'],['conditions','Conditions'],['gear','Gear & Notes']];
+let tab=(()=>{const h=(location.hash||'').slice(1);if(TABS.some(t=>t[0]===h))return h;const s=ls.get('namfoodle-tab');return TABS.some(t=>t[0]===s)?s:'overview'})();
+
+function renderTabs(){
+  const nc=Object.values(S.cond).filter(Boolean).length+(n(S.neg)>0?1:0);
+  document.getElementById('tabs').innerHTML=TABS.map(([k,l])=>`<button class="tab" role="tab" data-act="tab" data-t="${k}" aria-selected="${k===tab}">${l}${k==='conditions'&&nc?`<span class="dot">${nc}</span>`:''}${k==='perform'&&S.perf.cur?' ♪':''}</button>`).join('')+`<span class="status" id="status">${esc(statusText)}</span>`;
+}
+/* keep current HP in step with Con changes */
+function syncConHP(){const a=compute(true).O['hp.adj'].n,prev=n(S.hp.conAdj);if(a===prev)return;
+  S.hp.cur=n(S.hp.cur)+(a-prev);S.hp.conAdj=a;hpLog(a>prev?`Con up: +${a-prev} HP`:`Con back down: −${prev-a} HP`);}
+const hpMaxNow=()=>compute(true).O['hp.max'].n;
+function render(){
+  syncConHP();
+  document.getElementById('f-name').value=S.info.name||'';
+  renderTabs();
+  const P={overview:pOverview,skills:pSkills,saves:pSaves,attacks:pAttacks,spells:pSpells,perform:pPerform,treasures:pTreasures,abilities:pAbilities,conditions:pConditions,gear:pGear}[tab];
+  const pg=document.getElementById('page');const openD=[...pg.querySelectorAll('details[id][open]')].map(d=>d.id);
+  pg.innerHTML=P();openD.forEach(id=>{const d=document.getElementById(id);if(d)d.open=true});
+  renderArt(); refresh();
+}
+
+function pOverview(){
+  const cls=S.classes.map((c,i)=>`<tr>
+    <td class="l">${sel(`classes.${i}.preset`,[...Object.keys(PRESETS),'Custom'],{rr:1,label:'Class preset'})}</td>
+    <td class="l">${txt(`classes.${i}.name`,{w:'9em',label:'Class name'})}</td>
+    <td>${num(`classes.${i}.level`,{rr:1,label:'Level'})}</td>
+    <td>d${num(`classes.${i}.hd`,{w:'3.2em',label:'Hit die'})}</td>
+    <td>${sel(`classes.${i}.bab`,[['full','Full'],['3/4','¾'],['1/2','½']],{label:'BAB progression'})}</td>
+    <td>${sel(`classes.${i}.fort`,['good','poor'],{label:'Fort'})}</td><td>${sel(`classes.${i}.ref`,['good','poor'],{label:'Ref'})}</td><td>${sel(`classes.${i}.will`,['good','poor'],{label:'Will'})}</td>
+    <td><input type="checkbox" class="cs" data-p="classes.${i}.prestige" ${S.classes[i].prestige?'checked':''} aria-label="Prestige class"></td>
+    <td>${num(`classes.${i}.sp`,{w:'3.2em',label:'Skill points per level'})}</td>
+    <td><button class="btn x" data-act="delClass" data-i="${i}" aria-label="Remove class">✕</button></td></tr>
+    <tr><td colspan="11" class="l" style="border-top:0;padding-top:0">${txt(`classes.${i}.skills`,{w:'100%',label:'Class skills',ph:'Class skills, comma separated'})}</td></tr>`).join('');
+  return `<div class="cols">
+   <section class="panel"><header><h2>Ability Scores</h2><span class="muted">Adj covers permanent changes; worn items are on the Gear tab</span></header>
+    <div class="scroll"><table class="abtbl"><thead><tr><th class="l">Ability</th><th>Base</th><th>Adj</th><th>Score</th><th>Mod</th></tr></thead><tbody>
+    ${ABIL.map(a=>`<tr><td title="${ABN[a]}">${a.toUpperCase()}</td><td>${num(`ab.${a}.base`,{label:ABN[a]+' base'})}</td><td>${num(`ab.${a}.temp`,{label:ABN[a]+' adjustment'})}</td><td class="tot">${out(`ab.${a}.sc`)}</td><td><span class="mod" data-o="ab.${a}.mod"></span></td></tr>`).join('')}
+    </tbody></table></div>
+    <p class="note">Dex 18 base; the Belt of Incredible Dexterity +2 brings it to 20 (+5), as on his paper sheet.</p></section>
+   <section class="panel"><header><h2>Hit Points</h2></header>
+    ${field('Max HP comes from',sel('hp.mode',[['manual','The number I enter'],['auto','Classes (average HP per level)']],{label:'HP mode'}))}
+    ${S.hp.mode==='auto'?`<p class="note">1st level: max hit die. Later levels: average (d8 = 5). Plus Con ${sg(conMod())} per level and ${n(S.fcbHp)} favored-class HP.</p>`:''}
+    <div class="grid2"><div class="field"><span class="lbl">Max HP</span><b style="font-size:1.3rem" data-o="hp.max"></b><small class="muted" data-o="hp.why"></small></div>${S.hp.mode==='auto'?`<div class="field"><span class="lbl">Base max HP</span><b>${hpBase()}</b></div>${field('Bonus HP',num('hp.misc',{rr:1,label:'Bonus HP'}))}`:field('Base max HP',num('hp.max',{label:'Base max HP'}))}${field('Current HP',num('hp.cur',{label:'Current HP'}))}${field('Temp HP',num('hp.temp',{label:'Temp HP'}))}${field('Nonlethal',num('hp.nl',{label:'Nonlethal'}))}</div>
+    <div class="hpctl"><input type="number" id="hpamt" value="" placeholder="amt" aria-label="Amount"><button class="btn" data-act="dmg">Damage</button><button class="btn" data-act="heal">Heal</button><button class="btn" data-act="full">Long rest (+${restHeal()} HP)</button></div>
+    ${(S.hpLog||[]).length?`<div class="hplog"><span class="lbl">Recent</span>${S.hpLog.slice(-6).reverse().map(e=>`<div><span>${esc(e.txt)}</span><b>${e.cur} HP</b></div>`).join('')}<button class="btn x" data-act="clearLog">Clear log</button></div>`:''}
+    <p class="note">Long rest heals level + Con modifier (${levels().total} + ${conMod()}), clears nonlethal damage, resets spell slots, performance rounds and daily items, and gives the Harp of the Storm 1d10 charges back. Damage uses temp HP first. Acid damage: his ring stops the first 10 of each hit.</p>
+    <div class="row"><span class="lbl">Hero points spent</span>${pips('hero',3)}<small class="muted">${3-Math.min(3,n(S.used.hero))} of 3 left</small></div>
+   </section>
+   <section class="panel"><header><h2>Armor Class</h2></header>
+    <div class="big3"><div><span class="lbl">AC</span><div class="v" data-o="ac.total"></div></div><div><span class="lbl">Touch</span><div class="v" data-o="ac.touch"></div></div><div><span class="lbl">Flat-footed</span><div class="v" data-o="ac.ff"></div></div></div>
+    <div class="formula">10 + armor <b data-o="ac.armor"></b> + shield <b data-o="ac.shield"></b> + Dex <b data-o="ac.dex"></b> + natural <b data-o="ac.nat"></b> + deflection <b data-o="ac.defl"></b> + dodge <b data-o="ac.dodgeT"></b> + size <b data-o="size"></b> + other <b data-o="ac.oth"></b> + conditions <b data-o="ac.cond"></b></div>
+    <div class="grid2">${field('Extra natural',num('ac.natural'))}${field('Extra deflection',num('ac.deflection'))}${field('Dodge',num('ac.dodge'))}${field('Misc',num('ac.misc'))}</div>
+    <p class="note">Paper sheet: AC 26, touch 21, flat-footed 20 (27 / 22 against giants). Turn on “Fighting a giant” on the Conditions tab for the +4 dodge bonus. Armor and rings are on the Gear tab. ${S.cond.prone?`Prone: AC <b data-o="ac.vsMelee"></b> vs melee, <b data-o="ac.vsRanged"></b> vs ranged.`:''}</p>
+   </section>
+   <section class="panel"><header><h2>Combat</h2></header>
+    <div class="kv">
+     <label>Base attack</label><b data-o="bab.iter"></b>
+     <label>Initiative</label><span><b data-o="init"></b> &nbsp;<span class="muted">misc</span> ${num('init.misc',{label:'Initiative misc'})}</span>
+     <label>CMB</label><span><b data-o="cmb"></b> &nbsp;${sel('cmbAbil',[['str','uses Str'],['dex','uses Dex (Agile Maneuvers)']],{label:'CMB ability'})} ${num('cmbMisc',{label:'CMB misc'})}</span>
+     <label>CMD</label><span><b data-o="cmd"></b> &nbsp;<span class="muted">misc</span> ${num('cmdMisc',{label:'CMD misc'})}</span>
+     <label>Land speed</label><span><b data-o="speed.land"></b> &nbsp;<span class="muted">base</span> ${num('info.speed',{label:'Base speed'})} <span class="muted">bonus</span> ${num('speedMisc',{label:'Speed bonus'})}</span>
+     <label>Climb</label><span>20 ft. with the Boots of Spider Climbing</span>
+     <label>Size</label><span>${sel('info.size',SIZES,{label:'Size'})}</span>
+    </div>
+    <p class="note">The paper sheet lists CMB 15 and CMD 33. By the rules, CMB is BAB + Dex (Agile Maneuvers) − 1 size = <b data-o="cmb"></b>, and CMD is 10 + BAB + Str + Dex + dodge + deflection − size = <b data-o="cmd"></b>.</p></section>
+  </div>
+  <section class="panel"><header><h2>Identity</h2></header>
+   <div class="grid2">
+    ${field('Nickname',txt('info.nick'))}${field('Race',txt('info.race'))}${field('Alignment',txt('info.alignment'))}${field('Deity',txt('info.deity'))}${field('Gender',txt('info.gender'))}
+    ${field('Age',txt('info.age'))}${field('Height',txt('info.height'))}${field('Weight',txt('info.weight'))}${field('Hair',txt('info.hair'))}${field('Eyes',txt('info.eyes'))}
+    ${field('Homeland',txt('info.homeland'))}${field('Campaign',txt('info.campaign'))}${field('Player',txt('info.player'))}${field('Experience',txt('info.xp'))}
+   </div>
+   ${field('Languages',area('info.languages',{rows:2}))}
+   ${field('Personality',area('traits',{rows:2}))}
+  </section>
+  <section class="panel lvlup" id="levelup"><header><h2>Level Up</h2><span class="muted">Character level ${out('lvl')} · adds one level and recalculates BAB, saves, HP, skill ranks, spells and performances</span></header>
+   <div class="row" style="align-items:end">
+    ${field('Class for the new level',`<select id="lu-cls">${S.classes.map((c,i)=>`<option value="row:${i}">${esc(c.name)} ${Math.floor(n(c.level))} → ${Math.floor(n(c.level))+1}</option>`).join('')}<optgroup label="Start a new class">${Object.keys(PRESETS).filter(p=>!S.classes.some(c=>c.preset===p)).map(p=>`<option value="preset:${p}">${p} 1</option>`).join('')}<option value="custom">Custom class 1</option></optgroup></select>`)}
+    ${S.hp.mode==='auto'?'':field('Hit points',`<select id="lu-hp"><option value="avg">Average</option><option value="roll">I rolled…</option><option value="max">Max</option></select>`)}
+    ${S.hp.mode==='auto'?'':field('Roll',`<input type="number" id="lu-roll" min="1" aria-label="Hit die roll" style="width:4.5em">`)}
+    ${field('Favored class bonus',`<select id="lu-fcb"><option value="">None</option><option value="hp">+1 HP</option><option value="skill">+1 skill rank</option></select>`)}
+    <button class="btn pri" data-act="levelUp">Add level ${levels().total+1}</button>
+    ${(S.levelLog||[]).length?`<button class="btn" data-act="undoLevel">Undo last level</button>`:''}
+   </div>
+   ${lastSummary}
+  </section>
+  <section class="panel"><header><h2>Classes &amp; Levels</h2><span class="muted">Pick a preset to fill in hit die, BAB, saves, skill points and class skills</span></header>
+   <div class="scroll"><table><thead><tr><th class="l">Preset</th><th class="l">Name</th><th>Level</th><th>HD</th><th>BAB</th><th>Fort</th><th>Ref</th><th>Will</th><th>Prestige</th><th>Skills/lvl</th><th></th></tr></thead><tbody>${cls}</tbody></table></div>
+   <div class="row"><button class="btn" data-act="addClass">Add class</button><span class="muted"><small>Favored class bonus:</small></span><label class="row"><small>HP</small>${num('fcbHp',{label:'Favored class HP'})}</label><label class="row"><small>Skill ranks</small>${num('fcbSkill',{label:'Favored class skill ranks'})}</label></div>
+  </section>`;
+}
+
+function pSkills(){
+  const C=compute(true);
+  const rows=SKILLS.map(s=>{const x=S.skills[s.k]||{};const csOn=C.O[`sk.${s.k}`].cs;
+    return `<tr><td><input type="checkbox" class="cs" ${csOn?'checked':''} data-p="skills.${s.k}.csx" data-rr ${isCS(s,classSkillSet())?'disabled title="Class skill"':'title="Mark as an extra class skill (e.g. from a trait)"'} aria-label="Class skill"></td>
+     <td>${esc(s.n)}${s.tr?'<span class="muted">*</span>':''}${s.sub?` ${txt(`skills.${s.k}.sub`,{cls:'sub',ph:'type',label:s.n+' type',rr:1})}`:''} <span class="vers" data-o="sk.${s.k}.vp"></span></td>
+     <td class="muted">${s.a.toUpperCase()}</td>
+     <td class="tot${s.tr&&!(n(x.ranks)>0)&&C.L.bard<10&&!(s.kn&&C.L.bard)?' untr':''}" data-o="sk.${s.k}"></td><td class="op">=</td>
+     <td data-o="sk.${s.k}.ab"></td><td class="op">+</td>
+     <td>${num(`skills.${s.k}.ranks`,{w:'3.6em',label:s.n+' ranks',rr:1})}</td><td class="op">+</td>
+     <td data-o="sk.${s.k}.cb"></td><td class="op">+</td>
+     <td>${num(`skills.${s.k}.misc`,{w:'3.6em',label:s.n+' misc'})}</td><td class="op">+</td>
+     <td data-o="sk.${s.k}.oth"></td></tr>`}).join('');
+  const vm=vpMax();
+  return `<section class="panel"><header><h2>Skills</h2>
+    <span class="counter">Ranks spent <b id="spent" data-o="sk.spent"></b> of <b data-o="sk.avail"></b> · max ${out('lvl')} per skill</span></header>
+   <div class="scroll"><table class="skilltbl"><thead><tr><th>Class</th><th class="l">Skill</th><th>Key</th><th>Total</th><th></th><th>Ability</th><th></th><th>Ranks</th><th></th><th>Class</th><th></th><th>Misc</th><th></th><th title="Armor check penalty, size, Bardic Knowledge, the circlet and conditions">Other</th></tr></thead><tbody>${rows}</tbody></table></div>
+   <p class="note">“Other” holds size (+4 Stealth, +2 Fly), Bardic Knowledge (${sg(C.O.bk.n)} on every Knowledge), the Circlet of Persuasion (+3 on Cha-based skills) and conditions. Misc holds Gift of Tongues (+1 Bluff and Diplomacy) and Keen Senses (+2 Perception). Jack-of-All-Trades makes every skill a class skill and lets him use any skill untrained.</p>
+   <p class="note">From the paper sheet: it uses Bardic Knowledge +7 (it’s +8 at bard 16) and doesn’t give Disable Device and Swim the class-skill +3, so those run a little higher here. Perform (dance) and (percussion) were written on the Profession lines. The ranks add up to 129 against 128 available, so one rank is over.</p>
+  </section>
+  <section class="panel"><header><h2>Versatile Performance</h2><span class="muted">${vm} Perform type${vm===1?'':'s'} at bard ${C.L.bard}. Each one stands in for two skills.</span></header>
+   <div class="grid2">${[...Array(vm).keys()].map(i=>field(`Choice ${i+1} (bard ${2+4*i})`,sel(`versatile.${i}`,[['','—'],...Object.keys(VP).map(k=>[k,`${k[0].toUpperCase()+k.slice(1)}: ${VP[k].map(s=>SKILLS.find(x=>x.k===s).n).join(', ')}`])],{rr:1,label:'Versatile performance '+(i+1)}))).join('')}</div>
+   <p class="note">The skill table shows the Perform total next to each covered skill when it’s higher. The match uses the type written next to Perform (strings, sing, dance, percussion…).</p>
+  </section>`;
+}
+
+function pSaves(){
+  const nm={fort:['Fortitude','CON'],ref:['Reflex','DEX'],will:['Will','WIS']};
+  const breakdown=S.classes.map(c=>{const l=Math.floor(n(c.level));return `<tr><td class="l">${esc(c.name)} ${l}</td>${['fort','ref','will'].map(s=>`<td>${sg(saveFor(c[s],l,!!c.prestige))}</td>`).join('')}</tr>`}).join('');
+  return `<section class="panel"><header><h2>Saving Throws</h2></header>
+   <div class="scroll"><table><thead><tr><th class="l">Save</th><th>Total</th><th></th><th>Base</th><th></th><th>Ability</th><th></th><th>Magic</th><th></th><th>Misc</th><th></th><th>Temp</th><th></th><th>Conditions</th></tr></thead><tbody>
+   ${['fort','ref','will'].map(s=>`<tr><td class="l"><b>${nm[s][0]}</b> <span class="muted">(${nm[s][1]})</span></td><td class="tot" data-o="sv.${s}"></td><td class="op">=</td><td data-o="sv.${s}.base"></td><td class="op">+</td><td data-o="sv.${s}.ab"></td><td class="op">+</td><td>${num(`saves.${s}.magic`,{label:nm[s][0]+' magic'})}</td><td class="op">+</td><td>${num(`saves.${s}.misc`,{label:nm[s][0]+' misc'})}</td><td class="op">+</td><td>${num(`saves.${s}.temp`,{label:nm[s][0]+' temp'})}</td><td class="op">+</td><td data-o="sv.${s}.cond"></td></tr>`).join('')}
+   </tbody></table></div>
+   <p class="note">Paper sheet: Fort +8 (Great Fortitude +2 in Misc), Ref +15, Will +12. Performances and conditions update these automatically.</p></section>
+  <div class="cols">
+   <section class="panel"><header><h2>Base Save by Class</h2></header>
+    <div class="scroll"><table><thead><tr><th class="l">Class</th><th>Fort</th><th>Ref</th><th>Will</th></tr></thead><tbody>${breakdown}</tbody></table></div>
+    <p class="note">Well-Versed: +4 vs bardic performance, sonic and language-dependent effects. Magical Linguist: +2 vs symbols, glyphs and magical writing.</p>
+   </section>
+   <section class="panel"><header><h2>Defenses</h2></header>
+    ${field('Resistances',txt('resist'))}<div class="grid2">${field('DR',txt('dr'))}${field('SR',txt('sr'))}</div>
+    ${field('Conditional modifiers',area('saveNotes',{rows:6}))}
+   </section></div>`;
+}
+
+function pAttacks(){
+  const C=compute(true);
+  const rows=S.attacks.map((a,i)=>`<div class="custom weapon">
+    <div class="wtop">
+     <div class="wname">${txt(`attacks.${i}.name`,{cls:'nm',ph:'Weapon',label:'Weapon name'})}<small class="muted">${esc([a.kind==='melee'?'Melee':'Ranged / thrown',a.range,a.type,a.crit?'crit '+a.crit:''].filter(Boolean).join(' · '))}${a.vest?` · <b>${esc(vestS().n)}</b>${C.O[`atk.${i}.luck`].n?' · <b>+5 luck (Inspire Greatness)</b>':''}`:''}</small></div>
+     <div class="wstat"><span class="lbl">Attack</span><b data-o="atk.${i}.hit"></b></div>
+     <div class="wstat"><span class="lbl">Damage</span><b data-o="atk.${i}.dmg"></b></div>
+     <div class="wbtns"><button class="btn x" data-act="mvAtk" data-i="${i}" data-d="-1" aria-label="Move ${esc(a.name)} up"${i===0?' disabled':''}>↑</button><button class="btn x" data-act="mvAtk" data-i="${i}" data-d="1" aria-label="Move ${esc(a.name)} down"${i===S.attacks.length-1?' disabled':''}>↓</button><button class="btn x" data-act="delAtk" data-i="${i}" aria-label="Remove ${esc(a.name)}">✕</button></div>
+    </div>
+    ${rollBox('w'+i,String((C.O[`atk.${i}.hit`]||{}).t||'').split('/'))}
+    ${n(a.uses)?`<div class="row"><span class="lbl">Daily use</span>${pips('atk.'+(a.id||i),n(a.uses))}</div>`:''}
+    ${a.notes?`<p class="muted" style="margin:0;font-size:.9rem">${esc(a.notes)}</p>`:''}
+    <details class="more" id="det-${a.id||i}"><summary>Edit stats &amp; description</summary>
+    <div class="row" style="margin-top:6px">
+     ${field('Kind',sel(`attacks.${i}.kind`,[['melee','Melee'],['ranged','Ranged / thrown']],{rr:1}))}
+     ${field('Attack uses',sel(`attacks.${i}.abil`,[['dex','Dex'],['str','Str']]))}
+     ${a.vest?'':field('Enh.',num(`attacks.${i}.enh`))}${field('Misc atk',num(`attacks.${i}.misc`))}
+     ${field('Dice',txt(`attacks.${i}.dice`,{w:'5em'}))}
+     ${field('Damage ability',sel(`attacks.${i}.dmgAbil`,[['dex','Dex ×1'],['dex05','Dex ×½'],['str','Str ×1'],['str15','Str ×1½'],['str05','Str ×½'],['none','none']]))}
+     ${field('Misc dmg',num(`attacks.${i}.dmgMisc`))}
+     ${field('Extra damage',txt(`attacks.${i}.extra`,{w:'8em',ph:'+1d6 fire'}))}
+     ${field('Critical',txt(`attacks.${i}.crit`,{w:'9em',rr:1}))}${field('Range',txt(`attacks.${i}.range`,{w:'7em',rr:1}))}${field('Type',txt(`attacks.${i}.type`,{w:'3.5em',rr:1}))}
+     ${field('Uses/day',num(`attacks.${i}.uses`,{w:'3.4em',rr:1}))}
+    </div>
+    ${a.vest?'<p class="note">Mythcarver’s bonus (+2 / +3 / +4) and force damage come from its state on the Treasures tab.</p>':''}
+    ${field('Notes',txt(`attacks.${i}.notes`,{w:'100%',label:'Attack notes',rr:1}))}
+    ${field('Description',area(`attacks.${i}.desc`,{rows:3,label:'Weapon description'}))}</details></div>`).join('');
+  const act=C.M.active.filter(c=>c.fx&&(typeof c.fx==='function'||c.fx.some(f=>/atk|dmg|str|dex/.test(f[0]))));
+  return `${act.length?`<p class="note warn">Active effects: ${act.map(c=>esc(cname(c))).join(', ')}. All totals on this tab include them.</p>`:''}
+  <section class="panel"><header><h2>Weapons</h2><span class="muted">Pick which iterative attack, then type your d20 and damage dice.</span>${rollTools()}</header>
+   <div>${rows}</div><div class="row"><button class="btn" data-act="addAtk">Add weapon</button></div></section>
+  ${wandsPanel(C)}
+  <div class="cols">
+   <section class="panel"><header><h2>Attack Bonuses</h2></header>
+    <div class="kv"><label>Base attack</label><b data-o="bab.iter"></b><label>Size modifier</label><b data-o="size"></b><label>Melee touch</label><b data-o="spatk.melee"></b><label>Ranged touch</label><b data-o="spatk.ranged"></b><label>CMB / CMD</label><b><span data-o="cmb"></span> / <span data-o="cmd"></span></b></div>
+   </section>
+   <section class="panel"><header><h2>Attack Notes</h2></header>${area('atkNotes',{rows:4})}${field('Proficiencies',area('profs',{rows:2}))}</section>
+  </div>`;
+}
+function rollTools(){return `<span class="rolltools"><label class="rf">Target AC <input type="number" data-roll="ac" value="${rolls.ac??''}" style="width:4em" aria-label="Target armor class"></label><button class="btn" data-act="clearRolls">Clear rolls</button></span>`}
+function wandsPanel(C){
+  const ch=S.charged||[],umd=C.O['sk.umd'].n;
+  return `<section class="panel"><header><h2>Wands</h2><span class="muted">Use Magic Device ${sg(umd)} vs DC 20 to activate${umd+1>=20?': only a natural 1 fails':''}</span></header>
+   <div class="scroll"><table class="geartbl"><colgroup><col class="c-item"><col style="width:10em"><col class="c-desc"><col style="width:5em"><col class="c-x"></colgroup>
+   <thead><tr><th class="l">Wand</th><th>Charges</th><th class="l">Effect</th><th></th><th></th></tr></thead><tbody>
+   ${ch.map((x,i)=>`<tr><td class="l">${txt(`charged.${i}.name`,{label:'Wand'})}</td>
+     <td><span class="charge"><button class="btn x" data-act="chg" data-i="${i}" data-d="-1" aria-label="Spend a charge">−</button>${num(`charged.${i}.ch`,{w:'3.6em',rr:1,label:'Charges'})}<button class="btn x" data-act="chg" data-i="${i}" data-d="1" aria-label="Add a charge">+</button></span></td>
+     <td class="l">${txt(`charged.${i}.notes`,{label:'Effect'})}</td>
+     <td><button class="btn pri" data-act="chg" data-i="${i}" data-d="-1"${String(x.ch).trim()!==''&&n(x.ch)<1?' disabled':''}>Use</button></td>
+     <td><button class="btn x" data-act="chDel" data-i="${i}" aria-label="Remove">✕</button></td></tr>`).join('')||'<tr><td colspan="5" class="muted">None.</td></tr>'}
+   </tbody></table></div>
+   <div class="row"><button class="btn" data-act="chAdd">Add wand or staff</button></div>
+   <p class="note">Shocking grasp is a melee touch attack (${out('spatk.melee')}). The paper sheet lists the fireball and web DCs as written; wands normally use the minimum DC for their spell.</p>
+  </section>`;
+}
+
+/* ---------- spells: spontaneous bard casting ---------- */
+function knownOf(l){S.known=S.known||{};const a=S.known[l]=Array.isArray(S.known[l])?S.known[l].filter(x=>String(x||'').trim()):[];return a}
+function pSpells(){
+  const C=compute(true),b=C.L.bard,cha=C.ab.cha.mod;
+  const sl=[1,2,3,4,5,6];
+  const tagTxt=t=>(t.includes('E')&&hasFeat(/spell focus.*evoc/i)?' <small class="fxtag" title="Spell Focus (evocation): +1 DC">EVOC +1</small>':'')+(t.includes('L')?' <small class="fxtag" title="Magical Linguist: +1 DC">LANG +1</small>':'');
+  const lvBlock=l=>{const si=slotInfo(l,C),K=knownOf(l),list=BS[l]||[],cap=si.known,lock=!cap,used=castOf(l),left=Math.max(0,si.total-used),full=K.length>=cap;
+    return `<section class="panel splv${lock?' locked':''}" id="spl-${l}"><div class="hd"><h3>${SPL[l]}</h3>
+      <span class="muted">${lock?'not yet':`${K.length} / ${cap} known · ${l?`<b>${left}</b> of ${si.total} slots left today`:'cast at will'}`}</span>
+      <span class="muted">DC <b>${spDC(l,'',C)}</b></span>
+      ${l&&!lock?`<span class="pips" role="group" aria-label="${SPL[l]} slots">${[...Array(Math.min(si.total,20)).keys()].map(i=>`<button class="pip" data-act="slot" data-l="${l}" data-i="${i}" aria-pressed="${i<used}" aria-label="Slot ${i+1}"></button>`).join('')}</span>
+      <label class="rf" style="margin-left:auto">Extra slots ${num(`spx.${l}`,{w:'3.4em',rr:1,label:SPL[l]+' extra slots'})}</label>`:''}
+      ${knownBase(l,b)?`<label class="rf"${l?'':' style="margin-left:auto"'}>Extra known ${num(`knx.${l}`,{w:'3.4em',rr:1,label:SPL[l]+' extra spells known'})}</label>`:''}</div>
+     ${lock?'':`<div class="known">${K.map((nm,i)=>{const t=spTags(nm),bf=SP_BUFF[nm],dsc=spDesc(nm),dc=spDC(l,t,C);
+       return `<div class="prep"><span class="pn">${esc(nm)}${bf?' <small class="fxtag" title="Turns on its effect when cast">★ BUFF</small>':''}${tagTxt(t)}${dc!==spDC(l,'',C)?` <small class="muted">DC ${dc}</small>`:''}</span><span class="pbtns">
+        ${l?`<button class="btn pri" data-act="spCast" data-l="${l}" data-n="${esc(nm)}"${left?'':' disabled'}>Cast</button>`:''}
+        <button class="btn x" data-act="spForget" data-l="${l}" data-i="${i}" aria-label="Remove ${esc(nm)}">✕</button></span>${dsc?`<span class="pd">${esc(dsc)}</span>`:''}</div>`}).join('')||'<span class="muted">No spells known at this level yet. Add them below.</span>'}</div>
+     <div class="row"><input type="text" id="spadd-${l}" list="spl-dl-${l}" placeholder="${full?'All spells known':'Type or pick a spell'}" style="width:min(100%,16em)" aria-label="${SPL[l]} spell to learn"${full?' disabled':''}>
+      <datalist id="spl-dl-${l}">${list.map(x=>`<option value="${esc(x[0])}">`).join('')}</datalist>
+      <button class="btn" data-act="spLearn" data-l="${l}"${full?' disabled':''}>Add known spell</button></div>`}
+     <details class="more" id="det-spl-${l}"><summary>All bard ${l?ORD[l-1]+'-level spells':'cantrips'} (${list.length}) with descriptions</summary>
+      <input type="search" class="spfilter" data-l="${l}" placeholder="Filter by name or effect" aria-label="Filter spells" style="width:min(100%,16em);margin-top:6px">
+      <div class="splist">${list.map(([nm,ds,t])=>`<div class="spr" data-q="${esc((nm+' '+ds).toLowerCase())}"><b>${esc(nm)}${SP_BUFF[nm]?' <small class="fxtag">★ BUFF</small>':''}${tagTxt(t)}</b>${lock||K.includes(nm)?'':`<button class="btn" data-act="spLearnN" data-l="${l}" data-n="${esc(nm)}"${full?' disabled':''}>Know it</button>`}<span class="pd">${esc(ds)}</span></div>`).join('')}</div></details>
+    </section>`};
+  return `<section class="panel"><header><h2>Bard Spellcasting</h2><span class="muted">Caster level ${out('cl')} · Cha ${out('ab.cha.mod')} · Concentration ${out('conc')}</span>
+     <button class="btn" data-act="rest" style="margin-left:auto">New day: refresh slots</button></header>
+   <div class="pstats"><span><b>Save DC</b> 10 + spell level + Cha</span><span><b>Melee touch</b> ${out('spatk.melee')}</span><span><b>Ranged touch</b> ${out('spatk.ranged')}</span><span><b>Spell Focus</b> +1 DC on evocation</span><span><b>Magical Linguist</b> +1 DC on language-dependent spells, glyphs, symbols and writing</span><span><b>Arcane spell failure</b> none in light armor</span></div>
+   <label class="drbox"><input type="checkbox" class="cs" data-p="cone" ${S.cone?'checked':''}> <span><b>Cone of Clarity in use</b> (swift action): +2 DC on spells with a verbal component. Every DC on this tab includes it while this is ticked.</span></label>
+   <div class="scroll"><table class="dctbl"><thead><tr><th class="l">Level</th><th>0</th>${sl.map(l=>`<th>${ORD[l-1]}</th>`).join('')}</tr></thead><tbody>
+    <tr><td class="l">Known</td>${[0,...sl].map(l=>`<td>${slotInfo(l,C).known?`${knownOf(l).length} / ${slotInfo(l,C).known}`:'—'}</td>`).join('')}</tr>
+    <tr><td class="l">Per day</td><td>at will</td>${sl.map(l=>`<td>${slotsBase(l,b)||'—'}</td>`).join('')}</tr>
+    <tr><td class="l">Bonus (Cha)</td><td>—</td>${sl.map(l=>`<td>${slotInfo(l,C).bonus||'—'}</td>`).join('')}</tr>
+    <tr><td class="l">Total</td><td>—</td>${sl.map(l=>`<td class="tot">${slotInfo(l,C).total||'—'}</td>`).join('')}</tr>
+    <tr><td class="l">Left today</td><td>—</td>${sl.map(l=>{const t=slotInfo(l,C).total;return `<td>${t?Math.max(0,t-castOf(l)):'—'}</td>`}).join('')}</tr>
+    <tr><td class="l">Save DC</td>${[0,...sl].map(l=>`<td class="tot">${spDC(l,'',C)}</td>`).join('')}</tr>
+   </tbody></table></div>
+   <p class="note">Bards cast spontaneously: any spell he knows, using a slot of its level. Press Cast on a spell (or tap a slot pip) to spend a slot. ★ spells also switch on their effect for him. His known spells come from his spell sheet. That sheet gives 8/8/7/6/5/4 spells per day and 6/6/6/6/5/4/3 spells known. The bard tables with Cha 24 give 7/7/7/5/4/2 and 6/6/6/5/5/4/2, so the Extra slots and Extra known boxes on each level make up the difference. Clear them to go by the book.</p>
+  </section>
+  ${[0,...sl].map(lvBlock).join('')}
+  ${scrollsPanel(C)}
+  ${dmPanel()}`;
+}
+function scrollsPanel(C){
+  const L=S.scrolls||[],umd=C.O['sk.umd'].n,b=C.L.bard;
+  return `<section class="panel"><header><h2>Scrolls</h2><span class="muted">Mithril scroll case (party Bag of Holding)</span></header>
+   <div class="scroll"><table class="geartbl" style="min-width:720px"><colgroup><col style="width:30%"><col style="width:7.5em"><col style="width:5em"><col style="width:5em"><col style="width:5em"><col><col style="width:5em"><col class="c-x"></colgroup>
+   <thead><tr><th class="l">Spell</th><th class="l">List</th><th>Level</th><th>CL</th><th>Qty</th><th class="l">To read it</th><th></th><th></th></tr></thead><tbody>
+   ${L.map((x,i)=>{const own=/bard/i.test(x.cls),dc=20+n(x.cl);
+     return `<tr class="${n(x.qty)<1?'future':''}"><td class="l">${txt(`scrolls.${i}.name`,{label:'Scroll spell'})}</td><td class="l">${txt(`scrolls.${i}.cls`,{rr:1,label:'Spell list'})}</td><td>${num(`scrolls.${i}.lvl`,{w:'3.4em',rr:1,label:'Spell level'})}</td><td>${num(`scrolls.${i}.cl`,{w:'3.4em',rr:1,label:'Caster level'})}</td><td>${num(`scrolls.${i}.qty`,{w:'3.4em',rr:1,label:'Quantity'})}</td>
+      <td class="l"><small>${own?`On his list: reads it normally${n(x.lvl)>6||!knownBase(n(x.lvl),b)?' (too high a level for him: UMD)':''}`:`Use Magic Device DC <b>${dc}</b> (he has ${sg(umd)}${umd+20<dc?', can’t succeed':umd+1>=dc?', can’t fail except on a 1':`, needs ${dc-umd}+ on the d20`})`}</small></td>
+      <td><button class="btn pri" data-act="scrollUse" data-i="${i}"${n(x.qty)<1?' disabled':''}>Read</button></td>
+      <td><button class="btn x" data-act="scrollDel" data-i="${i}" aria-label="Remove scroll">✕</button></td></tr>`}).join('')||'<tr><td colspan="8" class="muted">No scrolls.</td></tr>'}
+   </tbody></table></div>
+   <div class="row"><button class="btn" data-act="scrollAdd">Add scroll</button></div>
+   <p class="note">A scroll’s caster level is the lowest that can cast it unless the scroll says otherwise (the plane shift is CL 13 per the paper sheet). Bard scrolls of spells on his list he reads as usual. Wizard scrolls need Use Magic Device: DC 20 + the scroll’s caster level.</p>
+  </section>`;
+}
+
+/* ---------- bardic performance ---------- */
+function pPerform(){
+  const C=compute(true),b=C.L.bard,mx=perfMax(C),used=Math.min(mx,n(S.used.perf)),left=mx-used,cur=perfDef(S.perf.cur),lg=n(S.perf.linger)>0?perfDef(S.perf.lingerOf):null;
+  const act=b>=13?'swift':b>=7?'move':'standard';
+  const card=p=>{const lock=b<p.lvl,on=S.perf.cur===p.id,li=lingerOn(p.id),selfable=p.self==='greatness'||p.self==='heroics';
+    return `<div class="perf${on?' on':''}${li?' linger':''}${lock?' locked':''}"><div class="top"><span class="lv">Bard ${p.lvl}</span><b>${p.n}</b><small class="muted">${p.kind}</small>${on?'<small class="fxtag">PERFORMING</small>':li?`<small class="fxtag">LINGERING ${n(S.perf.linger)}</small>`:''}</div>
+     <div class="e">${p.e(C)}</div>
+     <div class="k">${p.k(C).map(([a,v])=>`<span>${a} <b>${v}</b></span>`).join('')}</div>
+     ${lock?'':`<div class="act">${p.free?'<small class="muted">Rides on Fascinate: no extra rounds</small>':on?`<button class="btn" data-act="perfStop">Stop</button>`:`<button class="btn pri" data-act="perfStart" data-id="${p.id}"${left<(p.cost||1)?' disabled':''}>${p.cost?`Perform (${p.cost} rounds)`:S.perf.cur?'Switch to this':'Start'}</button>`}
+      ${selfable?`<label class="row"><input type="checkbox" class="cs" data-p="perf.self.${p.self}" ${S.perf.self[p.self]?'checked':''}> <small>On himself too</small></label>`:''}
+      ${p.id==='dirge'&&vestS().lv>=1&&(on||li)?`<button class="btn" data-act="dread">Mythcarver: mark a dread target</button>`:''}</div>`}
+    </div>`};
+  return `<section class="panel"><header><h2>Bardic Performance</h2><span class="muted">${mx} rounds per day · starting one is a ${act} action, keeping it up is free</span><button class="btn" data-act="perfReset" style="margin-left:auto">New day: reset rounds</button></header>
+   <div class="perfnow">
+    <div class="row" style="justify-content:space-between"><span class="big">${cur?`Performing: ${cur.n}`:lg?`${lg.n} lingering`:'Not performing'}</span><span><b style="font-size:1.4rem">${left}</b> <span class="muted">of ${mx} rounds left</span></span></div>
+    <div class="rounds" aria-label="${left} of ${mx} rounds left">${[...Array(mx).keys()].map(i=>`<i class="${i<left?'':'u'}"></i>`).join('')}</div>
+    <div class="row">${cur||lg?`<button class="btn pri" data-act="perfRound">Next round${cur?' (−1 round)':''}</button>`:''}${cur?`<button class="btn" data-act="perfStop">Stop performing</button>`:''}
+     <small class="muted">${cur?(lingers()?'When he stops, the effects linger 2 more rounds (Lingering Performance).':'The effects end when he stops.'):lg?`Effects last ${n(S.perf.linger)} more round${n(S.perf.linger)===1?'':'s'}; starting a new performance ends them.`:'Start a performance below. Each round he keeps it up costs one round.'}</small></div>
+   </div>
+   <p class="note">Inspire Courage${b>=9?', Inspire Greatness':''}${b>=15?' and Inspire Heroics':''} switch on their bonuses for him on every tab while they run (Greatness and Heroics only with “On himself too”). Greatness adds 2d10 ${sg(2*C.ab.con.mod)} temp HP when it starts and takes them away when it ends. Paper sheet: 38 rounds; the rules give 4 + Cha 7 + 2 × 15 = 41 (set your own number on the Class Abilities tab).</p>
+  </section>
+  <div class="perfgrid">${PERF.map(card).join('')}</div>`;
+}
+
+/* ---------- treasures: Mythcarver, Harp of the Storm, Cape of the Mountebank, other item powers ---------- */
+function pTreasures(){
+  const C=compute(true),V=vestS(),vs=(S.vest||{}).state||'dormant',mi=S.attacks.findIndex(a=>a.vest),cha=C.ab.cha.mod;
+  const tier=(lv,h,body)=>`<div class="tier${V.lv>=lv?'':' off'}"><h3>${h}${V.lv>=lv?'':' <small class="muted">(not yet)</small>'}</h3>${body}</div>`;
+  const spirit=n(S.used['myth.spirit'])>=1;
+  const vest=`<section class="panel vestige"><header><h2>Mythcarver</h2><span class="muted">Shortsword · Legendary · Vestige of Divergence</span></header>
+   <p class="muted" style="margin:0;font-style:italic">This silvered blade once belonged to the White Duke himself, and many master bards before him. It resonates with nearby musical tones.</p>
+   <div class="state" role="group" aria-label="Vestige state">${Object.entries(VEST).map(([k,v])=>`<button data-act="vstate" data-v="${k}" aria-pressed="${vs===k}"><b>${v.n}</b><small>+${v.b} attack and damage${v.lv>=1?', +1d6 force':''}</small></button>`).join('')}</div>
+   ${mi>=0?`<div class="kv"><label>Attack</label><b data-o="atk.${mi}.hit"></b><label>Damage</label><b data-o="atk.${mi}.dmg"></b></div>`:''}
+   ${tier(0,'Dormant',`<p class="note" style="margin:0">+2 on attack and damage rolls. While he uses <b>Inspire Greatness</b>, the knowledge and prowess of the sword’s past wielders fill him: +5 luck on melee attacks with it.${perfActive('greatness')?' <b>Active now.</b>':''}</p>`)}
+   ${tier(1,'Awakened',`<p class="note" style="margin:0">+3 on attack and damage rolls, and targets it damages take an extra 1d6 force. When he uses <b>Dirge of Doom</b>, he picks one creature in range: dread makes it roll its next saving throw twice and take the lower, even if it is immune to mind-affecting fear.</p>`)}
+   ${tier(2,'Exalted',`<p class="note" style="margin:0">+4 on attack and damage rolls. As an action, he lets the sword’s spirit take him over: four melee attacks at his highest base attack bonus, then one point of exhaustion. Once per long rest.</p>
+     <div class="row">${pips('myth.spirit',1)}<button class="btn pri" data-act="spirit"${V.lv<2||spirit?' disabled':''}>${spirit?'Used: back after a long rest':'Unleash the spirit'}</button></div>
+     ${spirit&&mi>=0?`<div>${[0,1,2,3].map(k=>`<div class="row"><span class="ord">${k+1}</span>${rollBox('v'+k,null)}</div>`).join('')}</div>`:''}`)}
+  </section>`;
+  const hc=Math.max(0,Math.min(10,n(S.harp.ch))),sb=(S.cond||{}).stormward;
+  const hdc=(lv,ev)=>10+lv+cha+(ev&&hasFeat(/spell focus.*evoc/i)?1:0);
+  const harp=`<section class="panel harp"><header><h2>Harp of the Storm</h2><span class="muted">Needs two hands · DCs use his spell DC</span></header>
+   <div class="row" style="justify-content:space-between"><div class="charges" aria-label="${hc} of 10 charges">${[...Array(10).keys()].map(i=>`<i class="${i<hc?'':'u'}"></i>`).join('')}</div>
+    <span class="charge"><button class="btn x" data-act="harpAdj" data-d="-1" aria-label="Remove a charge">−</button><b>${hc}</b><button class="btn x" data-act="harpAdj" data-d="1" aria-label="Add a charge">+</button><small class="muted">of 10</small></span>
+    <button class="btn" data-act="harpNight">Night: +1d10</button></div>
+   <div class="drbox" style="align-items:center;flex-wrap:wrap"><button class="qt" data-act="quick" data-id="stormward" aria-pressed="${!!sb}" title="Toggle Storm Ward">Storm Ward ${sb?'on':'off'}</button>
+    <span>${sb?'<b>He is playing:</b> ':''}An action to start, then a free action each round. His fingers crackle like a monsoon, and he and any allies he picks within 30 ft. take half damage from lightning.</span></div>
+   ${HARP.map(([k,nm,cost,lv,ev,ds])=>{const dc=hdc(lv,ev),sv=k==='burst'||k==='step'?'Fort':'Ref',res=S.harp.last&&S.harp.last.k===k?S.harp.last.txt:'';
+     const btn=k==='bolt'?`<span class="row"><select id="bolt-n" aria-label="Charges to spend">${[...Array(Math.max(1,hc)).keys()].map(i=>`<option value="${i+1}">${i+1} charge${i?'s':''} (${i+4}d6)</option>`).join('')}</select><button class="btn pri" data-act="harpUse" data-k="bolt"${hc<1?' disabled':''}>Use</button></span>`
+      :k==='call'&&n(S.harp.bolts)>0?`<span class="row"><button class="btn pri" data-act="harpBolt">Call bolt (${n(S.harp.bolts)} left)</button><button class="btn x" data-act="harpBoltEnd">End</button></span>`
+      :`<button class="btn pri" data-act="harpUse" data-k="${k}"${hc<cost?' disabled':''}>Use</button>`;
+     return `<div class="hpow"><div><span class="nm">${nm}</span><span class="cost">${k==='bolt'?'1–10 charges':cost+' charge'+(cost>1?'s':'')}</span> <small class="muted">${sv} DC <b>${dc}</b></small></div>${btn}<div class="ds">${ds}</div>${res?`<div class="res">${res}</div>`:''}</div>`}).join('')}
+   <p class="note">Save DC = 10 + spell level + Cha ${sg(cha)} (sound burst counts as 2nd level, the others as 3rd), plus Spell Focus +1 on the evocations. The Cone of Clarity’s +2 is for spells he casts with his voice, so it isn’t added here. Each Use rolls the damage for you; the target’s save still decides how much lands.</p>
+  </section>`;
+  const capeUsed=n(S.used.cape)>=1;
+  const cape=`<section class="panel"><header><h2>Cape of the Mountebank</h2><span class="muted">Bright red and gold · 1/day</span></header>
+   <p class="note" style="margin:0">On command, he casts <i>dimension door</i>: he and up to ${Math.floor(9/3)} touched Medium-or-smaller creatures (by the cape’s CL 9) teleport up to 760 ft. He vanishes in a cloud of harmless gray smoke and appears in the same kind of puff at the other end.</p>
+   <div class="row">${pips('cape',1)}<button class="btn pri" data-act="cape"${capeUsed?' disabled':''}>${capeUsed?'Used today':'Vanish in smoke'}</button></div>
+  </section>`;
+  /* [use key, name, uses, uses label, effect, action button] */
+  const row=(k,nm,mx,lab,ds,ctl)=>`<tr><td class="l"><b>${nm}</b></td><td class="nowrap">${lab}${mx?`<br>${pips(k,mx)}`:''}</td><td class="l"><small>${ds}</small></td><td>${ctl||''}</td></tr>`;
+  const tbl=(head,rows)=>`<div class="scroll"><table class="geartbl" style="min-width:520px"><colgroup><col style="width:28%"><col style="width:6.5em"><col><col style="width:11.5em"></colgroup>
+   <thead><tr><th class="l">${head}</th><th>Uses</th><th class="l">Effect</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  const lu=n(S.used.lute)>=1;
+  const items=`<section class="panel"><header><h2>Magic Item Powers</h2><span class="muted">Filled pips are spent</span><button class="btn" data-act="weekReset" style="margin-left:auto">New week: reset the flute</button></header>
+   ${tbl('Item',[
+    row('','Force Lute: Repelling Strum',0,'1 perf. round',`Standard action: a power chord at a target within 30 ft. deals 3d4 force; Fortitude DC 16 or it is pushed back 10 ft. ${perfLeft(C)} performance rounds left.${S.itemLast&&S.itemLast.k==='strum'?`<br><b>${esc(S.itemLast.txt)}</b>`:''}`,`<button class="btn" data-act="strum"${perfLeft(C)<1?' disabled':''}>Strum &amp; roll</button>`),
+    row('lute','Force Lute: Acoustic Sphere',1,'1/day','Standard action: a modified <i>resilient sphere</i> around one target (a willing ally, or an enemy who gets a DC 16 Reflex save to dodge). The sphere has 75 HP and every kind of attack can harm it.',lu?'':'<button class="btn" data-act="sphere">Cast sphere</button>'),
+    row('flute','Flute: healing song',1,'1/day',`Heals everyone within 30 ft. 1d10 ${sg(cha)} HP.`,n(S.used.flute)>=1?'':'<button class="btn" data-act="fluteHeal">Play &amp; roll</button>'),
+    row('glove','Glove of Blasting',1,'1/day','Scorching ray: ranged touch '+C.O['spatk.ranged'].t+', 4d6 fire per ray.'),
+    row('w.flute','Flute: tree stride',1,'1/week','Tree stride. Doesn’t reset on a long rest.'),
+    row('','Earring of Whisper',0,'At will','Acts as the <i>message</i> cantrip: whispered two-way conversation at long range.'),
+    row('','Cone of Clarity',0,'Swift','+2 DC on his spells with a verbal component.',`<button class="qt" data-act="cone" aria-pressed="${!!S.cone}">${S.cone?'In use':'Not in use'}</button>`),
+    row('','Brooch of Shielding',0,`${n(S.brooch)} HP left`,'Absorbs magic missiles aimed at him. Type a magic missile hit and press Absorb.',`<div style="display:grid;gap:4px;justify-items:start"><input type="number" id="brooch-amt" placeholder="damage" aria-label="Magic missile damage" style="width:6em"><button class="btn" data-act="broochHit">Absorb</button><span class="charge"><button class="btn x" data-act="brooch" data-d="-1" aria-label="Remove 1 point">−</button>${num('brooch',{w:'4em',rr:1,label:'Brooch HP left'})}<button class="btn x" data-act="brooch" data-d="1" aria-label="Add 1 point">+</button></span></div>`),
+    row('','Boots of Spider Climbing',0,'Always','Climb speed 20 ft. on walls and ceilings.'),
+    row('','Ring of Feather Fall',0,'Always','Feather fall when he drops more than 5 ft.'),
+    row('','Amulet of Endure Elements',0,'Always','Comfortable from −50 °F to 140 °F.'),
+    row('','Message string to Maffei',0,'—','Acts as <i>sending</i> to Maffei: a message of 25 words or fewer, and Maffei can reply.'),
+   ].join(''))}</section>`;
+  const slas=`<section class="panel"><header><h2>Gnome Spell-Like Abilities</h2><span class="muted">Magical Linguist · caster level ${C.L.total}</span></header>
+   ${tbl('Ability',[
+    row('sla.mark','Arcane mark',1,'1/day','Inscribes his personal rune, visible or invisible, on an object or creature.'),
+    row('sla.comp','Comprehend languages',1,'1/day','Understands all spoken and written languages for 10 min. per level.'),
+    row('sla.msg','Message',1,'1/day','Whispered two-way conversation at long range.'),
+    row('sla.read','Read magic',1,'1/day','Reads scrolls and spellbooks for 10 min. per level.'),
+   ].join(''))}</section>`;
+  return vest+`<div class="cols">${harp}${cape}</div>${items}${slas}`;
+}
+
+function acItemsPanel(){
+  const L=S.acItems||[],IT=acItemBonuses();
+  const applied=AC_TYPES.filter(([k])=>IT[k]).map(([k,l])=>`${l} ${sg(IT[k])}`);
+  return `<section class="panel"><header><h2>Rings, Amulets &amp; Other AC Items</h2><span class="muted">Tick Worn to add the bonus to AC</span></header>
+   <div class="scroll"><table class="geartbl acitems"><colgroup><col style="width:4.5em"><col class="c-item"><col style="width:9em"><col style="width:11em"><col style="width:5.5em"><col class="c-x"></colgroup>
+   <thead><tr><th>Worn</th><th class="l">Item</th><th class="l">Slot</th><th class="l">Bonus type</th><th>Bonus</th><th></th></tr></thead><tbody>
+   ${L.map((x,i)=>`<tr class="${x.on?'':'future'}"><td><input type="checkbox" class="cs" data-p="acItems.${i}.on" ${x.on?'checked':''} aria-label="Worn"></td>
+     <td class="l">${txt(`acItems.${i}.name`,{label:'Item name'})}</td>
+     <td class="l">${sel(`acItems.${i}.slot`,AC_SLOTS,{label:'Slot'})}</td>
+     <td class="l">${sel(`acItems.${i}.type`,AC_TYPES,{label:'Bonus type'})}</td>
+     <td>${num(`acItems.${i}.bonus`,{w:'3.6em',rr:1,label:'Bonus'})}</td>
+     <td><button class="btn x" data-act="acDel" data-i="${i}" aria-label="Remove item">✕</button></td></tr>`).join('')||'<tr><td colspan="6" class="muted">No AC items.</td></tr>'}
+   </tbody></table></div>
+   <div class="row"><button class="btn" data-act="acAdd">Add item</button></div>
+   <p class="note"><b>Applied to AC:</b> ${applied.length?applied.join(', '):'nothing'}. The paper sheet writes “+2” in the ring’s description but uses +4 in the AC line. He wears three rings (protection, feather fall, acid resistance) for two ring slots; check with the DM.</p>
+  </section>`;
+}
+const MI_T=[['str','Strength'],['dex','Dexterity'],['con','Constitution'],['int','Intelligence'],['wis','Wisdom'],['cha','Charisma'],['save','All saves'],['fort','Fortitude'],['ref','Reflex'],['will','Will'],['atk','Attack rolls'],['dmg','Weapon damage'],['acNat','Natural armor'],['init','Initiative'],['speed','Speed (ft.)'],['cmb','CMB'],['cmd','CMD'],['skill','All skills'],['skillCha','Cha-based skills'],...SKILLS.map(s=>['sk.'+s.k,s.n])];
+const MI_TY=[['enh','Enhancement'],['inherent','Inherent (tomes, wishes)'],['resistance','Resistance'],['competence','Competence'],['luck','Luck'],['insight','Insight'],['morale','Morale'],['sacred','Sacred'],['profane','Profane'],['circumstance','Circumstance'],['untyped','Untyped']];
+const MI_SLOTS=['Belt','Headband','Neck','Shoulders','Body','Chest','Eyes','Head','Hands','Wrists','Ring','Feet','Slotless'];
+const miLabel=k=>(MI_T.find(x=>x[0]===k)||[k,k])[1];
+function miPanel(C){
+  const L=S.mitems=S.mitems||[];
+  const sum=L.filter(x=>x.on&&n(x.bonus)).map(x=>`${esc(x.name||'Unnamed')}: ${miLabel(x.target)} ${sg(n(x.bonus))} ${((MI_TY.find(t=>t[0]===x.type)||[,''])[1]).toLowerCase()}`);
+  return `<section class="panel"><header><h2>Stat-Boosting Magic Items</h2><span class="muted">Tick Worn and the bonus flows into every tab</span></header>
+   <div class="scroll"><table class="geartbl"><colgroup><col style="width:4.5em"><col class="c-item"><col style="width:8.5em"><col style="width:11em"><col style="width:5.5em"><col style="width:12em"><col class="c-x"></colgroup>
+   <thead><tr><th>Worn</th><th class="l">Item</th><th class="l">Slot</th><th class="l">Raises</th><th>Bonus</th><th class="l">Bonus type</th><th></th></tr></thead><tbody>
+   ${L.map((x,i)=>`<tr class="${x.on?'':'future'}"><td><input type="checkbox" class="cs" data-p="mitems.${i}.on" ${x.on?'checked':''} aria-label="Worn"></td>
+     <td class="l">${txt(`mitems.${i}.name`,{label:'Item name'})}</td>
+     <td class="l">${sel(`mitems.${i}.slot`,MI_SLOTS,{label:'Slot'})}</td>
+     <td class="l">${sel(`mitems.${i}.target`,MI_T,{label:'What it raises'})}</td>
+     <td>${num(`mitems.${i}.bonus`,{w:'3.6em',rr:1,label:'Bonus'})}</td>
+     <td class="l">${sel(`mitems.${i}.type`,MI_TY,{label:'Bonus type'})}</td>
+     <td><button class="btn x" data-act="miDel" data-i="${i}" aria-label="Remove item">✕</button></td></tr>`).join('')||'<tr><td colspan="7" class="muted">No items yet.</td></tr>'}
+   </tbody></table></div>
+   <div class="row"><button class="btn" data-act="miAdd">Add item</button></div>
+   <p class="note"><b>Now applied:</b> ${sum.length?sum.join(' · '):'nothing'}. Dexterity is <b>${C.ab.dex.sc}</b> (${sg(C.ab.dex.mod)}). Same-type bonuses don’t stack, so Cat’s Grace (+4 enhancement) replaces the belt’s +2 rather than adding to it.</p>
+  </section>`;
+}
+function customList(key,title,hint){
+  return `<section class="panel"><header><h2>${title}</h2>${hint?`<span class="muted">${hint}</span>`:''}</header><div>
+   ${S[key].map((a,i)=>`<div class="custom"><div class="row">${txt(`${key}.${i}.name`,{cls:'nm',ph:'Name',label:'Name'})}
+     ${key!=='feats'?`<label class="row"><small class="muted">Uses/day</small>${num(`${key}.${i}.uses`,{w:'3.4em',rr:1,label:'Uses per day'})}</label>${pips(`${key}.${i}`,n(a.uses))}`:''}
+     <button class="btn x" data-act="delItem" data-k="${key}" data-i="${i}" aria-label="Remove">✕</button></div>${area(`${key}.${i}.desc`,{rows:2,label:'Description'})}</div>`).join('')||'<p class="muted">None yet.</p>'}
+   </div><div class="row"><button class="btn" data-act="addItem" data-k="${key}">Add</button></div></section>`;
+}
+function pips(k,max){if(!max)return '';const used=n(S.used[k]);let h='<span class="pips" role="group" aria-label="Uses">';for(let i=0;i<Math.min(max,40);i++)h+=`<button class="pip" data-act="use" data-k="${k}" data-i="${i}" aria-pressed="${i<used}" aria-label="Use ${i+1}"></button>`;return h+'</span>';}
+function pAbilities(){
+  const L=levels();const A=autoAbilities(L);
+  return `<section class="panel"><header><h2>Class Abilities</h2><span class="muted">Built from his Bard levels. Filled pips are spent uses.</span><button class="btn" data-act="rest" style="margin-left:auto">Rest: reset daily uses</button></header>
+   <div class="ab-list">${A.map(a=>{const k='ov.'+ok(a.key);const hasNote=String(getP(k+'.note')||'').trim();return `<div class="ab"><div class="lv">Bard ${a.lvl}</div><div><span class="nm">${a.name}</span>${a.ty?`<span class="ty">(${a.ty})</span>`:''}${a.uses?pips(a.key,a.uses):''}${a.uses?` <small class="muted">${a.uses}/day</small>`:''}<div class="ds">${a.ds}</div>
+    ${a.base?`<div class="ovr"><label class="row">Uses/day ${num(k+'.uses',{rr:1,label:a.name+' uses override'})}</label><span>rules say ${a.base}; leave blank to use that</span></div>`:''}
+    ${a.key==='perf'?`<div class="ovr"><label class="row">Rounds/day ${num('ov.perf.uses',{rr:1,label:'Performance rounds override'})}</label><span>rules say ${4+compute(false).ab.cha.mod+2*(L.bard-1)}; paper sheet says 38; leave blank to use the rules</span></div>`:''}
+    ${hasNote?`<div class="ovr" style="display:block">${area(k+'.note',{rows:2,label:a.name+' notes'})}</div>`:`<div class="ovr"><button class="btn x" data-act="addNote" data-k="${k}.note">+ Add note or DM ruling</button></div>`}</div></div>`}).join('')||'<p class="muted">Set a Bard level on the Overview tab to see abilities here.</p>'}</div></section>
+  <div class="cols">${customList('racial','Racial Traits','Gnome (Magical Linguist, Gift of Tongues)')}${customList('talents','Other Abilities','')}</div>
+  ${customList('feats','Feats','8 feats at character level 16')}`;
+}
+
+function condCards(list,map){
+  return list.map(c=>`<button class="cond${c.buff?' buffc':''}" data-act="cond" data-id="${c.id}" aria-pressed="${!!map[c.id]}"><span class="n">${cname(c)}</span><span class="e">${cdesc(c)}</span></button>`).join('');
+}
+function netSummary(){
+  const M=gather(S.cond,S.neg);
+  const lab={atk:'Attack rolls',atkMelee:'Melee attacks',atkRanged:'Ranged attacks',dmg:'Weapon damage',dmgRanged:'Ranged damage',ac:'AC',acDodge:'Dodge AC',acNat:'Natural armor',save:'All saves',fort:'Fortitude',ref:'Reflex',will:'Will',skill:'Skill checks',skillStrDex:'Str/Dex skills',ability:'Ability checks',init:'Initiative',cmd:'CMD',str:'Strength',dex:'Dexterity',con:'Constitution',wis:'Wisdom',cha:'Charisma',speed:'Speed (ft.)'};
+  const rows=Object.entries(M.tot).filter(([,v])=>v).map(([k,v])=>`<div><span>${lab[k]||miLabel(k)}</span><span class="${v<0?'neg':'pos'}">${sg(v)}</span></div>`);
+  const fl={loseDex:'Loses Dex bonus to AC',flatFooted:'Flat-footed: loses Dex to AC',dexZero:'Dex treated as 0',strZero:'Str treated as 0',halfSpeed:'Half speed',prone:'+4 AC vs ranged, −4 AC vs melee'};
+  Object.keys(M.flags).forEach(f=>rows.push(`<div><span>${fl[f]||f}</span><span></span></div>`));
+  if(M.neg)rows.push(`<div><span>Max HP</span><span class="neg">−${5*M.neg}</span></div>`);
+  return rows.join('')||'<p class="muted">No active effects. Every value is at its base.</p>';
+}
+function pConditions(){
+  return `<section class="panel"><header><h2>Conditions</h2><button class="btn" data-act="clearCond" style="margin-left:auto">Clear all</button></header>
+   <p class="muted" style="margin:0">Tap a card to toggle it. Scores, AC, saves, skills and attacks on every tab update right away. Changed values turn red (worse) or blue (better). Worn items (belt, circlet) are always included.</p></section>
+  <div class="cols" style="grid-template-columns:minmax(0,2.2fr) minmax(min(100%,260px),1fr)">
+   <div class="page" style="margin:0">
+    <section class="panel"><header><h2>Conditions</h2></header><div class="condgrid">${condCards(CONDS,S.cond)}</div></section>
+    <section class="panel"><header><h2>Performances, Spells &amp; Situations</h2></header><div class="condgrid">${condCards(BUFFS,S.cond)}</div></section>
+   </div>
+   <section class="panel" style="position:sticky;top:60px"><header><h2>Net Effect</h2></header>
+    <div class="row"><span class="lbl">Negative levels</span><span class="stepper"><button data-act="neg" data-d="-1" aria-label="Remove negative level">−</button><b>${n(S.neg)}</b><button data-act="neg" data-d="1" aria-label="Add negative level">+</button></span></div>
+    <div class="net">${netSummary()}</div>
+    <p class="note">Same-type bonuses don’t stack: Inspire Courage and Inspire Greatness are both competence bonuses on attacks, so only the higher counts. Shaken, frightened and panicked don’t stack with each other.</p>
+   </section></div>`;
+}
+
+function pGear(){
+  const C=compute(true);
+  const str=C.ab.str.sc;const heavy=str<=0?0:str<30?HEAVY[str]:(k=>HEAVY[str-10*k]*Math.pow(4,k))(Math.floor((str-20)/10));
+  const sizeMul=[.125,.25,.5,.75,1,2,4,8,16][C.si];const H=heavy*sizeMul,Lt=Math.floor(H/3),Md=Math.floor(H*2/3);
+  const wt=S.gear.reduce((a,g)=>a+n(g.wt),0)+n(S.shield.wt);
+  const load=wt<=Lt?'Light':wt<=Md?'Medium':wt<=H?'Heavy':'Overloaded';
+  const arm=k=>`<div class="grid2">${field('Name',txt(`${k}.name`))}${field('AC bonus',num(`${k}.bonus`))}${k==='armor'?field('Max Dex',num(`${k}.maxDex`,{label:'Max Dex (blank = none)'})):''}${field('Check penalty',num(`${k}.acp`))}${k==='armor'?field('Speed in armor',num(`${k}.speed`,{rr:1,label:'Speed in armor (0 = normal)'})):''}</div>`;
+  const pots=S.potions||[];const mxHp=hpMaxNow();
+  return `<section class="panel"><header><h2>Healing Potions</h2><span class="muted">HP ${n(S.hp.cur)} / ${mxHp} · roll the dice, type the total, press Drink</span></header>
+   <div class="scroll"><table class="pots"><thead><tr><th class="l">Potion</th><th>Heals</th><th>Qty</th><th>Dice total</th><th></th><th></th></tr></thead><tbody>
+   ${pots.map((p,i)=>{const dl=diceIn(p.dice),lo=dl.reduce((a,[c])=>a+c,0),hi=dl.reduce((a,[c,s])=>a+c*s,0);
+     return `<tr><td class="l">${txt(`potions.${i}.name`,{w:'100%',label:'Potion name'})}</td>
+      <td class="nowrap">${txt(`potions.${i}.dice`,{w:'3.6em',rr:1,label:'Healing dice'})} + ${num(`potions.${i}.bonus`,{w:'3.2em',rr:1,label:'Healing bonus'})}</td>
+      <td>${num(`potions.${i}.qty`,{w:'3.4em',rr:1,label:'Quantity'})}</td>
+      <td><input type="number" id="pot-roll-${i}" data-cap="${hi}" min="${lo}" max="${hi}" placeholder="${lo}–${hi}" style="width:5em" aria-label="${esc(p.name)} dice total"></td>
+      <td><button class="btn pri" data-act="potDrink" data-i="${i}"${n(p.qty)<1?' disabled':''}>Drink</button></td>
+      <td><button class="btn x" data-act="potDel" data-i="${i}" aria-label="Remove potion">✕</button></td></tr>`}).join('')||'<tr><td colspan="6" class="muted">No potions.</td></tr>'}
+   </tbody></table></div>
+   <div class="row"><button class="btn" data-act="potAdd">Add potion</button></div>
+  </section>
+  <section class="panel"><header><h2>Other Potions</h2><span class="muted">Party Bag of Holding · Drink takes one off the count</span></header>
+   <div class="scroll"><table class="geartbl" style="min-width:560px"><colgroup><col style="width:28%"><col style="width:5.5em"><col><col style="width:5.5em"><col class="c-x"></colgroup>
+   <thead><tr><th class="l">Potion</th><th>Qty</th><th class="l">Effect</th><th></th><th></th></tr></thead><tbody>
+   ${(S.otherPotions||[]).map((p,i)=>`<tr class="${n(p.qty)<1?'future':''}"><td class="l">${txt(`otherPotions.${i}.name`,{label:'Potion name'})}</td>
+     <td>${num(`otherPotions.${i}.qty`,{w:'3.4em',rr:1,label:'Quantity'})}</td>
+     <td class="l">${txt(`otherPotions.${i}.effect`,{label:'Effect'})}</td>
+     <td><button class="btn pri" data-act="opDrink" data-i="${i}"${n(p.qty)<1?' disabled':''}>Drink</button></td>
+     <td><button class="btn x" data-act="opDel" data-i="${i}" aria-label="Remove potion">✕</button></td></tr>`).join('')||'<tr><td colspan="5" class="muted">No other potions.</td></tr>'}
+   </tbody></table></div>
+   <div class="row"><button class="btn" data-act="opAdd">Add potion</button></div>
+   <p class="note">Drinking Remove Blindness/Deafness or Lesser Restoration also clears blinded, deafened or fatigued on the Conditions tab if they’re on.</p>
+  </section>
+  <div class="cols">
+   <section class="panel"><header><h2>Armor</h2></header>${arm('armor')}<p class="note">Light armor: bards cast without arcane spell failure (the paper sheet lists 10% for the shirt). Its weight is in Equipment.</p></section>
+   <section class="panel"><header><h2>Shield</h2></header>${arm('shield')}</section>
+  </div>
+  ${acItemsPanel()}
+  ${miPanel(C)}
+  <section class="panel"><header><h2>Equipment</h2><span class="muted">${wt.toFixed(1)} lb. carried · ${load} load</span></header>
+    <div class="scroll"><table class="geartbl"><colgroup><col class="c-item"><col class="c-desc"><col class="c-loc"><col class="c-wt"><col class="c-x"></colgroup>
+    <thead><tr><th class="l">Item</th><th class="l">Description</th><th class="l">Location</th><th>Wt</th><th></th></tr></thead><tbody>
+    ${S.gear.map((g,i)=>`<tr><td class="l">${txt(`gear.${i}.item`,{w:'100%',label:'Item'})}</td><td class="l">${txt(`gear.${i}.desc`,{w:'100%',label:'Description'})}</td><td class="l">${txt(`gear.${i}.loc`,{w:'100%',label:'Location'})}</td><td>${num(`gear.${i}.wt`,{step:'0.25',rr:1,label:'Weight'})}</td><td><button class="btn x" data-act="delGear" data-i="${i}" aria-label="Remove item">✕</button></td></tr>`).join('')}
+    </tbody></table></div><div class="row"><button class="btn" data-act="addGear">Add item</button></div></section>
+  <div class="cols">
+   <section class="panel"><header><h2>Carrying &amp; Coin</h2></header>
+    <div class="kv"><label>Light</label><b>up to ${Lt} lb.</b><label>Medium</label><b>${Lt+1}–${Md} lb.</b><label>Heavy</label><b>${Md+1}–${H} lb.</b><label>Lift / drag</label><b>${H*2} / ${H*5} lb.</b></div>
+    ${load!=='Light'?`<p class="note warn">${load} load.</p>`:''}
+    <p class="note">Coins ride in the Handy Haversack, which carries its contents weightlessly, so they don’t count toward his load. (The paper sheet uses Medium-size limits: 33 / 66 / 100 lb.)</p>
+    <div class="grid2">${field('Platinum',num('coins.pp',{rr:1}))}${field('Gold',num('coins.gp',{rr:1}))}${field('Silver',num('coins.sp',{rr:1}))}${field('Copper',num('coins.cp',{rr:1}))}</div>
+    ${field('In the bank',txt('bank'))}
+   </section>
+   <section class="panel"><header><h2>Party Bag of Holding</h2><span class="muted">The Belhaim Saviors</span></header>
+    <div class="scroll"><table class="geartbl" style="min-width:480px"><colgroup><col class="c-item"><col class="c-desc"><col class="c-wt"><col class="c-x"></colgroup>
+    <thead><tr><th class="l">Item</th><th class="l">Notes</th><th>Wt</th><th></th></tr></thead><tbody>
+    ${(S.bag||[]).map((g,i)=>`<tr><td class="l">${txt(`bag.${i}.item`,{w:'100%',label:'Item'})}</td><td class="l">${txt(`bag.${i}.desc`,{w:'100%',label:'Notes'})}</td><td>${num(`bag.${i}.wt`,{rr:1,label:'Weight'})}</td><td><button class="btn x" data-act="delBag" data-i="${i}" aria-label="Remove item">✕</button></td></tr>`).join('')}
+    </tbody></table></div><div class="row"><button class="btn" data-act="addBag">Add item</button></div>
+    ${field('Party treasure',area('treasure',{rows:6}))}
+   </section>
+  </div>
+  <div class="cols">
+   <section class="panel"><header><h2>Character History</h2></header>${area('history',{rows:9})}</section>
+   <section class="panel"><header><h2>Session Notes</h2></header>${area('notes',{rows:9})}</section>
+  </div>`;
+}
+
+/* ---------- refresh computed outputs ---------- */
+function refresh(){
+  const A=compute(true),B=compute(false);
+  document.querySelectorAll('[data-o]').forEach(el=>{const k=el.dataset.o,a=A.O[k];if(!a)return;el.textContent=a.t;
+    const b=B.O[k];if(b&&typeof a.n==='number'&&a.n!==b.n&&k!=='hp.cur'&&!k.startsWith('sk.spent')&&!k.endsWith('.vp')&&k!=='sizeName'&&k!=='speed')el.dataset.d=a.n<b.n?'down':'up';else delete el.dataset.d;});
+  const sp=document.getElementById('spent');if(sp)sp.classList.toggle('over',A.O['sk.spent'].n>A.O['sk.avail'].n);
+  updRolls(A);
+  const cls=S.classes.filter(c=>n(c.level)>0).map(c=>`${esc(c.name)} ${Math.floor(n(c.level))}`).join(' / ');
+  document.getElementById('subline').innerHTML=`${S.info.nick?`“${esc(S.info.nick)}” · `:''}<b>${esc(S.info.race||'')}</b> ${cls}${S.info.alignment?` · ${esc(S.info.alignment)}`:''}`;
+  const cur=perfDef(S.perf.cur),lg=n(S.perf.linger)>0?perfDef(S.perf.lingerOf):null,left=perfLeft(A);
+  document.getElementById('quick').innerHTML=
+    `<button class="qt dim" data-act="tab" data-t="perform" aria-pressed="${!!cur}" title="Open the Performance tab">${cur?esc(cur.n):lg?esc(lg.n)+' (lingering)':'Perform'} · ${left} rds</button>`+
+    `<button class="qt" data-act="perfQuick" data-id="courage" aria-pressed="${S.perf.cur==='courage'||lingerOn('courage')}" title="Start or stop Inspire Courage">Inspire Courage ${sg(icBonus())}</button>`+
+    `<button class="qt" data-act="cone" aria-pressed="${!!S.cone}" title="Cone of Clarity: +2 DC on spells with a verbal component">Cone of Clarity${S.cone?' +2 DC':''}</button>`+
+    `<button class="qt" data-act="quick" data-id="haste" aria-pressed="${!!S.cond.haste}" title="+1 attack, +1 dodge AC and Reflex, +30 ft. speed">Haste</button>`+
+    `<button class="qt dim" data-act="tab" data-t="treasures" aria-pressed="true" title="Mythcarver’s state: change it on the Treasures tab">Mythcarver · ${esc(vestS().n)}</button>`+
+    `<button class="qt" data-act="tab" data-t="treasures" aria-pressed="${n(S.harp.ch)>0}" title="Harp of the Storm charges">Harp · ${Math.max(0,n(S.harp.ch))}/10</button>`;
+  const chips=A.M.active.filter(c=>!['courage','haste'].includes(c.id)).map(c=>`<button class="chip${c.buff?' buff':''}" data-act="tab" data-t="conditions">${cname(c)}</button>`);
+  if(A.M.neg)chips.push(`<button class="chip" data-act="tab" data-t="conditions">${A.M.neg} negative level${A.M.neg>1?'s':''}</button>`);
+  document.getElementById('chips').innerHTML=chips.join('');
+  const mx=A.O['hp.max'].n,cu=A.O['hp.cur'].n;const f=document.getElementById('hpfill');f.style.width=Math.max(0,Math.min(100,cu/Math.max(1,mx)*100))+'%';f.classList.toggle('low',cu<=mx/4);
+}
+
+/* ---------- art ---------- */
+let assets=null;
+const DEFAULT_ART='img/namfoodle.webp';
+function artSrc(){if(S.art===false)return null;if(!S.art)return DEFAULT_ART;if(S.art.url)return S.art.url;if(S.art.id)return '/_blob/'+S.art.id;return S.art.data||null}
+function renderArt(){
+  const el=document.getElementById('art');const src=artSrc();
+  el.innerHTML=src?`<img src="${esc(src)}" alt="Portrait of ${esc(S.info.name||'Namfoodle')}"><div class="tools"><button data-act="artPick">Change</button><button data-act="artRemove">Remove</button></div>`
+   :`<button class="pick" data-act="artPick" aria-label="Add character art"></button><div class="ph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-9 8"/></svg><span>Add character art</span><small>Click or drop an image</small></div>`;
+}
+function shrink(file,max,q){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',q))};im.onerror=rej;im.src=r.result};r.onerror=rej;r.readAsDataURL(file)})}
+const OK_TYPES=['image/png','image/jpeg','image/gif','image/webp'];
+async function setArt(file){
+  if(!file||!/^image\//.test(file.type)){setStatus('Choose an image file (PNG, JPG, GIF or WebP).');return}
+  setStatus('Adding art…');
+  try{
+    if(assets){let blob=file;
+      if(!OK_TYPES.includes(file.type)||file.size>19e6){const d=await shrink(file,1600,.88);blob=await (await fetch(d)).blob();}
+      const r=await assets.upload(blob,{type:blob.type||'image/jpeg'});const old=S.art&&S.art.id;S.art={id:r.id};
+      if(old&&old!==r.id)assets.delete(old).catch(()=>{});
+    } else { let d=await shrink(file,700,.82); if(d.length>180000)d=await shrink(file,480,.75); S.art={data:d}; }
+    renderArt();scheduleSave(true);
+  }catch(e){setStatus(e&&e.code==='too_large'?'That image is too large. Choose one under 20 MB.':'Couldn’t add that image. Try a PNG or JPG.')}
+}
+
+/* ---------- link to the DM's party sheet: HP, daily uses, spell slots and a short log ---------- */
+function dayLog(txt){(S.sdLog=S.sdLog||[]).push({t:new Date().toISOString(),txt});if(S.sdLog.length>60)S.sdLog=S.sdLog.slice(-60)}
+function dmReport(){
+  const C=compute(true),mx=perfMax(C),b=C.L.bard;
+  const powers=[['perf','Bardic performance',Math.min(mx,n(S.used.perf)),mx,'rounds']];
+  if(loreUses(b))powers.push(['lore','Lore Master',Math.min(loreUses(b),n(S.used.lore)),loreUses(b),'']);
+  powers.push(['harp','Harp of the Storm',10-Math.max(0,Math.min(10,n(S.harp.ch))),10,'charges'],['cape','Cape of the Mountebank',Math.min(1,n(S.used.cape)),1,''],
+    ['myth.spirit','Mythcarver’s spirit',Math.min(1,n(S.used['myth.spirit'])),1,''],['lute','Acoustic Sphere (lute)',Math.min(1,n(S.used.lute)),1,''],['flute','Flute healing',Math.min(1,n(S.used.flute)),1,''],['glove','Glove of Blasting',Math.min(1,n(S.used.glove)),1,'']);
+  const cur=perfDef(S.perf.cur),lg=n(S.perf.linger)>0?perfDef(S.perf.lingerOf):null;
+  return {t:'saviors-hero',v:1,id:'namfoodle',name:S.info.name||'Namfoodle',at:new Date().toISOString(),
+    hp:{cur:n(S.hp.cur),max:hpMaxNow(),temp:n(S.hp.temp),nl:n(S.hp.nl),neg:Math.max(0,n(S.neg))},
+    powers,powersTitle:'bardic powers',
+    note:(cur?`Performing ${cur.n}`:lg?`${lg.n} lingering`:'Not performing')+` · Mythcarver ${vestS().n.toLowerCase()}`,
+    slots:[...Array(7).keys()].map(l=>{const si=slotInfo(l,C);return {s:l,total:si.total,used:l?Math.min(si.total,castOf(l)):0,dc:spDC(l,'',C)}}).filter(x=>x.s===0||x.total>0),
+    log:(S.sdLog||[]).slice(-25)};
+}
+/* everything the DM's party sheet shows live: defenses, saves, speed and active conditions */
+function liveStats(){
+  const A=compute(true),o=k=>A.O[k]?A.O[k].n:null,t=k=>A.O[k]?A.O[k].t:'';
+  return {ac:o('ac.total'),touch:o('ac.touch'),ff:o('ac.ff'),fort:o('sv.fort'),ref:o('sv.ref'),will:o('sv.will'),
+    rv:3,init:t('init'),speed:t('speed'),cmb:t('cmb'),cmd:t('cmd'),perception:t('sk.perception'),neg:A.M.neg||0,
+    level:A.L.total,classes:S.classes.filter(c=>n(c.level)>0).map(c=>`${c.name} ${Math.floor(n(c.level))}`).join(' / '),
+    conds:A.M.active.map(c=>({n:String(cname(c)),buff:!!c.buff}))};
+}
+/* a long rest called from the DM's party sheet: applied once per call, same as pressing Long rest here */
+function watchPartyRest(db){
+  db.doc('party/rest').onSnapshot(s=>{
+    if(!s.exists)return;const at=String((s.data()||{}).at||'');
+    if(!at||at<=(S.lastPartyRest||'2026-10-08'))return;
+    S.lastPartyRest=at;const h=longRest(true);hpLog(`Long rest (called by the DM), healed ${h}`);
+    render();setStatus(`Long rest from the DM: healed ${h} HP, daily uses reset`);scheduleSave(true);
+  },()=>{});
+}
+function pushLink(){const rep=Object.assign(dmReport(),{live:liveStats(),restAt:S.lastPartyRest||''});try{localStorage.setItem('saviors-link-namfoodle',JSON.stringify(rep))}catch(e){}if(window.sheetsReport)window.sheetsReport('namfoodle',rep)}
+function dmPanel(){
+  const L=(S.sdLog||[]).slice(-12).reverse();
+  return `<section class="panel" id="dmlink"><header><h2>Daily Log &amp; DM Link</h2><span class="muted">HP, performance, harp charges and spell slots, for the DM’s party sheet</span></header>
+   <p class="note" style="margin:0">Live: HP, AC, saves, conditions, spell slots and daily uses reach the DM’s party sheet a few seconds after each change. When the DM calls a long rest from the party sheet, it’s applied here too.</p>
+   ${L.length?`<div class="hplog">${L.map(e=>`<div><span>${esc(e.txt)}</span><b>${esc(new Date(e.t).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}))}</b></div>`).join('')}<button class="btn x" data-act="sdLogClear">Clear log</button></div>`:'<p class="muted" style="margin:0">Spells cast, performances and item uses show up here.</p>'}
+  </section>`;
+}
+/* ---------- persistence ---------- */
+let dbRef=null,statusText='',saveTimer=null,saving=false,dirty=false,readOnly=false;
+function setStatus(t){statusText=t;const el=document.getElementById('status');if(el)el.textContent=t}
+function scheduleSave(now){if(readOnly)return;dirty=true;setStatus('Unsaved changes');clearTimeout(saveTimer);saveTimer=setTimeout(flush,now?50:700)}
+async function flush(){
+  if(saving||!dirty)return;saving=true;dirty=false;setStatus('Saving…');
+  const data=clone(S);pushLink();
+  try{
+    if(dbRef){await dbRef.set(data);setStatus('Saved');}
+    else{setStatus(ls.set('namfoodle-sheet',JSON.stringify(data))?'Saved in this browser':'Not saved: storage is blocked here');}
+  }catch(e){
+    if(e&&e.code==='invalid_argument'){readOnly=true;setStatus('View only: changes aren’t saved');}
+    else if(e&&e.code==='unavailable'){dirty=true;setStatus('Connection hiccup, retrying…');setTimeout(flush,1500+Math.random()*1000);}
+    else{dirty=true;setStatus('Not saved. Edit any field to try again.');}
+  }
+  saving=false;if(dirty&&!readOnly)flush();
+}
+const newId=()=>'w'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+function load(d){
+  const s=merge(DEFAULT,d||{});
+  s.attacks.forEach(a=>{if(!a.id)a.id=newId()});
+  /* v2: his spell sheet (known spells, paper slot counts), Force Lute and flute powers, sending to Maffei, other potions out of the bag */
+  if(d&&(d.v||1)<2){
+    if(!Object.values(s.known||{}).some(a=>Array.isArray(a)&&a.length))s.known=clone(DEFAULT.known);
+    if(!Object.values(s.spx||{}).some(x=>n(x)))s.spx=clone(DEFAULT.spx);
+    if(!Object.values(s.knx||{}).some(x=>n(x)))s.knx=clone(DEFAULT.knx);
+    const ren={'Lute of Force':'Force Lute','Flute':'Flute','Message string from Maffe':'Message string to Maffei'};
+    s.gear=s.gear.map(g=>{const nd=ren[g.item]&&DEFAULT.gear.find(x=>x.item===ren[g.item]);return nd?{...g,item:nd.item,desc:nd.desc}:g});
+    s.bag=(s.bag||[]).filter(g=>!/^Potion of /.test(g.item||''));
+    if(n(s.used.lute))s.used.lute=0;
+    s.v=2;}
+  return s;
+}
+async function boot(){
+  const local=ls.get('namfoodle-sheet');if(local){try{S=load(JSON.parse(local))}catch(e){}}
+  render();setStatus('Loading…');
+  const cl=window.claude;
+  if(!cl||!cl.use){document.getElementById('backup').hidden=false;setStatus(local?'Saved in this browser':'Edits save in this browser');return}
+  try{
+    const [db,as]=await Promise.all([cl.use('db'),cl.use('assets').catch(()=>null)]);assets=as;
+    if(db){dbRef=db.doc('sheets/namfoodle');const snap=await dbRef.get();
+      if(snap.exists&&!dirty){S=load(clone(snap.data()));render();}
+      setStatus(dirty?'Unsaved changes':'Saved');if(dirty)flush();watchPartyRest(db);pushLink();}
+    else{document.getElementById('backup').hidden=false;setStatus('Edits save in this browser');}
+  }catch(e){setStatus('Couldn’t load saved sheet; showing local copy')}
+}
+
+/* level up: snapshot before/after so the summary lists exactly what changed */
+let lastSummary='';
+function snap(){const C=compute(false);return{lvl:C.L.total,bab:C.bab,base:{...C.base},avail:C.O['sk.avail'].n,hp:hpBase(),
+  slots:[...Array(7).keys()].map(l=>slotInfo(l,C).total),known:[...Array(7).keys()].map(l=>knownBase(l,C.L.bard)),perf:perfMax(C),
+  ab:autoAbilities(C.L).map(a=>a.name+(a.uses?` (${a.uses}/day)`:'')),L:C.L}}
+function levelUp(){
+  const $=id=>document.getElementById(id);const v=$('lu-cls').value,how=($('lu-hp')||{}).value||'avg',roll=n(($('lu-roll')||{}).value),fcb=$('lu-fcb').value;
+  if(how==='roll'&&!(roll>=1)){setStatus('Enter the hit die roll first.');$('lu-roll').focus();return}
+  const before=snap();let idx,added=false;
+  if(v.startsWith('row:'))idx=+v.slice(4);
+  else{added=true;S.classes.push(v.startsWith('preset:')?Object.assign({preset:v.slice(7),level:0},clone(PRESETS[v.slice(7)])):{preset:'Custom',level:0,name:'New class',hd:8,bab:'3/4',fort:'poor',ref:'poor',will:'good',prestige:false,sp:2,skills:''});idx=S.classes.length-1}
+  const c=S.classes[idx];c.level=Math.floor(n(c.level))+1;
+  const hd=Math.max(1,n(c.hd)||8);const die=how==='max'?hd:how==='roll'?Math.min(hd,Math.floor(roll)):avgHD(hd);
+  if(fcb==='hp')S.fcbHp=n(S.fcbHp)+1; if(fcb==='skill')S.fcbSkill=n(S.fcbSkill)+1;
+  let gain=0;
+  if(S.hp.mode!=='auto'){gain=Math.max(1,die+conMod())+(fcb==='hp'?1:0);S.hp.max=n(S.hp.max)+gain;}
+  const after=snap();const delta=after.hp-before.hp;S.hp.cur=n(S.hp.cur)+delta;
+  (S.levelLog=S.levelLog||[]).push({row:idx,added,gain,delta,fcb});
+  const li=[];const ch=(a,b)=>a===b?`${sg(b)} (no change)`:`${sg(a)} → <b>${sg(b)}</b>`;
+  li.push(`Hit points ${before.hp} → <b>${after.hp}</b> (+${delta}${S.hp.mode!=='auto'?`: ${how==='avg'?'average':how==='max'?'max':'rolled'} ${die} + Con ${sg(conMod())}${fcb==='hp'?' + 1 favored class':''}`:''})`);
+  li.push(`Base attack ${ch(before.bab,after.bab)}`);
+  li.push(`Base saves: Fort ${ch(before.base.fort,after.base.fort)}, Ref ${ch(before.base.ref,after.base.ref)}, Will ${ch(before.base.will,after.base.will)}`);
+  li.push(`Skill ranks to spend: <b>+${after.avail-before.avail}</b> (max ranks per skill is now ${after.lvl})`);
+  if(after.perf!==before.perf)li.push(`Performance rounds per day ${before.perf} → <b>${after.perf}</b>`);
+  const sd=after.slots.map((x,l)=>x>before.slots[l]?`${l?ORD[l-1]:'cantrips'} ${before.slots[l]} → ${x}`:'').filter(Boolean);if(sd.length)li.push(`Spells per day: <b>${sd.join(', ')}</b>`);
+  const kd=after.known.map((x,l)=>x>before.known[l]?`${l?ORD[l-1]:'cantrips'} ${before.known[l]} → ${x}`:'').filter(Boolean);if(kd.length)li.push(`Spells known: <b>${kd.join(', ')}</b>. Pick the new ones on the Spells tab.`);
+  const gained=after.ab.filter(x=>!before.ab.includes(x));if(gained.length)li.push(`New or improved: <b>${gained.map(esc).join(', ')}</b>`);
+  if(after.lvl%2===1)li.push(`<b>Choose a feat</b> (character level ${after.lvl})`);
+  if(after.lvl%4===0)li.push('<b>+1 to an ability score</b> (every 4th character level)');
+  lastSummary=`<div class="summary"><h3>Level ${after.lvl}: ${esc(c.name)} ${c.level}</h3><ul>${li.map(x=>`<li>${x}</li>`).join('')}</ul></div>`;
+}
+function undoLevel(){
+  const e=(S.levelLog||[]).pop();if(!e)return;const c=S.classes[e.row];if(!c)return;
+  c.level=Math.max(0,Math.floor(n(c.level))-1);
+  if(S.hp.mode!=='auto')S.hp.max=n(S.hp.max)-e.gain;
+  S.hp.cur=n(S.hp.cur)-e.delta;
+  if(e.fcb==='hp')S.fcbHp=Math.max(0,n(S.fcbHp)-1); if(e.fcb==='skill')S.fcbSkill=Math.max(0,n(S.fcbSkill)-1);
+  if(e.added&&c.level<=0)S.classes.splice(e.row,1);
+  lastSummary=`<div class="summary"><h3>Removed the last level</h3><p class="muted">Back to character level ${levels().total}.</p></div>`;
+}
+
+function hpLog(txt){(S.hpLog=S.hpLog||[]).push({txt,cur:n(S.hp.cur)});if(S.hpLog.length>12)S.hpLog=S.hpLog.slice(-12)}
+
+/* attack & damage roll helper: rolls live only in this view (not saved) */
+const rolls={};
+function threatFrom(crit){const m=String(crit||'').match(/(\d+)\s*[–-]\s*20/);return m?+m[1]:20}
+function diceIn(str){return [...String(str||'').matchAll(/(\d*)d(\d+)/g)].map(m=>[+(m[1]||1),+m[2]])}
+function rollBox(key,its){const r=rolls[key]||{};
+  return `<div class="roll" data-rk="${key}">
+   ${its&&its.length>1?`<select data-roll="${key}.it" aria-label="Which attack">${its.map((l,k)=>`<option value="${k}"${n(r.it)===k?' selected':''}>${ORD[k]} attack ${l}</option>`).join('')}</select>`:''}
+   <span class="rgrp"><label class="rf">d20 <input type="number" min="1" max="20" data-roll="${key}.d20" value="${r.d20??''}" aria-label="d20 roll"></label><span class="rres" id="ra-${key}"></span></span>
+   <label class="rf critbox"><input type="checkbox" class="cs" data-roll="${key}.crit" ${r.crit?'checked':''}> Crit</label>
+   <span class="rgrp"><label class="rf">Damage dice <input type="number" min="0" data-roll="${key}.dmg" value="${r.dmg??''}" aria-label="Total of damage dice rolled"></label><span class="rres" id="rd-${key}"></span></span>
+  </div>`}
+function rollInfo(key,C){
+  /* v0–v3: Mythcarver’s spirit, four attacks at the highest bonus */
+  const i=key[0]==='v'?S.attacks.findIndex(a=>a.vest):+key.slice(1),a=S.attacks[i];if(!a||!C.O[`atk.${i}.hit`])return null;const it=key[0]==='v'?0:n((rolls[key]||{}).it);
+  return{hit:C.O[`atk.${i}.hit`].n-5*it,db:C.O[`atk.${i}.dmg`].n,dmgT:C.O[`atk.${i}.dmg`].t,crit:a.crit};
+}
+function updRolls(C){
+  document.querySelectorAll('[data-rk]').forEach(el=>{const k=el.dataset.rk,info=rollInfo(k,C);if(!info)return;const r=rolls[k]||{};
+    const A=document.getElementById('ra-'+k),D=document.getElementById('rd-'+k);
+    if(n(r.d20)>=1){const d=Math.floor(n(r.d20)),th=threatFrom(info.crit),h=rowHit(k,C);
+      A.innerHTML=`= <b>${d+info.hit}</b> to hit${h===true?' <em class="crit">HIT</em>':h===false?' <em class="miss">MISS</em>':''}${d===20?' <em class="crit">natural 20, threat: roll to confirm</em>':d===1?' <em class="miss">natural 1</em>':d>=th?' <em class="crit">threat: roll to confirm</em>':''}`;}
+    else A.innerHTML=`<span class="muted">${sg(info.hit)}</span>`;
+    const mult=r.crit?critMult(info.crit):1,rg=diceRange(info);
+    const di=el.querySelector(`[data-roll="${k}.dmg"]`);if(di){di.max=rg.max;di.min=rg.min;di.title=`${rg.txt}: ${rg.min}–${rg.max}`}
+    if(r.dmg!==''&&r.dmg!=null){const dice=Math.floor(n(r.dmg));const tot=Math.max(1,dice*mult+info.db);
+      D.innerHTML=`= <b>${tot}</b> damage${r.crit?' <em class="crit">critical</em>':''} <small class="muted">(dice ${dice}${mult>1?` ×${mult}`:''} ${sg(info.db)})</small>${r.capped?` <small class="miss">${esc(r.capped)}</small>`:''}`;}
+    else D.innerHTML=`<span class="muted">${esc(info.dmgT)}${r.crit?` · crit: weapon dice ×${critMult(info.crit)}`:''}</span>`;});
+}
+function rowHit(k,C){const info=rollInfo(k,C),r=rolls[k]||{};if(!info||!(n(r.d20)>=1))return null;const d=Math.floor(n(r.d20));
+  if(d===1)return false;if(d===20)return true;if(rolls.ac===''||rolls.ac==null)return null;return d+info.hit>=n(rolls.ac)}
+function critMult(c){const m=String(c||'').match(/[×x]\s*(\d)/i);return m?+m[1]:2}
+function diceRange(info){const list=diceIn(info.dmgT);return{min:list.reduce((a,[c])=>a+c,0),max:list.reduce((a,[c,s])=>a+c*s,0),txt:list.map(([c,s])=>`${c}d${s}`).join(' + ')}}
+
+/* ---------- bardic performance actions ---------- */
+function perfClearBuff(id){const p=perfDef(id);if(!p||!p.self)return;S.cond[p.self]=false;
+  if(id==='greatness'&&n(S.perf.ghp)){const t=Math.min(n(S.hp.temp),n(S.perf.ghp));S.hp.temp=n(S.hp.temp)-t;if(t)hpLog(`Inspire Greatness ended: −${t} temp HP`);S.perf.ghp=0}}
+function perfApplyBuff(id){const p=perfDef(id);if(!p||!p.self)return;if(p.self!=='courage'&&!S.perf.self[p.self])return;
+  S.cond[p.self]=true;
+  if(id==='greatness'&&!n(S.perf.ghp)){const cm=compute(true).ab.con.mod,r=Math.max(2,dice(2,10)+2*cm),old=n(S.hp.temp);S.hp.temp=Math.max(old,r);S.perf.ghp=S.hp.temp-old;
+    hpLog(`Inspire Greatness: 2d10 ${sg(2*cm)} = ${r} temp HP`);}}
+function endAllPerf(){if(S.perf.cur)perfClearBuff(S.perf.cur);if(n(S.perf.linger)>0)perfClearBuff(S.perf.lingerOf);S.perf.cur='';S.perf.linger=0;S.perf.lingerOf=''}
+function perfStart(id){
+  const C=compute(true),p=perfDef(id);if(!p||levels().bard<p.lvl||p.free)return;const cost=p.cost||1;
+  if(perfLeft(C)<cost){setStatus('Not enough performance rounds left today.');return}
+  endAllPerf();   // a new performance ends the old one, and anything still lingering
+  S.used.perf=n(S.used.perf)+cost;
+  if(p.cost){const r=dice(3,8)+Math.min(35,levels().bard),mx=hpMaxNow(),bf=n(S.hp.cur);S.hp.cur=Math.min(mx,bf+r);
+    ['fatigued','sickened','shaken'].forEach(c=>S.cond[c]=false);hpLog(`Soothing Performance: 3d8+${Math.min(35,levels().bard)} = ${r}, healed ${S.hp.cur-bf}`);
+    dayLog(`Soothing Performance (4 rounds): ${r} healing to everyone within 30 ft.; fatigued, sickened and shaken removed`);setTimeout(()=>setStatus(`Soothing Performance: ${r} HP to everyone within 30 ft.`),600);return}
+  S.perf.cur=id;perfApplyBuff(id);dayLog(`Started ${p.n}`);
+}
+function perfStop(){const id=S.perf.cur;if(!id)return;const p=perfDef(id);S.perf.cur='';
+  if(lingers()){S.perf.linger=2;S.perf.lingerOf=id;dayLog(`Stopped ${p.n}; it lingers 2 rounds`)}else{perfClearBuff(id);dayLog(`Stopped ${p.n}`)}}
+function perfRound(){
+  if(S.perf.cur){if(perfLeft(compute(true))<1){setStatus('Out of performance rounds.');perfStop();return}
+    S.used.perf=n(S.used.perf)+1;if(perfLeft(compute(true))<1)setStatus('That was his last performance round today.');return}
+  if(n(S.perf.linger)>0){S.perf.linger=n(S.perf.linger)-1;if(!S.perf.linger){const p=perfDef(S.perf.lingerOf);perfClearBuff(S.perf.lingerOf);if(p)dayLog(`${p.n} faded`);S.perf.lingerOf=''}}
+}
+
+/* gray smoke for the Cape of the Mountebank */
+function smoke(x,y){if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  for(let i=0;i<16;i++){const p=document.createElement('div');p.className='fx-smoke';const a=Math.random()*Math.PI*2,r=20+Math.random()*60;
+    p.style.left=x+'px';p.style.top=y+'px';p.style.setProperty('--dx',Math.cos(a)*r+'px');p.style.setProperty('--dy',(Math.sin(a)*r-30)+'px');p.style.setProperty('--s',(6+Math.random()*10).toFixed(1));
+    p.style.animationDelay=(Math.random()*.15)+'s';document.body.appendChild(p);setTimeout(()=>p.remove(),1900)}}
+
+/* long rest: heals character level + Con mod, clears nonlethal, resets daily uses (hero points and weekly items kept), slots, performance, harp +1d10 */
+function restHeal(){return Math.max(1,levels().total+conMod())}
+function longRest(heal){
+  let h=0;
+  endAllPerf();
+  if(heal){const mx=hpMaxNow();const before=n(S.hp.cur);S.hp.cur=Math.min(mx,before+restHeal());h=S.hp.cur-before;S.hp.nl=0;}
+  const keep={};Object.keys(S.used).forEach(k=>{if(k==='hero'||/^w\./.test(k))keep[k]=S.used[k]});S.used=keep;
+  S.cast={};S.cond.spiritspent=false;
+  const r=dice(1,10),b=Math.max(0,n(S.harp.ch));S.harp.ch=Math.min(10,b+r);S.harp.bolts=0;S.harp.last=null;
+  dayLog(`Rested: spell slots, performance rounds and daily items reset; Harp of the Storm 1d10 = ${r} (${b} → ${S.harp.ch})`);
+  return h;
+}
+
+/* ---------- events ---------- */
+document.addEventListener('input',e=>{const t=e.target;
+  if(t.dataset&&t.dataset.cap){const v=Math.floor(n(t.value)),c=n(t.dataset.cap);if(t.value!==''&&v>c)t.value=c;return;}
+  if(t.dataset&&t.dataset.roll){const [k,f]=t.dataset.roll.split('.');
+    if(!f){rolls[k]=t.value===''?'':n(t.value);document.querySelectorAll(`[data-roll="${k}"]`).forEach(x=>{if(x!==t)x.value=t.value});
+      updRolls(compute(true));return;}
+    const r=rolls[k]=rolls[k]||{};
+    if(t.type==='checkbox')r[f]=t.checked;
+    else{let v=t.value===''?'':Math.floor(n(t.value));
+      if(v!==''){const info=rollInfo(k,compute(true));let lo=1,hi=Infinity,lab='';
+        if(f==='d20'){hi=20}
+        else if(f==='dmg'&&info){const rg=diceRange(info);lo=rg.min;hi=rg.max;lab=rg.txt}
+        if(hi!==Infinity&&v>hi){if(f!=='d20')r.capped=`${lab} can only roll ${lo}–${hi}`;v=hi;t.value=hi;}
+        else if(f!=='d20')r.capped=v<lo?`${lab} rolls at least ${lo}`:'';}
+      r[f]=v;}
+    updRolls(compute(true));return;}
+  if(t.classList&&t.classList.contains('spfilter')){const q=t.value.trim().toLowerCase();t.parentElement.querySelectorAll('.spr').forEach(r=>r.hidden=!!q&&!r.dataset.q.includes(q));return;}
+  const p=t.dataset&&t.dataset.p;if(!p)return;
+  let v=t.type==='checkbox'?t.checked:t.type==='number'?(t.value===''?'':n(t.value)):t.value;setP(p,v);
+  if(t.tagName==='SELECT'&&/classes\.\d+\.preset/.test(p)&&PRESETS[v]){const i=+p.split('.')[1];Object.assign(S.classes[i],clone(PRESETS[v]),{preset:v,level:S.classes[i].level});}
+  {const m=p.match(/^perf\.self\.(\w+)$/);if(m&&perfActive(m[1])){if(v)perfApplyBuff(m[1]);else perfClearBuff(m[1]);}}
+  if(t.type==='checkbox'||t.tagName==='SELECT'){render()}else refresh();
+  scheduleSave();});
+document.addEventListener('change',e=>{const t=e.target;
+  if(t.dataset&&t.dataset.p&&t.hasAttribute('data-rr')&&t.tagName==='INPUT'&&t.type!=='checkbox'){const f=t.id;render();const el=document.getElementById(f);if(el)el.focus({preventScroll:true});}});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,i=+b.dataset.i;
+  const amt=id=>Math.max(0,Math.floor(n((document.getElementById(id)||{}).value)));
+  switch(a){
+   case 'tab':tab=b.dataset.t;ls.set('namfoodle-tab',tab);render();window.scrollTo({top:Math.min(window.scrollY,document.getElementById('tabs').offsetTop),behavior:'instant'});return;
+   case 'addClass':S.classes.push(Object.assign({preset:'Custom',level:1},{name:'New class',hd:8,bab:'3/4',fort:'poor',ref:'poor',will:'good',prestige:false,sp:2,skills:''}));render();break;
+   case 'delClass':S.classes.splice(i,1);render();break;
+   case 'addAtk':S.attacks.push({id:newId(),name:'',kind:'melee',abil:'dex',enh:0,misc:0,dice:'1d4',dmgAbil:'str',dmgMisc:0,extra:'',crit:'×2',range:'',type:'',uses:0,notes:'',desc:''});render();break;
+   case 'delAtk':S.attacks.splice(i,1);render();break;
+   case 'mvAtk':{const j=i+n(b.dataset.d);if(j<0||j>=S.attacks.length)return;const t=S.attacks[i];S.attacks[i]=S.attacks[j];S.attacks[j]=t;render();break;}
+   case 'addItem':S[b.dataset.k].push({name:'',desc:'',uses:0});render();break;
+   case 'delItem':S[b.dataset.k].splice(i,1);render();break;
+   case 'addGear':S.gear.push({item:'',desc:'',loc:'',wt:0});render();break;
+   case 'delGear':S.gear.splice(i,1);render();break;
+   case 'addBag':(S.bag=S.bag||[]).push({item:'',desc:'',wt:0});render();break;
+   case 'delBag':S.bag.splice(i,1);render();break;
+   case 'use':{const k=b.dataset.k,u=n(S.used[k]);S.used[k]=(i===u-1)?u-1:i+1;
+     const nm={lore:'Lore Master',cape:'Cape of the Mountebank',lute:'Acoustic Sphere (Force Lute)',flute:'Flute healing',glove:'Glove of Blasting','w.flute':'Flute (tree stride)','myth.spirit':'Mythcarver’s spirit','sla.mark':'arcane mark','sla.comp':'comprehend languages','sla.msg':'message','sla.read':'read magic'}[k];
+     if(nm)dayLog(S.used[k]>u?`Used ${nm}`:`Undid ${nm}`);
+     if(k==='myth.spirit')S.cond.spiritspent=S.used[k]>0;
+     render();break;}
+   /* spells */
+   case 'slot':{const l=+b.dataset.l;S.cast=S.cast||{};const u=castOf(l);S.cast[l]=(i===u-1)?u-1:i+1;dayLog(S.cast[l]>u?`Spent a ${ORD[l-1]}-level slot`:`Got back a ${ORD[l-1]}-level slot`);render();break;}
+   case 'spCast':{const l=+b.dataset.l,nm=b.dataset.n,C=compute(true),si=slotInfo(l,C);S.cast=S.cast||{};if(castOf(l)>=si.total){setStatus(`No ${ORD[l-1]}-level slots left today.`);return}
+     S.cast[l]=castOf(l)+1;const bf=SP_BUFF[nm];if(bf)S.cond[bf]=true;dayLog(`Cast ${nm} (${ORD[l-1]})`);setStatus(`Cast ${nm}: ${Math.max(0,si.total-castOf(l))} ${ORD[l-1]}-level slot${si.total-castOf(l)===1?'':'s'} left`);render();break;}
+   case 'spLearn':case 'spLearnN':{const l=+b.dataset.l;const el=document.getElementById('spadd-'+l);let nm=(a==='spLearnN'?b.dataset.n:(el?el.value:'')).trim();if(!nm)return;
+     const hit=(BS[l]||[]).find(x=>x[0].toLowerCase()===nm.toLowerCase().replace(/'/g,'’'));if(hit)nm=hit[0];
+     const K=knownOf(l),cap=slotInfo(l,compute(true)).known;if(K.length>=cap){setStatus('He already knows as many spells as he can at that level.');return}
+     if(K.includes(nm)){setStatus(`He already knows ${nm}.`);return}K.push(nm);render();break;}
+   case 'spForget':{knownOf(+b.dataset.l).splice(i,1);render();break;}
+   case 'scrollAdd':(S.scrolls=S.scrolls||[]).push({name:'',cls:'Bard',lvl:1,cl:1,qty:1});render();break;
+   case 'scrollDel':S.scrolls.splice(i,1);render();break;
+   case 'scrollUse':{const x=S.scrolls[i];if(!x||n(x.qty)<1)return;x.qty=n(x.qty)-1;dayLog(`Read a scroll of ${x.name||'a spell'}${/bard/i.test(x.cls)?'':` (UMD DC ${20+n(x.cl)})`}`);setStatus(`Scroll of ${x.name} used: ${x.qty} left`);render();break;}
+   /* performance */
+   case 'perfStart':perfStart(b.dataset.id);render();break;
+   case 'perfStop':perfStop();render();break;
+   case 'perfRound':perfRound();render();break;
+   case 'perfQuick':{const id=b.dataset.id;if(S.perf.cur===id)perfStop();else perfStart(id);render();break;}
+   case 'perfReset':endAllPerf();S.used.perf=0;dayLog('Performance rounds reset');render();break;
+   case 'dread':dayLog('Mythcarver: dread on a Dirge of Doom target (next save rolled twice, lower result)');setStatus('Dread: the chosen creature rolls its next saving throw twice and takes the lower.');render();break;
+   /* treasures */
+   case 'vstate':S.vest=S.vest||{};S.vest.state=b.dataset.v;dayLog(`Mythcarver is ${vestS().n.toLowerCase()}`);render();break;
+   case 'spirit':{if(vestS().lv<2||n(S.used['myth.spirit'])>=1)return;S.used['myth.spirit']=1;S.cond.spiritspent=true;['v0','v1','v2','v3'].forEach(k=>delete rolls[k]);
+     dayLog('Mythcarver: the sword’s spirit takes over, four attacks; 1 point of exhaustion');render();break;}
+   case 'harpAdj':S.harp.ch=Math.max(0,Math.min(10,n(S.harp.ch)+n(b.dataset.d)));render();break;
+   case 'harpNight':{const r=dice(1,10),bf=n(S.harp.ch);S.harp.ch=Math.min(10,bf+r);dayLog(`Harp of the Storm: night, 1d10 = ${r} (${bf} → ${S.harp.ch})`);setStatus(`Harp regained ${S.harp.ch-bf} (rolled ${r})`);render();break;}
+   case 'harpUse':{const k=b.dataset.k,h=HARP.find(x=>x[0]===k);if(!h)return;const cost=k==='bolt'?Math.max(1,Math.min(10,Math.floor(n((document.getElementById('bolt-n')||{}).value)||1))):h[2];
+     if(n(S.harp.ch)<cost){setStatus('Not enough charges.');return}S.harp.ch=n(S.harp.ch)-cost;let txt;
+     if(k==='burst'){const r=dice(1,8);txt=`Sound Burst: <b>${r}</b> sonic to each creature in the burst; Fortitude save or stunned 1 round.`}
+     else if(k==='step'){const r=dice(3,10);txt=`Thunder Step: <b>${r}</b> thunder within 10 ft. of where he left (half on a Fortitude save, ${Math.floor(r/2)}).`}
+     else if(k==='call'){const r=dice(3,8);S.harp.bolts=4;txt=`Call Lightning, bolt 1 of 5: <b>${r}</b> lightning (Reflex half, ${Math.floor(r/2)}). Call the next bolt with an action.`}
+     else{const r=dice(cost+3,6);txt=`Lightning Bolt (${cost} charge${cost>1?'s':''}, ${cost+3}d6):<b>${r}</b> lightning along the 120-ft. line (Reflex half, ${Math.floor(r/2)}).`}
+     S.harp.last={k,txt};dayLog(`Harp of the Storm: ${h[1]} (−${cost}, ${S.harp.ch} left) — ${txt.replace(/<[^>]+>/g,'')}`);render();break;}
+   case 'harpBolt':{if(n(S.harp.bolts)<1)return;const r=dice(3,8),no=6-n(S.harp.bolts);S.harp.bolts=n(S.harp.bolts)-1;
+     S.harp.last={k:'call',txt:`Call Lightning, bolt ${no} of 5: <b>${r}</b> lightning (Reflex half, ${Math.floor(r/2)}).${S.harp.bolts?'':' That was the last bolt.'}`};dayLog(`Harp of the Storm: call lightning bolt ${no}, ${r} damage`);render();break;}
+   case 'harpBoltEnd':S.harp.bolts=0;render();break;
+   case 'cape':{if(n(S.used.cape)>=1)return;S.used.cape=1;const rc=b.getBoundingClientRect();smoke(rc.left+rc.width/2,rc.top+rc.height/2);
+     setTimeout(()=>{const ar=document.getElementById('art').getBoundingClientRect();smoke(ar.left+ar.width/2,Math.max(60,ar.top+ar.height/2))},450);
+     dayLog('Cape of the Mountebank: dimension door in a puff of gray smoke');render();break;}
+   case 'fluteHeal':{if(n(S.used.flute)>=1)return;const cha=compute(true).ab.cha.mod,r=Math.max(1,dice(1,10)+cha),mx=hpMaxNow(),bf=n(S.hp.cur);S.used.flute=1;S.hp.cur=Math.min(mx,bf+r);
+     hpLog(`Flute: 1d10 ${sg(cha)} = ${r}, healed ${S.hp.cur-bf}`);dayLog(`Flute: everyone within 30 ft. heals ${r}`);setTimeout(()=>setStatus(`Flute: ${r} HP to everyone within 30 ft.`),600);render();break;}
+   case 'strum':{if(perfLeft(compute(true))<1){setStatus('No performance rounds left today.');return}S.used.perf=n(S.used.perf)+1;const r=dice(3,4);
+     S.itemLast={k:'strum',txt:`Repelling Strum: ${r} force. Fortitude DC 16 or pushed back 10 ft.`};dayLog(`Force Lute: Repelling Strum, ${r} force (1 performance round)`);render();break;}
+   case 'sphere':{if(n(S.used.lute)>=1)return;S.used.lute=1;dayLog('Force Lute: Acoustic Sphere (75 HP, Reflex DC 16 for an unwilling target)');setStatus('Acoustic Sphere cast: 75 HP');render();break;}
+   case 'opDrink':{const p=(S.otherPotions||[])[i];if(!p||n(p.qty)<1)return;p.qty=n(p.qty)-1;const cl=String(p.clr||'').split(',').map(s=>s.trim()).filter(Boolean),was=cl.filter(c=>S.cond[c]);
+     was.forEach(c=>S.cond[c]=false);dayLog(`Drank ${p.name}${was.length?` (cleared ${was.join(', ')})`:''}`);setStatus(`Drank ${p.name}: ${p.qty} left`);render();break;}
+   case 'opAdd':(S.otherPotions=S.otherPotions||[]).push({name:'',qty:1,effect:'',clr:''});render();break;
+   case 'opDel':S.otherPotions.splice(i,1);render();break;
+   case 'weekReset':delete S.used['w.flute'];dayLog('New week: flute ready');render();break;
+   case 'brooch':S.brooch=Math.max(0,n(S.brooch)+n(b.dataset.d));render();break;
+   case 'broochHit':{const x=amt('brooch-amt');if(!x)return;const ab=Math.min(x,n(S.brooch)),thru=x-ab;S.brooch=n(S.brooch)-ab;
+     if(thru){const tmp=n(S.hp.temp),use=Math.min(tmp,thru);S.hp.temp=tmp-use;S.hp.cur=n(S.hp.cur)-(thru-use);}
+     hpLog(`Magic missile ${x}: brooch absorbed ${ab}${thru?`, took ${thru}`:''}`);dayLog(`Brooch of Shielding absorbed ${ab} (${S.brooch} left)`);render();break;}
+   case 'chg':{const x=S.charged[i];if(!x)return;x.ch=Math.max(0,n(x.ch)+n(b.dataset.d));if(n(b.dataset.d)<0)dayLog(`${x.name}: 1 charge (${x.ch} left)`);render();break;}
+   case 'chAdd':(S.charged=S.charged||[]).push({name:'',ch:0,notes:''});render();break;
+   case 'chDel':S.charged.splice(i,1);render();break;
+   case 'sdLogClear':S.sdLog=[];render();break;
+   case 'rest':longRest(false);render();break;
+   case 'addNote':setP(b.dataset.k,' ');render();{const el=document.getElementById('i-'+b.dataset.k.replace(/\W/g,'_'));if(el){el.value='';el.focus()}}break;
+   case 'levelUp':levelUp();render();break;
+   case 'undoLevel':undoLevel();render();break;
+   case 'cone':S.cone=!S.cone;dayLog(S.cone?'Cone of Clarity in use (+2 DC on verbal spells)':'Put away the Cone of Clarity');render();break;
+   case 'quick':{const id=b.dataset.id;S.cond[id]=!S.cond[id];if(id==='stormward')dayLog(S.cond[id]?'Playing the Harp of the Storm: Storm Ward':'Stopped playing the harp');render();break;}
+   case 'dmg':{const d=amt(b.dataset.src||'hpamt');if(!d)return;
+     const tmp=n(S.hp.temp),use=Math.min(tmp,d);S.hp.temp=tmp-use;S.hp.cur=n(S.hp.cur)-(d-use);
+     hpLog(`Took ${d} damage`+(use?` (${use} from temp HP)`:''));render();break;}
+   case 'clearLog':S.hpLog=[];render();break;
+   case 'exportSheet':{const blob=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});const u=URL.createObjectURL(blob);const x=document.createElement('a');
+     x.href=u;x.download=`${(S.info.name||'character').replace(/\W+/g,'-')}-backup-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(x);x.click();x.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);setStatus('Backup downloaded');return;}
+   case 'importSheet':document.getElementById('importfile').click();return;
+   case 'miAdd':(S.mitems=S.mitems||[]).push({name:'',slot:'Slotless',target:'dex',bonus:2,type:'enh',on:true});render();break;
+   case 'miDel':S.mitems.splice(i,1);render();break;
+   case 'acAdd':(S.acItems=S.acItems||[]).push({name:'',slot:'Ring',type:'deflection',bonus:1,on:true});render();break;
+   case 'acDel':S.acItems.splice(i,1);render();break;
+   case 'potDrink':{const p=(S.potions||[])[i];if(!p||n(p.qty)<1)return;const dl=diceIn(p.dice),lo=dl.reduce((a,[c])=>a+c,0),hi=dl.reduce((a,[c,s])=>a+c*s,0);
+     const el=document.getElementById('pot-roll-'+i);const x=Math.floor(n((el||{}).value));
+     if(!(x>=lo&&x<=hi)){setStatus(`Type the ${p.dice} total (${lo}–${hi}).`);if(el)el.focus();return}
+     const am=x+n(p.bonus),mx=hpMaxNow(),bf=n(S.hp.cur);S.hp.cur=Math.min(mx,bf+am);const h=S.hp.cur-bf;
+     p.qty=n(p.qty)-1;hpLog(`Drank ${p.name}: ${x}+${n(p.bonus)} = ${am}, healed ${h}`);setTimeout(()=>setStatus(`${p.name}: healed ${h} HP`),800);render();break;}
+   case 'potAdd':(S.potions=S.potions||[]).push({name:'Cure Light Wounds',dice:'1d8',bonus:1,qty:1});render();break;
+   case 'potDel':S.potions.splice(i,1);render();break;
+   case 'clearRolls':Object.keys(rolls).forEach(k=>{if(k!=='ac')delete rolls[k]});render();return;
+   case 'heal':{const src=b.dataset.src||'hpamt',mx=hpMaxNow();if(!amt(src))return;const bf=n(S.hp.cur);S.hp.cur=Math.min(mx,n(S.hp.cur)+amt(src));hpLog(`Healed ${S.hp.cur-bf}`);S.hp.nl=Math.max(0,n(S.hp.nl)-amt(src));render();break;}
+   case 'full':{const h=longRest(true);hpLog(`Long rest, healed ${h}`);setTimeout(()=>setStatus(`Long rest: healed ${h} HP, daily uses reset`),800);render();break;}
+   case 'cond':{const id=b.dataset.id;S.cond[id]=!S.cond[id];
+     /* the performance cards and these buff cards stay in step */
+     const pd=PERF.find(p=>p.self===id);if(pd&&!S.cond[id]&&perfActive(pd.id)){if(S.perf.cur===pd.id)S.perf.cur='';if(lingerOn(pd.id)){S.perf.linger=0;S.perf.lingerOf=''}perfClearBuff(pd.id)}
+     render();break;}
+   case 'neg':S.neg=Math.max(0,n(S.neg)+n(b.dataset.d));render();break;
+   case 'clearCond':endAllPerf();S.cond={};S.neg=0;render();break;
+   case 'artPick':document.getElementById('artfile').click();return;
+   case 'artRemove':{const old=S.art&&S.art.id;S.art=false;if(old&&assets)assets.delete(old).catch(()=>{});renderArt();break;}
+   default:return;
+  }
+  scheduleSave();});
+document.getElementById('artfile').addEventListener('change',e=>{const f=e.target.files[0];e.target.value='';if(f)setArt(f)});
+document.getElementById('importfile').addEventListener('change',e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+  const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d||!d.info||!d.classes)throw 0;S=load(d);render();scheduleSave(true);setStatus('Backup restored')}
+    catch(err){setStatus('That file isn’t a character sheet backup.')}};r.readAsText(f)});
+const artEl=document.getElementById('art');
+artEl.addEventListener('dragover',e=>{e.preventDefault();artEl.classList.add('drag')});
+artEl.addEventListener('dragleave',()=>artEl.classList.remove('drag'));
+artEl.addEventListener('drop',e=>{e.preventDefault();artEl.classList.remove('drag');const f=e.dataTransfer.files[0];if(f)setArt(f)});
+
+boot();
+})();
+</script>
+
+<script src="js/intro.js" data-intro="namfoodle"></script>
+</body>
+</html>

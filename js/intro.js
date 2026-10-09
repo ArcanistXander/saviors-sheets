@@ -1,5 +1,5 @@
 /* Opening flourish for each character sheet: a ~5 s canvas overlay played once per page load.
-   <script src="js/intro.js" data-intro="drax|ensley|sinafey"></script>
+   <script src="js/intro.js" data-intro="drax|ensley|sinafey|namfoodle"></script>
    The canvas ignores the pointer, so the sheet stays usable underneath; any click or key fades it out early. */
 (function(){
   'use strict';
@@ -225,6 +225,65 @@
     }};
   }
 
+  /* =====================================================================
+     NAMFOODLE — gnome bard: a golden strum across the sheet, music notes rising,
+     then a shower of gold coins
+     ===================================================================== */
+  function namfoodle(){
+    var strums=[], GLYPH=['♪','♫','♩','♬'];
+    var nStr=6, gap=13;
+    function stringY(i){return H*.5+(i-(nStr-1)/2)*gap*S}
+    var coin=sprite(64,64,function(g){
+      var gr=g.createRadialGradient(24,22,2,32,32,30);gr.addColorStop(0,'#fff6c8');gr.addColorStop(.35,'#ffd54a');gr.addColorStop(.8,'#c98a12');gr.addColorStop(1,'#7a4e06');
+      g.fillStyle=gr;g.beginPath();g.arc(32,32,29,0,7);g.fill();
+      g.strokeStyle='rgba(122,78,6,.9)';g.lineWidth=3;g.beginPath();g.arc(32,32,21,0,7);g.stroke();
+      g.fillStyle='rgba(122,78,6,.85)';g.font='bold 24px Georgia,serif';g.textAlign='center';g.textBaseline='middle';g.fillText('♪',32,34);
+    });
+    var glow=sprite(64,64,function(g){var gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(255,240,180,1)');gr.addColorStop(.4,'rgba(255,200,80,.6)');gr.addColorStop(1,'rgba(255,170,40,0)');g.fillStyle=gr;g.fillRect(0,0,64,64)});
+    function strum(t,big){
+      strums.push({born:t,amp:(big?16:11)*S});shake(big?5:3,180,t);
+      for(var i=0;i<(big?16:10);i++){
+        var x=rnd(.08,.92)*W,y=stringY((Math.random()*nStr)|0);
+        emit({x:x,y:y,vx:rnd(-30,30),vy:rnd(-240,-120)*S,drag:.995,age:0,life:rnd(1500,2300),ch:GLYPH[(Math.random()*4)|0],sz:rnd(26,44)*S,ph:rnd(0,6),
+          draw:function(p,k){var a=k<.1?k/.1:1-Math.pow((k-.1)/.9,1.6);
+            cx.save();cx.globalAlpha=a;cx.translate(p.x+Math.sin(p.age/260+p.ph)*14*S,p.y);cx.rotate(Math.sin(p.age/400+p.ph)*.25);
+            cx.font='700 '+p.sz.toFixed(0)+'px Georgia,serif';cx.textAlign='center';cx.textBaseline='middle';
+            cx.shadowColor='rgba(255,190,60,.95)';cx.shadowBlur=16*S;cx.fillStyle='#ffe08a';cx.fillText(p.ch,0,0);
+            cx.shadowBlur=0;cx.fillStyle='#fff7d6';cx.fillText(p.ch,-1,-1);cx.restore()}});
+      }
+    }
+    function dropCoin(){
+      var floor=H-rnd(18,60)*S,r=rnd(11,19)*S;
+      emit({x:rnd(.04,.96)*W,y:-30,vx:rnd(-40,40),vy:rnd(120,320),g:1100,age:0,life:rnd(1500,2100),r:r,ph:rnd(0,6),spin:rnd(6,12),floor:floor,b:0,
+        draw:function(p,k){
+          if(p.y>p.floor&&p.vy>0&&p.b<2){p.y=p.floor;p.vy*=-(p.b?.25:.45);p.vx*=.7;p.b++;
+            if(p.b===1)for(var j=0;j<4;j++){var a=rnd(-Math.PI,0),v=rnd(60,160);emit({x:p.x,y:p.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,g:300,age:0,life:rnd(250,450),
+              draw:function(q,kk){cx.globalCompositeOperation='lighter';cx.globalAlpha=1-kk;cx.drawImage(glow,q.x-6,q.y-6,12,12);cx.globalAlpha=1;cx.globalCompositeOperation='source-over'}})}}
+          if(p.b>=2&&p.y>p.floor){p.y=p.floor;p.vy=0;p.vx*=.9}
+          var w=Math.max(.12,Math.abs(Math.cos(p.age/1000*p.spin+p.ph)));
+          cx.save();cx.globalAlpha=k>.8?(1-k)/.2:1;cx.translate(p.x,p.y);cx.scale(w,1);cx.drawImage(coin,-p.r,-p.r,p.r*2,p.r*2);cx.restore()}});
+    }
+    var plan=[];
+    [150,850,1500,2250,3000].forEach(function(at,i){plan.push({at:at,fn:function(t){strum(t,i===0||i===3)}})});
+    for(var c=1200;c<3500;c+=55)plan.push({at:c,fn:dropCoin});
+
+    return {plan:plan,dim:'rgba(28,16,4,0.42)',draw:function(t){
+      /* the strings: fade in, then ring after each strum */
+      var fin=clamp(t/400,0,1);
+      cx.save();cx.lineCap='round';
+      for(var i=0;i<nStr;i++){
+        var y0=stringY(i);cx.beginPath();
+        for(var x=0;x<=W;x+=8){
+          var off=0;strums.forEach(function(s){var age=(t-s.born)/1000;if(age<0||age>2.2)return;
+            var env=Math.exp(-age*2.6)*Math.min(1,age*30);off+=s.amp*env*Math.sin(Math.PI*x/W*(1+(i%3)))*Math.cos(age*(48+i*7))});
+          x?cx.lineTo(x,y0+off):cx.moveTo(x,y0+off);
+        }
+        cx.globalAlpha=fin*.95;cx.shadowColor='rgba(255,190,70,.9)';cx.shadowBlur=10*S;cx.strokeStyle=i<2?'#f5e3b0':'#e2b85a';cx.lineWidth=(1+i*.35)*S;cx.stroke();
+      }
+      cx.restore();
+    }};
+  }
+
   /* shared: expanding shockwave rings */
   function drawRings(rings,t){
     for(var i=rings.length-1;i>=0;i--){var r=rings[i],age=t-r.born;if(age<0)continue;if(age>r.life){rings.splice(i,1);continue}
@@ -232,7 +291,7 @@
   }
 
   /* ---------- run ---------- */
-  var scenes={drax:drax,ensley:ensley,sinafey:sinafey};
+  var scenes={drax:drax,ensley:ensley,sinafey:sinafey,namfoodle:namfoodle};
   if(!scenes[theme])return;
   function start(){
     size();document.body.appendChild(cv);

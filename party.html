@@ -946,7 +946,7 @@ table.stats{min-width:520px}
   // ---- Long rest for the whole party ----
   // Synced heroes rest on their own sheets: each is opened out of sight in turn so the rest lands even if
   // nobody has that sheet open. Heroes tracked only here get their spell slots and daily uses back.
-  var SHEET_PAGES={drax:'drax.html',sinafey:'sinafey.html',ensley:'ensley.html'};
+  var SHEET_PAGES={drax:'drax.html',sinafey:'sinafey.html',ensley:'ensley.html',namfoodle:'namfoodle.html'};
   function syncedIds(){return state.party.map(function(p){return p.id}).filter(function(id){return SHEET_PAGES[id]})}
   // Open each hero's sheet out of sight, one at a time, until ok(id) says its report has come through the
   // online database (the sheet saves before it reports), then wait a moment more and close it.
