@@ -1903,7 +1903,7 @@ const dmCode=()=>'SPELLS1:'+btoa(unescape(encodeURIComponent(JSON.stringify(dmRe
 function liveStats(){
   const A=compute(true),o=k=>A.O[k]?A.O[k].n:null,t=k=>A.O[k]?A.O[k].t:'';
   return {ac:o('ac.total'),touch:o('ac.touch'),ff:o('ac.ff'),fort:o('sv.fort'),ref:o('sv.ref'),will:o('sv.will'),
-    init:t('init'),speed:t('speed'),cmb:t('cmb'),cmd:t('cmd'),perception:t('sk.perception'),neg:A.M.neg||0,
+    rv:2,init:t('init'),speed:t('speed'),cmb:t('cmb'),cmd:t('cmd'),perception:t('sk.perception'),neg:A.M.neg||0,
     level:A.L.total,classes:S.classes.filter(c=>n(c.level)>0).map(c=>`${c.name} ${Math.floor(n(c.level))}`).join(' / '),
     conds:A.M.active.map(c=>({n:String(cname(c)),buff:!!c.buff}))};
 }
@@ -1978,7 +1978,7 @@ async function boot(){
     const [db,as]=await Promise.all([cl.use('db'),cl.use('assets').catch(()=>null)]);assets=as;
     if(db){dbRef=db.doc('sheets/ensley');const snap=await dbRef.get();
       if(snap.exists&&!dirty){S=load(clone(snap.data()));render();}
-      setStatus(dirty?'Unsaved changes':'Saved');if(dirty)flush();watchPartyRest(db);}
+      setStatus(dirty?'Unsaved changes':'Saved');if(dirty)flush();watchPartyRest(db);pushLink();}
     else setStatus('Edits save in this browser');
   }catch(e){setStatus('Couldn’t load saved sheet; showing local copy')}
 }
