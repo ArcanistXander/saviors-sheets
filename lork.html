@@ -180,6 +180,26 @@ td.tot{font-weight:700;font-size:1.08rem;min-width:3em}
 .counter{font-size:.9rem}
 .counter b.over{color:var(--bad)}
 .vers{font-size:.78rem;color:var(--accent);white-space:nowrap}
+/* overview: abilities and HP side by side, then AC and combat across the full width */
+.cols2{display:grid;gap:18px;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+@media (max-width:760px){.cols2{grid-template-columns:1fr}}
+.actop{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:14px;align-items:center}
+@media (max-width:760px){.actop{grid-template-columns:1fr}}
+.actop .big3 .v{font-size:2rem}
+.acedit{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;align-items:end}
+.acedit .field input{width:100%}
+@media (max-width:460px){.acedit{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.acparts{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:6px;border-top:1px solid var(--line);padding-top:10px}
+.acparts span{display:grid;justify-items:center;gap:1px;background:var(--sunk);border-radius:var(--r);padding:5px 4px}
+.acparts small{font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.acparts b{font-size:1.1rem}
+.acparts span:first-child{background:var(--accent-soft)}
+.ctiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,138px),1fr));gap:10px}
+.ctile{display:grid;gap:4px;align-content:start;background:var(--sunk);border-radius:var(--r);padding:10px 12px;min-width:0}
+.ctile .v{font-size:1.45rem;font-weight:600;line-height:1.15}
+.ctile .rf{flex-wrap:wrap;font-size:.82rem;gap:3px}
+.ctile select{max-width:100%;font-size:.85rem}
+.ctile input[type=number]{width:3.3em;padding:2px 3px;font-size:.85rem}
 
 /* abilities list */
 .ab-list{display:grid;gap:0}
@@ -699,7 +719,7 @@ function pOverview(){
     <td><button class="btn x" data-act="delClass" data-i="${i}" aria-label="Remove class">✕</button></td></tr>
     <tr><td colspan="11" class="l" style="border-top:0;padding-top:0">${txt(`classes.${i}.skills`,{w:'100%',label:'Class skills',ph:'Class skills, comma separated'})}</td></tr>`).join('');
   const res=resName();
-  return `<div class="cols">
+  return `<div class="cols2">
    <section class="panel"><header><h2>Ability Scores</h2><span class="muted">Adj covers permanent changes; worn items are on the Gear tab</span></header>
     <div class="scroll"><table class="abtbl"><thead><tr><th class="l">Ability</th><th>Base</th><th>Adj</th><th>Score</th><th>Mod</th></tr></thead><tbody>
     ${ABIL.map(a=>`<tr><td title="${ABN[a]}">${a.toUpperCase()}</td><td>${num(`ab.${a}.base`,{label:ABN[a]+' base'})}</td><td>${num(`ab.${a}.temp`,{label:ABN[a]+' adjustment'})}</td><td class="tot">${out(`ab.${a}.sc`)}</td><td><span class="mod" data-o="ab.${a}.mod"></span></td></tr>`).join('')}
@@ -715,25 +735,29 @@ function pOverview(){
     <p class="note">Long rest heals level + Con modifier (${levels().total} + ${conMod()}), clears nonlethal damage and resets daily uses (Death’s Embrace, Raven’s Flight, Smite Evil, Resiliency, Orc Ferocity, Minor Magic). As a deathless, he needs only 4 hours of meditation for it. Damage uses temp HP first. Damage ½ halves the amount for the Ward’s resistance${res?` (now ${esc(res.toLowerCase())})`:''} or lightning (his ring). His paper sheet shows 81 of 96 HP.</p>
     <div class="row"><span class="lbl">Hero points spent</span>${pips('hero',3)}<small class="muted">${3-Math.min(3,n(S.used.hero))} of 3 left</small></div>
    </section>
-   <section class="panel"><header><h2>Armor Class</h2></header>
-    <div class="big3"><div><span class="lbl">AC</span><div class="v" data-o="ac.total"></div></div><div><span class="lbl">Touch</span><div class="v" data-o="ac.touch"></div></div><div><span class="lbl">Flat-footed</span><div class="v" data-o="ac.ff"></div></div></div>
-    <div class="formula">10 + armor <b data-o="ac.armor"></b> + shield <b data-o="ac.shield"></b> + Dex <b data-o="ac.dex"></b> + natural <b data-o="ac.nat"></b> + deflection <b data-o="ac.defl"></b> + dodge <b data-o="ac.dodgeT"></b> + size <b data-o="size"></b> + other <b data-o="ac.oth"></b> + conditions <b data-o="ac.cond"></b></div>
-    <div class="grid2">${field('Extra natural',num('ac.natural'))}${field('Extra deflection',num('ac.deflection'))}${field('Dodge',num('ac.dodge'))}${field('Misc',num('ac.misc'))}${field('Miss chance %',num('miss',{label:'Miss chance percent'}))}</div>
-    <p class="note">Paper sheet: AC 26, touch 18, flat-footed 20, plus a 25% miss chance from the displacement cloak. The +4 written beside it is trap sense, which only counts against traps (turn on “Against a trap” on the Conditions tab). Uncanny dodge keeps his Dex bonus when he’s caught flat-footed; the flat-footed number is for anything that ignores that. ${S.cond.prone?`Prone: AC <b data-o="ac.vsMelee"></b> vs melee, <b data-o="ac.vsRanged"></b> vs ranged.`:''}</p>
-   </section>
-   <section class="panel"><header><h2>Combat</h2></header>
-    <div class="kv">
-     <label>Base attack</label><b data-o="bab.iter"></b>
-     <label>Initiative</label><span><b data-o="init"></b> &nbsp;<span class="muted">misc</span> ${num('init.misc',{label:'Initiative misc'})}</span>
-     <label>CMB</label><span><b data-o="cmb"></b> &nbsp;${sel('cmbAbil',[['str','uses Str'],['dex','uses Dex (Agile Maneuvers)']],{label:'CMB ability'})} ${num('cmbMisc',{label:'CMB misc'})}</span>
-     <label>CMD</label><span><b data-o="cmd"></b> &nbsp;<span class="muted">misc</span> ${num('cmdMisc',{label:'CMD misc'})}</span>
-     <label>Land speed</label><span><b data-o="speed.land"></b> &nbsp;<span class="muted">base</span> ${num('info.speed',{label:'Base speed'})} <span class="muted">bonus</span> ${num('speedMisc',{label:'Speed bonus'})}</span>
-     <label>Fly</label><span>${S.cond.wings?'<b>60 ft.</b> raven wings are out':'60 ft. with Raven’s Flight (the Ward, 1 hour, once per long rest)'}</span>
-     <label>Sneak attack</label><b data-o="sneak"></b>
-     <label>Size</label><span>${sel('info.size',SIZES,{label:'Size'})}</span>
-    </div>
-    <p class="note">The paper sheet lists CMB 12 and CMD 29. By the rules, CMD is 10 + BAB + Str + Dex + dodge + deflection = <b data-o="cmd"></b>; the paper sheet counts the ring as +1.</p></section>
   </div>
+  <section class="panel"><header><h2>Armor Class</h2><span class="muted">Armor and rings are on the Gear tab</span></header>
+   <div class="actop">
+    <div class="big3"><div><span class="lbl">AC</span><div class="v" data-o="ac.total"></div></div><div><span class="lbl">Touch</span><div class="v" data-o="ac.touch"></div></div><div><span class="lbl">Flat-footed</span><div class="v" data-o="ac.ff"></div></div></div>
+    <div class="acedit">${field('Extra natural',num('ac.natural'))}${field('Extra deflection',num('ac.deflection'))}${field('Dodge',num('ac.dodge'))}${field('Misc',num('ac.misc'))}</div>
+   </div>
+   <div class="acparts" aria-label="AC breakdown"><span><small>Base</small><b>10</b></span><span><small>Armor</small><b data-o="ac.armor"></b></span><span><small>Shield</small><b data-o="ac.shield"></b></span><span><small>Dex</small><b data-o="ac.dex"></b></span><span><small>Natural</small><b data-o="ac.nat"></b></span><span><small>Deflection</small><b data-o="ac.defl"></b></span><span><small>Dodge</small><b data-o="ac.dodgeT"></b></span><span><small>Size</small><b data-o="size"></b></span><span><small>Other</small><b data-o="ac.oth"></b></span><span><small>Conditions</small><b data-o="ac.cond"></b></span></div>
+   <p class="note">Paper sheet: AC 26, touch 18, flat-footed 20, plus a 25% miss chance from the displacement cloak. The +4 written beside it is trap sense, which only counts against traps (turn on “Against a trap” on the Conditions tab). Uncanny dodge keeps his Dex bonus when he’s caught flat-footed; the flat-footed number is for anything that ignores that. ${S.cond.prone?`Prone: AC <b data-o="ac.vsMelee"></b> vs melee, <b data-o="ac.vsRanged"></b> vs ranged.`:''}</p>
+  </section>
+  <section class="panel"><header><h2>Combat</h2></header>
+   <div class="ctiles">
+    <div class="ctile"><span class="lbl">Base attack</span><b class="v" data-o="bab.iter"></b><small class="muted">Rogue ¾ progression</small></div>
+    <div class="ctile"><span class="lbl">Initiative</span><b class="v" data-o="init"></b><label class="rf">misc ${num('init.misc',{label:'Initiative misc'})}</label></div>
+    <div class="ctile"><span class="lbl">CMB</span><b class="v" data-o="cmb"></b><label class="rf">uses ${sel('cmbAbil',[['str','Str'],['dex','Dex']],{label:'CMB ability (Dex with Agile Maneuvers)'})}</label><label class="rf">misc ${num('cmbMisc',{label:'CMB misc'})}</label></div>
+    <div class="ctile"><span class="lbl">CMD</span><b class="v" data-o="cmd"></b><label class="rf">misc ${num('cmdMisc',{label:'CMD misc'})}</label></div>
+    <div class="ctile"><span class="lbl">Land speed</span><b class="v" data-o="speed.land"></b><label class="rf">base ${num('info.speed',{label:'Base speed'})}</label><label class="rf">bonus ${num('speedMisc',{label:'Speed bonus'})}</label></div>
+    <div class="ctile"><span class="lbl">Fly speed</span><b class="v">${S.cond.wings?'60 ft.':'—'}</b><small class="muted">${S.cond.wings?'Raven wings are out':'60 ft. with Raven’s Flight, 1 hour, once per long rest'}</small></div>
+    <div class="ctile"><span class="lbl">Sneak attack</span><b class="v" data-o="sneak"></b><small class="muted">Flanked or denied Dex; ranged within 30 ft.</small></div>
+    <div class="ctile"><span class="lbl">Miss chance</span><b class="v" data-o="miss"></b><label class="rf">% ${num('miss',{label:'Miss chance percent'})}</label><small class="muted">Displacement cloak</small></div>
+    <div class="ctile"><span class="lbl">Size</span>${sel('info.size',SIZES,{label:'Size'})}<small class="muted">Medium: no modifiers</small></div>
+   </div>
+   <p class="note">The paper sheet lists CMB 12 and CMD 29. By the rules, CMD is 10 + BAB + Str + Dex + dodge + deflection = <b data-o="cmd"></b>; the paper sheet counts the ring as +1.</p>
+  </section>
   <section class="panel"><header><h2>Identity</h2></header>
    <div class="grid2">
     ${field('Nickname',txt('info.nick'))}${field('Race',txt('info.race'))}${field('Alignment',txt('info.alignment'))}${field('Deity',txt('info.deity'))}${field('Gender',txt('info.gender'))}
