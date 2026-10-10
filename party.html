@@ -91,6 +91,10 @@ button.heal{color:var(--good)}
 .chip.on{background:var(--weak-soft);color:var(--weak);border-color:var(--weak);font-weight:700}
 .effects{font-size:.78rem;color:var(--weak);margin-top:4px;max-width:220px}
 .chip.buff{border-style:dashed}
+.chip.pend{border:1px dashed currentColor;opacity:.75}
+select.addcond{flex:none;width:auto;max-width:10em;font-size:.75rem;padding:1px 6px;border-radius:999px;color:var(--muted)}
+.livetog{display:inline-block;margin-top:4px;padding:1px 8px;font-size:.75rem;border-radius:999px;color:var(--muted);font-weight:700}
+.livetog.on{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
 .chip.buff.on{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);font-weight:700}
 .bufffx{font-size:.78rem;color:var(--accent);margin-top:4px;max-width:220px}
 .buffed{font-size:.72rem;color:var(--accent);font-weight:700;margin-top:2px}
@@ -252,6 +256,26 @@ input.ini-in{width:4.4em;font-family:var(--display);font-size:1.15rem;font-weigh
   function saveExtras(){try{localStorage.setItem(XKEY,JSON.stringify(extras))}catch(e){}cloudPush()}
   var CONDS=[['fatigued','Fatigued','Fatigued: −2 Str & Dex, can’t run or charge.'],['exhausted','Exhausted','Exhausted: half speed, −6 Str & Dex, can’t run or charge.'],['sickened','Sickened','Sickened: −2 on attacks, weapon damage, saves, skills & ability checks.'],
     ['shaken','Shaken','Shaken: −2 on attacks, saves, skills & ability checks.'],['staggered','Staggered','Staggered: only a single move or standard action each round (plus swift, immediate & free).'],['stunned','Stunned','Stunned: drops what it holds, takes no actions, −2 AC, loses Dex bonus to AC.']];
+  // Every standard condition the DM can put on a hero (same ids as the character sheets use). CONDS above are the
+  // ones whose penalties this sheet works out itself for heroes tracked on paper.
+  var COND_ALL=[['blinded','Blinded','Blinded: −2 AC, loses Dex to AC, −4 on most Str/Dex skills and opposed Perception; everything has total concealment.'],
+    ['confused','Confused','Confused: roll d% each round (act normally, babble, hurt himself, or attack the nearest creature).'],
+    ['cowering','Cowering','Cowering: frozen in fear, takes no actions, −2 AC, loses Dex to AC.'],
+    ['dazed','Dazed','Dazed: takes no actions. No AC penalty.'],
+    ['dazzled','Dazzled','Dazzled: −1 on attack rolls and sight-based Perception.'],
+    ['deafened','Deafened','Deafened: −4 initiative, 20% failure on verbal spells, fails sound-based Perception.'],
+    ['entangled','Entangled','Entangled: −2 on attacks, −4 Dex, half speed, can’t run or charge; concentration check to cast.'],
+    ['exhausted','Exhausted',CONDS[1][2]],['fatigued','Fatigued',CONDS[0][2]],
+    ['frightened','Frightened','Frightened: flees from the source; −2 on attacks, saves, skills & ability checks.'],
+    ['grappled','Grappled','Grappled: can’t move, −4 Dex, −2 on attacks and CMB (except to grapple), no attacks of opportunity; concentration check to cast.'],
+    ['helpless','Helpless','Helpless: Dex counts as 0 (−5 AC), melee attackers get +4, can be coup de graced.'],
+    ['nauseated','Nauseated','Nauseated: only a single move action each turn; can’t attack, cast or concentrate.'],
+    ['panicked','Panicked','Panicked: drops what it holds and flees; −2 on saves, skills & ability checks.'],
+    ['paralyzed','Paralyzed','Paralyzed: Str & Dex 0, helpless, only purely mental actions.'],
+    ['pinned','Pinned','Pinned: can’t move, loses Dex to AC and takes a further −4 AC; only verbal and mental actions.'],
+    ['prone','Prone','Prone: −4 on melee attacks, most ranged weapons unusable; +4 AC against ranged, −4 AC against melee.'],
+    ['shaken','Shaken',CONDS[3][2]],['sickened','Sickened',CONDS[2][2]],['staggered','Staggered',CONDS[4][2]],['stunned','Stunned',CONDS[5][2]]];
+  function condDef(id){return COND_ALL.find(function(c){return c[0]===id})||null}
   function negLv(p){return extras.neg[p.id]||0}
   function effMax(p){var m=n(p.hp);return m==null?null:m-5*negLv(p)}
   // Penalties from active conditions and negative levels to Perception, CMB and CMD.
@@ -415,13 +439,49 @@ input.ini-in{width:4.4em;font-family:var(--display);font-size:1.15rem;font-weigh
       return '<button class="chip buff'+(on[b.id]?' on':'')+'" data-buff="'+p.id+'" data-b="'+esc(b.id)+'" aria-pressed="'+(on[b.id]?'true':'false')+'">'+esc(b.name)+'</button>';
     }).join('')+'</div>'+(act.length?'<div class="bufffx">'+act.map(function(b){return esc(b.note||b.name)}).join('<br>')+'</div>':'');
   }
-  // Conditions straight from a hero's own sheet (read-only here).
+  // Conditions on a hero with a live sheet: what the sheet reports, and the DM can add or remove them here. A change goes out
+  // through party/conds and the hero's own sheet applies it (so their AC, saves and attacks change there too).
+  // Until their sheet confirms, the change shows dashed ("sending").
+  var dmConds={}, dmPend={};
+  function liveActive(p,l){
+    var L=readLink(p.id), out={}, buffs=[];
+    (l.conds||[]).forEach(function(x){
+      var id=x.id||(COND_ALL.find(function(c){return c[1].toLowerCase()===String(x.n).toLowerCase()})||[])[0];
+      if(id&&condDef(id))out[id]=true;else buffs.push(x);
+    });
+    var pend=dmPend[p.id]||{}, wait={};
+    Object.keys(pend).forEach(function(k){
+      if(L&&L.at&&L.at>=pend[k].at){delete pend[k];return}
+      out[k]=pend[k].on; wait[k]=true;
+    });
+    return {on:out,wait:wait,buffs:buffs};
+  }
+  function condOptions(p,on,cids){
+    var opts=COND_ALL.filter(function(c){return !on[c[0]]&&(!cids||cids.indexOf(c[0])>=0)});
+    return opts.length?'<select class="addcond" data-addcond="'+p.id+'" aria-label="Add a condition to '+esc(p.name)+'"><option value="">+ Condition…</option>'+
+      opts.map(function(c){return '<option value="'+c[0]+'">'+c[1]+'</option>'}).join('')+'</select>':'';
+  }
   function liveCondCell(p,l){
-    var c=(l.conds||[]).slice().sort(function(a,b){return (a.buff?1:0)-(b.buff?1:0)});
-    var chips=c.map(function(x){return '<span class="chip on'+(x.buff?' buff':'')+'">'+esc(x.n)+'</span>'});
+    var a=liveActive(p,l), ids=Object.keys(a.on).filter(function(k){return a.on[k]});
+    var chips=ids.map(function(k){var d=condDef(k);
+      return '<button class="chip on'+(a.wait[k]?' pend':'')+'" data-lcond="'+p.id+'" data-c="'+k+'" title="'+esc(d[2])+(a.wait[k]?' (sending to '+esc(p.name)+'’s sheet)':' Click to remove.')+'">'+d[1]+' ×</button>'});
+    Object.keys(a.wait).forEach(function(k){if(!a.on[k])chips.push('<span class="chip pend" title="Removing on '+esc(p.name)+'’s sheet">'+condDef(k)[1]+' (removing)</span>')});
+    a.buffs.forEach(function(x){chips.push('<span class="chip on'+(x.buff?' buff':'')+'">'+esc(x.n)+'</span>')});
     if(l.neg)chips.push('<span class="chip on">'+l.neg+' neg. level'+(l.neg>1?'s':'')+'</span>');
-    return '<div class="conds">'+(chips.length?chips.join(''):'<span class="minor">No conditions</span>')+'</div>'+
-      '<div class="minor" style="white-space:normal">Set on '+esc(p.name)+'’s sheet.</div>';
+    var fx=ids.map(function(k){return condDef(k)[2]});
+    return '<div class="conds">'+chips.join('')+condOptions(p,a.on,l.cids)+'</div>'+
+      (Object.keys(a.wait).length?'<div class="minor" style="white-space:normal">Sending to '+esc(p.name)+'’s sheet. It lands there next time the sheet is open.</div>':'')+
+      (fx.length?'<div class="effects">'+fx.map(esc).join('<br>')+'</div>':'');
+  }
+  function setLiveCond(id,c,on){
+    var p=state.party.find(function(x){return x.id===id});
+    if(!cloudDb){statusMsg='Setting conditions on '+(p?p.name:id)+'’s sheet needs the online connection. Switch them to Paper to track it here instead.';render();return}
+    var at=new Date().toISOString();
+    (dmConds[id]||(dmConds[id]={}))[c]={on:on,at:at};
+    (dmPend[id]||(dmPend[id]={}))[c]={on:on,at:at};
+    cloudDb.doc('party/conds').set(dmConds).catch(function(){delete dmPend[id][c];statusMsg='Couldn’t send that condition. Check the connection.';render()});
+    statusMsg=(on?'Sent ':'Removing ')+condDef(c)[1].toLowerCase()+(on?' to ':' from ')+(p?p.name:id)+'’s sheet';
+    render();
   }
   function wsLine(p){
     var L=readLink(p.id);if(!L||!L.powers)return '';
@@ -431,16 +491,16 @@ input.ini-in{width:4.4em;font-family:var(--display);font-size:1.15rem;font-weigh
   function condCell(p){
     var l=live(p);if(l)return liveCondCell(p,l);
     var on=extras.cond[p.id]||{};
-    var fx=CONDS.filter(function(c){return on[c[0]]}).map(function(c){return c[2]});
+    var fx=COND_ALL.filter(function(c){return on[c[0]]}).map(function(c){return c[2]});
     var nl=negLv(p), lv=n(p.level);
     if(nl){
       fx.push((/immune(?: to)? energy drain/i.test(p.notes||'')?'Notes say immune to energy drain! ':'')+
         'Energy drain ('+nl+' neg. level'+(nl>1?'s':'')+'): −'+nl+' on attacks, saves, skills, ability checks, CMB & CMD; −'+(5*nl)+' max HP; −'+nl+' caster level & level-based effects. After 24 hr, Fort save per level (DC 10 + ½ drainer HD + its Cha) or it becomes permanent.'+
         (lv!=null&&nl>=lv?' Negative levels ≥ level: dies.':''));
     }
-    return '<div class="conds">'+CONDS.map(function(c){
-      return '<button class="chip'+(on[c[0]]?' on':'')+'" data-cond="'+p.id+'" data-c="'+c[0]+'" aria-pressed="'+(on[c[0]]?'true':'false')+'">'+c[1]+'</button>';
-    }).join('')+'</div>'+
+    return '<div class="conds">'+COND_ALL.filter(function(c){return on[c[0]]}).map(function(c){
+      return '<button class="chip on" data-cond="'+p.id+'" data-c="'+c[0]+'" title="'+esc(c[2])+' Click to remove.">'+c[1]+' ×</button>';
+    }).join('')+condOptions(p,on)+'</div>'+
     '<div class="neg"><span class="lbl">Neg. levels</span><button class="step" data-neg="'+p.id+'" data-d="-1" aria-label="'+esc(p.name)+': remove a negative level">−</button><span class="negn'+(nl?' on':'')+'">'+nl+'</span><button class="step" data-neg="'+p.id+'" data-d="1" aria-label="'+esc(p.name)+': add a negative level">+</button></div>'+
     (fx.length?'<div class="effects">'+fx.map(esc).join('<br>')+'</div>':'');
   }
@@ -460,7 +520,7 @@ input.ini-in{width:4.4em;font-family:var(--display);font-size:1.15rem;font-weigh
   function row(p){
     if(editing) return editRow(p);
     var l=live(p), spd=l&&l.speed?String(l.speed).replace(/\s*ft\.?$/,''):p.speed;
-    return '<tr><td><div class="name">'+esc(p.name)+'</div><div class="race">'+esc(p.race)+'</div>'+liveLine(p)+wsLine(p)+heroCell(p)+(l?'':buffCell(p))+condCell(p)+spellBtn(p)+fervorBtn(p)+shadowBtn(p)+'</td>'+
+    return '<tr><td><div class="name">'+esc(p.name)+'</div><div class="race">'+esc(p.race)+'</div>'+liveToggle(p)+liveLine(p)+wsLine(p)+heroCell(p)+(l?'':buffCell(p))+condCell(p)+spellBtn(p)+fervorBtn(p)+shadowBtn(p)+'</td>'+
       '<td class="cls"><span class="lvl">'+esc(l&&l.level?l.level:p.level)+'</span>'+esc(l&&l.classes?l.classes:p.classes)+(l&&l.level?'<div class="live">● live</div>':'')+'</td>'+
       '<td><div class="big">'+esc(l?l.ac:p.ac)+'</div><div class="minor">T '+esc(l?l.touch:p.touch)+' · FF '+esc(l?l.ff:p.ff)+'</div>'+(l?'<div class="live">● live</div>':'')+'</td>'+
       '<td>'+hpCell(p)+'</td>'+
@@ -492,7 +552,7 @@ input.ini-in{width:4.4em;font-family:var(--display);font-size:1.15rem;font-weigh
     if(editing){
       tools=(confirmReset?'<button id="restore-yes">Yes, restore originals</button><button id="restore-no">Keep my edits</button>':'<button id="restore-btn">Restore original stats</button>')+'<button id="add-btn">Add character</button><button id="cancel-btn">Cancel</button><button class="primary" id="save-btn">Save changes</button>';
     } else {
-      tools=(confirmRest?'<button class="primary" id="rest-yes">Yes, long rest for everyone</button><button id="rest-no">Cancel</button>':'<button id="rest-all">Long rest (everyone)</button>')+'<button id="stats-btn">Perception · CMB · CMD</button><button id="reset-hp">Reset all HP</button><button id="export-btn">Export backup</button><button id="import-btn">Import backup</button><input type="file" id="import-file" accept=".json,application/json" hidden><button class="primary" id="edit-btn">Edit sheet</button>';
+      tools=(confirmRest?'<button class="primary" id="rest-yes">Yes, long rest for everyone</button><button id="rest-no">Cancel</button>':'<button id="rest-all">Long rest (everyone)</button>')+allPaperBtn()+'<button id="stats-btn">Perception · CMB · CMD</button><button id="reset-hp">Reset all HP</button><button id="export-btn">Export backup</button><button id="import-btn">Import backup</button><input type="file" id="import-file" accept=".json,application/json" hidden><button class="primary" id="edit-btn">Edit sheet</button>';
     }
     autoTimers();
     var ir=ini().round, onInit=view==='init'&&!editing;
@@ -517,7 +577,7 @@ input.ini-in{width:4.4em;font-family:var(--display);font-size:1.15rem;font-weigh
   }
   function statsRows(){
     return state.party.map(function(p){
-      var on=extras.cond[p.id]||{}, act=CONDS.filter(function(c){return on[c[0]]}).map(function(c){return c[1]});
+      var on=extras.cond[p.id]||{}, act=COND_ALL.filter(function(c){return on[c[0]]}).map(function(c){return c[1]});
       if(negLv(p))act.push(negLv(p)+' neg. lvl');
       var l=live(p);
       if(l&&(l.perception||l.cmb||l.cmd))return '<tr><td><div class="name">'+esc(p.name)+'</div><div class="live">● live from '+esc(p.name)+'’s sheet</div></td>'+
@@ -608,7 +668,35 @@ input.ini-in{width:4.4em;font-family:var(--display);font-size:1.15rem;font-weigh
   // A report belongs to the row with its id, or else the row with the same name (so heroes added with Add character link too).
   function normName(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'')}
   function rowFor(d){var r=state.party.find(function(p){return p.id===d.id});if(r)return r;var nm=normName(d.name);return nm?state.party.find(function(p){return normName(p.name)===nm})||null:null}
-  function readLink(id){
+  // A hero switched to Paper ignores their own sheet: everything shown comes from what's typed in here.
+  function readLink(id){var row=state.party.find(function(p){return p.id===id});return row&&row.paper?null:rawLink(id)}
+  function hasSheet(p){return !!(SHEET_PAGES[p.id]||rawLink(p.id))}
+  function liveToggle(p){
+    if(!hasSheet(p)) return '';
+    var on=!p.paper;
+    return '<button class="livetog'+(on?' on':'')+'" data-livetog="'+p.id+'" aria-pressed="'+on+'" title="'+(on?'Reading '+esc(p.name)+'’s own sheet. Switch to Paper to track their paper stats here instead.':'Tracking paper stats typed in here. Switch back to read '+esc(p.name)+'’s own sheet.')+'">'+(on?'● Live sheet':'○ Paper')+'</button>';
+  }
+  // Switch a hero to paper (true) or back to their live sheet. Going to paper starts from the last numbers their sheet sent,
+  // so nothing jumps back to old typed stats. Returns whether anything was copied.
+  function setPaper(p,on){
+    if(!on){delete p.paper;return false}
+    if(p.paper)return false;
+    var LR=rawLink(p.id), lv=LR&&LR.live, copied=false;
+    if(lv){['ac','touch','ff','fort','ref','will','level','classes','perception','cmb','cmd'].forEach(function(k){if(lv[k]!=null&&lv[k]!==''){p[k]=String(lv[k]);copied=true}});
+      if(lv.speed)p.speed=String(lv.speed).replace(/\s*ft\.?$/,'');
+      var oc=extras.cond[p.id]={};(lv.conds||[]).forEach(function(x){var id=x.id||(COND_ALL.find(function(c){return c[1].toLowerCase()===String(x.n).toLowerCase()})||[])[0];if(id&&condDef(id))oc[id]=true});
+      extras.neg[p.id]=+lv.neg||0;}
+    if(LR&&LR.hp&&+LR.hp.max){p.hp=String(+LR.hp.max+5*(+LR.hp.neg||0));cur[p.id]=+LR.hp.cur||0;saveCur();copied=true}
+    p.paper=true;return copied;
+  }
+  // Header button: everyone with a sheet to paper, or (when they all are) everyone back to live.
+  function allPaperBtn(){
+    var withSheet=state.party.filter(hasSheet); if(!withSheet.length) return '';
+    var allPaper=withSheet.every(function(p){return p.paper});
+    return allPaper?'<button id="all-live" title="Every hero with a sheet on the site reads it live again">All live sheets</button>':
+      '<button id="all-paper" title="Track every hero from the stats typed in here, ignoring their website sheets">All on paper</button>';
+  }
+  function rawLink(id){
     var best=extras.link[id]||null, row=state.party.find(function(p){return p.id===id});
     [id,row?normName(row.name):''].forEach(function(k){if(!k)return;
       try{var l=JSON.parse(localStorage.getItem('saviors-link-'+k)||'null');if(l&&isReport(l)&&(l.id===id||(row&&normName(l.name)===normName(row.name)))&&(!best||l.at>best.at))best=l;}catch(e){}});
@@ -1236,6 +1324,19 @@ input.ini-in{width:4.4em;font-family:var(--display);font-size:1.15rem;font-weigh
       bo[t.dataset.b]=!bo[t.dataset.b];saveExtras();render();
     }
     else if(t.dataset.pip){extras.hero[t.dataset.pip]=+t.dataset.to;saveExtras();render();}
+    else if(t.dataset.lcond){setLiveCond(t.dataset.lcond,t.dataset.c,false);}
+    else if(t.dataset.livetog){
+      var lp=state.party.find(function(x){return x.id===t.dataset.livetog});if(!lp)return;
+      var copied=setPaper(lp,!lp.paper);
+      statusMsg=lp.paper?lp.name+' is on paper now'+(copied?', starting from the last numbers their sheet sent':'')+'. Use Edit sheet to change the stats.':lp.name+' reads their own sheet again.';
+      persist();saveExtras();render();var lb=document.querySelector('[data-livetog="'+lp.id+'"]');if(lb)lb.focus();
+    }
+    else if(t.id==='all-paper'||t.id==='all-live'){
+      var toPaper=t.id==='all-paper', who=state.party.filter(function(p){return hasSheet(p)&&!!p.paper!==toPaper});
+      who.forEach(function(p){setPaper(p,toPaper)});
+      statusMsg=who.length?(toPaper?'Everyone is on paper now, starting from the last numbers their sheets sent.':'Everyone with a sheet reads it live again.'):'';
+      persist();saveExtras();render();var ab=document.getElementById(toPaper?'all-live':'all-paper');if(ab)ab.focus();
+    }
     else if(t.dataset.cond){
       var o=extras.cond[t.dataset.cond]||(extras.cond[t.dataset.cond]={});
       o[t.dataset.c]=!o[t.dataset.c];saveExtras();render();
@@ -1260,6 +1361,13 @@ input.ini-in{width:4.4em;font-family:var(--display);font-size:1.15rem;font-weigh
   document.addEventListener('change',function(e){
     var el=e.target;
     if(el.dataset.type){lastType[el.dataset.type]=el.value;}
+    if(el.dataset.addcond&&el.value){
+      var hp2=state.party.find(function(x){return x.id===el.dataset.addcond});if(!hp2)return;
+      if(live(hp2))setLiveCond(hp2.id,el.value,true);
+      else{(extras.cond[hp2.id]||(extras.cond[hp2.id]={}))[el.value]=true;saveExtras();render();}
+      var nx=document.querySelector('[data-addcond="'+hp2.id+'"]');if(nx)nx.focus();
+      return;
+    }
     if(el.dataset.cast){
       var cp=state.party.find(function(x){return x.id===el.dataset.cast});
       var ent=cp&&editCasting(cp).find(function(x){return x.id===el.dataset.ci});
@@ -1310,7 +1418,7 @@ input.ini-in{width:4.4em;font-family:var(--display);font-size:1.15rem;font-weigh
   // Synced heroes rest on their own sheets: each is opened out of sight in turn so the rest lands even if
   // nobody has that sheet open. Heroes tracked only here get their spell slots and daily uses back.
   var SHEET_PAGES={drax:'drax.html',sinafey:'sinafey.html',ensley:'ensley.html',namfoodle:'namfoodle.html',lork:'lork.html'};
-  function syncedIds(){return state.party.map(function(p){return p.id}).filter(function(id){return SHEET_PAGES[id]})}
+  function syncedIds(){return state.party.filter(function(p){return SHEET_PAGES[p.id]&&!p.paper}).map(function(p){return p.id})}
   // Open each hero's sheet out of sight, one at a time, until ok(id) says its report has come through the
   // online database (the sheet saves before it reports), then wait a moment more and close it.
   function visitSheets(ids,ok,after){
@@ -1403,6 +1511,8 @@ input.ini-in{width:4.4em;font-family:var(--display);font-size:1.15rem;font-weigh
         else cloudWrite();  // first time online: upload what this device has
         statusMsg='Saved online';render();
         ref.onSnapshot(function(s){if(s.exists&&!s.metadata.hasPendingWrites)cloudApply(s.data())},function(){});
+        // conditions the DM has sent to heroes' own sheets (kept whole, since each write replaces the document)
+        db.doc('party/conds').onSnapshot(function(s){if(!s.metadata||!s.metadata.hasPendingWrites)dmConds=(s.exists&&s.data())||{}},function(){});
         // Character sheets on this site post their spells and HP here, live, without the sync phrase.
         if(db.collection)db.collection('reports').onSnapshot(function(qs){
           var changed=false;qs.docs.forEach(function(d){if(d.exists&&acceptReport(d.data()))changed=true});

@@ -1201,7 +1201,19 @@ function liveStats(){
   return {ac:o('ac.total'),touch:o('ac.touch'),ff:o('ac.ff'),fort:o('sv.fort'),ref:o('sv.ref'),will:o('sv.will'),
     rv:3,init:t('init'),speed:t('speed'),cmb:t('cmb'),cmd:t('cmd'),perception:t('sk.perception'),neg:A.M.neg||0,
     level:A.L.total,classes:S.classes.filter(c=>n(c.level)>0).map(c=>`${c.name} ${Math.floor(n(c.level))}`).join(' / '),
-    conds:A.M.active.map(c=>({n:String(cname(c)),buff:!!c.buff}))};
+    conds:A.M.active.map(c=>({id:c.id,n:String(cname(c)),buff:!!c.buff})),cids:CONDS.map(c=>c.id)};
+}
+/* conditions the DM sets on the party sheet: party/conds holds {heroId:{condition:{on,at}}}. Each change applies once
+   (S.dmCond keeps its time), so the player can still change it here afterwards. */
+function watchDmConds(db){
+  db.doc('party/conds').onSnapshot(s=>{
+    const mine=((s.exists&&s.data())||{})['lork']||{},seen=S.dmCond||(S.dmCond={}),msg=[];let ch=false;
+    Object.keys(mine).forEach(k=>{const v=mine[k]||{},at=String(v.at||''),c=CONDS.find(x=>x.id===k);
+      if(!c||!at||at<=(seen[k]||''))return;seen[k]=at;ch=true;
+      if(!!S.cond[k]!==!!v.on){S.cond[k]=!!v.on;msg.push((v.on?'':'removed ')+String(cname(c)).toLowerCase())}});
+    if(!ch)return;
+    render();if(msg.length)setStatus(`The DM set: ${msg.join(', ')}`);scheduleSave(true);
+  },()=>{});
 }
 /* a long rest called from the DM's party sheet: applied once per call, same as pressing Long rest here */
 function watchPartyRest(db){
@@ -1252,7 +1264,7 @@ async function boot(){
     const [db,as]=await Promise.all([cl.use('db'),cl.use('assets').catch(()=>null)]);assets=as;
     if(db){dbRef=db.doc('sheets/lork');const snap=await dbRef.get();
       if(snap.exists&&!dirty){S=load(clone(snap.data()));render();}
-      setStatus(dirty?'Unsaved changes':'Saved');if(dirty)flush();watchPartyRest(db);pushLink();}
+      setStatus(dirty?'Unsaved changes':'Saved');if(dirty)flush();watchPartyRest(db);watchDmConds(db);pushLink();}
     else{document.getElementById('backup').hidden=false;setStatus('Edits save in this browser');}
   }catch(e){setStatus('Couldn’t load saved sheet; showing local copy')}
 }
