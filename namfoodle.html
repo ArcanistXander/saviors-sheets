@@ -444,7 +444,7 @@ const cname=c=>typeof c.n==='function'?c.n():c.n, cdesc=c=>typeof c.e==='functio
 const ALLC=[...CONDS,...BUFFS];
 
 /* ---------- bard spell list (Core Rulebook, plus the Advanced Player’s Guide spells on his scrolls) ----------
-   [name, short summary at caster level 16, tags]  tags: E = evocation (Spell Focus +1 DC), L = language-dependent or writing/glyph (Magical Linguist +1 DC) */
+   [name, short summary at caster level 16 (durations scale up at 17), tags]  tags: E = evocation (Spell Focus +1 DC), L = language-dependent or writing/glyph (Magical Linguist +1 DC) */
 const BS={
  0:[['Dancing Lights','Up to four lights or one glowing shape, moved within medium range. 1 min.','E'],['Daze','One humanoid of 4 HD or less loses its next action. Will negates.',''],['Detect Magic','Senses magic auras in a 60-ft. cone. Concentration, up to 16 min.',''],['Flare','Burst of light dazzles one creature for 1 minute. Fort negates.','E'],['Ghost Sound','Figment sounds, as loud as 4 humans per caster level (max 40). Will disbelief.',''],['Know Direction','He knows which way is north.',''],['Light','An object shines like a torch for 160 min.','E'],['Lullaby','Creatures in a 10-ft. burst take −5 Perception and −2 Will vs sleep. Will negates.',''],['Mage Hand','Telekinesis of 5 lb. within close range.',''],['Mending','Repairs 1d4 damage to an object.',''],['Message','Whispered conversation at a distance (long range).','L'],['Open/Close','Opens or closes a small or light thing.',''],['Prestidigitation','Minor tricks: clean, soil, chill, warm, flavor. 1 hour.',''],['Read Magic','Reads scrolls and spellbooks. 160 min.','L'],['Resistance','+1 resistance on saves for 1 minute.',''],['Summon Instrument','Summons one handheld instrument for 16 min.','']],
  1:[['Alarm','Wards a 20-ft. radius for 32 hours; mental or audible alert.',''],['Animate Rope','Makes a rope move at his command; entangle a target.',''],['Cause Fear','One creature of 5 HD or less is frightened 1d4 rounds (shaken 1 round on a save). Will partial.',''],['Charm Person','One humanoid treats him as a friend for 16 hours. Will negates.',''],['Comprehend Languages','Understands all spoken and written languages. 160 min.','L'],['Confusion, Lesser','One creature is confused for 1 round. Will negates.',''],['Cure Light Wounds','Touch heals 1d8+5.',''],['Detect Secret Doors','Reveals hidden doors within a 60-ft. cone.',''],['Disguise Self','Changes his appearance. 160 min. Will disbelief if interacted with.',''],['Erase','Removes mundane or magical writing.','L'],['Expeditious Retreat','+30 ft. base land speed for 16 min.',''],['Feather Fall','Up to 16 falling creatures fall slowly.',''],['Grease','Makes a 10-ft. square or an object slippery. Reflex or fall.',''],['Hideous Laughter','One creature falls prone laughing for 16 rounds. Will negates.',''],['Hypnotism','Fascinates 2d4 HD of creatures for 2d4 rounds. Will negates.',''],['Identify','+10 on Spellcraft to identify magic items. 3 rounds.',''],['Magic Aura','Alters an object’s magic aura. 16 days.',''],['Magic Mouth','An object speaks a message once when triggered.','L'],['Obscure Object','Masks an object from divination. 8 hours.',''],['Remove Fear','+4 morale vs fear for 16 targets, 10 min; suppresses fear.',''],['Saving Finale','Immediate action when a performance ends: one ally within 30 ft. rerolls a failed save.',''],['Silent Image','Visual figment of up to 20 10-ft. cubes. Concentration. Will disbelief.',''],['Sleep','4 HD of creatures fall asleep for 16 min. Will negates.',''],['Summon Monster I','Summons an extraplanar creature for 16 rounds.',''],['Timely Inspiration','Immediate action: +1 competence on an ally’s failed attack roll or skill check, which may turn it into a success.',''],['Undetectable Alignment','Conceals a creature’s alignment for 24 hours.',''],['Unseen Servant','Invisible force obeys simple commands. 16 hours.',''],['Vanish','As invisibility, but lasts only 1 round per level (max 5 rounds). APG.',''],['Ventriloquism','Throws his voice for 16 min. Will disbelief.','']],
@@ -476,17 +476,17 @@ const HARP=[
 /* ---------- default state: Namfoodle’s paper sheet ---------- */
 const sk=(r,m=0,sub='')=>({ranks:r,misc:m,sub});
 const DEFAULT={
- v:2, levelLog:[],
+ v:3, levelLog:[],
  acItems:[{name:'Ring of Protection +4',slot:'Ring',type:'deflection',bonus:4,on:true}],
  potions:[{name:'Cure Moderate Wounds (party bag)',dice:'2d8',bonus:3,qty:1},{name:'Cure Light Wounds (party bag)',dice:'1d8',bonus:1,qty:4}],
  otherPotions:[{name:'Water Breathing',qty:3,effect:'Breathe water freely for 10 hours (CL 5). Can still breathe air.',clr:''},{name:'Remove Blindness/Deafness',qty:1,effect:'Cures blindness or deafness (pick one), magical or mundane.',clr:'blinded,deafened'},{name:'Lesser Restoration',qty:1,effect:'Ends magical ability penalties, heals 1d4 ability damage to one ability, ends fatigue, and turns exhaustion into fatigue.',clr:'fatigued'},{name:'Neutralize Poison',qty:1,effect:'Removes one poison from him: d20 + 7 against the poison’s DC. Also immune to it for 70 minutes.',clr:''},{name:'Remove Curse',qty:1,effect:'Removes one curse: d20 + 5 against the curse’s DC.',clr:''}],
  info:{name:'Namfoodle Nackle',nick:'Noodle',player:'',race:'Gnome',alignment:'Neutral Good',deity:'',size:'Small',gender:'',age:'',height:'3′4″',weight:'39 lb.',hair:'Long straight light brown hair, goatee',eyes:'Green',speed:20,
   languages:'Common, Gnome, Sylvan, Draconic, Elven, Goblin, Dwarven, Orc, Giant, Abyssal, Celestial, Infernal, Gnoll, Terran, Undercommon, Ignan, Aquan, Auran, Halfling, Ancient Draconic, Ancient Common',
   xp:'',campaign:'Realm of Tal’Dorei · The Belhaim Saviors',homeland:'Issylra'},
- classes:[Object.assign({preset:'Bard',level:16},PRESETS.Bard)],
+ classes:[Object.assign({preset:'Bard',level:17},PRESETS.Bard)],
  fcbHp:0, fcbSkill:0,
  ab:{str:{base:10,temp:0},dex:{base:18,temp:0},con:{base:13,temp:0},int:{base:15,temp:0},wis:{base:14,temp:0},cha:{base:24,temp:0}},
- hp:{mode:'manual',max:118,cur:118,temp:0,nl:0,misc:0,conAdj:0},
+ hp:{mode:'manual',max:124,cur:124,temp:0,nl:0,misc:0,conAdj:0},
  ac:{natural:0,deflection:0,dodge:1,misc:0},
  armor:{name:'+1 Mithril Chain Shirt',bonus:5,maxDex:6,acp:0,fail:10,wt:6.25,speed:0},
  shield:{name:'',bonus:0,acp:0,fail:0,wt:0},
@@ -535,8 +535,8 @@ const DEFAULT={
   {name:'Gift of Tongues',desc:'+1 on Bluff and Diplomacy (in skill Misc). Learns one extra language for every rank in Linguistics.',uses:0},
  ],
  ov:{}, known:{0:['Detect Magic','Ghost Sound','Mage Hand','Open/Close','Prestidigitation','Resistance'],1:['Cure Light Wounds','Erase','Grease','Identify','Remove Fear','Vanish'],2:['Cat’s Grace','Locate Object','Mirror Image','Shatter','Silence','Sonic Scream'],3:['Deep Slumber','Good Hope','Haste','Thundering Drums','Triggered Suggestion','Tiny Hut'],4:['Break Enchantment','Hold Monster','Invisibility, Greater','Shout','Discordant Blast'],5:['Dispel Magic, Greater','Song of Discord','Deafening Song Bolt','Cacophonous Call, Mass'],6:['Irresistible Dance','Shout, Greater','Sonic Form']},
- /* his paper sheet: 8/8/7/6/5/4 spells per day and 6/6/6/6/5/4/3 known, more than the bard tables give at Cha 24 */
- cast:{}, spx:{1:1,2:1,4:1,5:1,6:2}, knx:{3:1,6:1}, cone:false,
+ /* his spell sheet: 8/8/7/6/5/4 spells per day; the bard 17 table with Cha 24 gives 7/7/7/5/5/3, so the extra slots make up the difference */
+ cast:{}, spx:{1:1,2:1,4:1,6:1}, knx:{}, cone:false,
  perf:{cur:'',linger:0,lingerOf:'',self:{greatness:true,heroics:true},ghp:0},
  vest:{state:'exalted'},
  harp:{ch:10,bolts:0},
@@ -864,7 +864,14 @@ function render(){
   const P={overview:pOverview,skills:pSkills,saves:pSaves,attacks:pAttacks,spells:pSpells,perform:pPerform,treasures:pTreasures,abilities:pAbilities,conditions:pConditions,gear:pGear}[tab];
   const pg=document.getElementById('page');const openD=[...pg.querySelectorAll('details[id][open]')].map(d=>d.id);
   pg.innerHTML=P();openD.forEach(id=>{const d=document.getElementById(id);if(d)d.open=true});
-  renderArt(); refresh();
+  renderArt(); refresh(); postCourage();
+}
+/* Inspire Courage reaches the whole party: the other sheets watch party/perform and switch their own Inspire Courage on and off with it */
+let cloudDb=null,lastCourage=null;
+function postCourage(){
+  if(!cloudDb||lastCourage===null)return;
+  const on=perfActive('courage'),b=icBonus(),key=on+':'+b;if(key===lastCourage)return;lastCourage=key;
+  cloudDb.doc('party/perform').set({courage:{on,bonus:b,by:'namfoodle',at:new Date().toISOString()}}).catch(()=>{lastCourage=null});
 }
 
 function pOverview(){
@@ -955,7 +962,7 @@ function pSkills(){
     <span class="counter">Ranks spent <b id="spent" data-o="sk.spent"></b> of <b data-o="sk.avail"></b> · max ${out('lvl')} per skill</span></header>
    <div class="scroll"><table class="skilltbl"><thead><tr><th>Class</th><th class="l">Skill</th><th>Key</th><th>Total</th><th></th><th>Ability</th><th></th><th>Ranks</th><th></th><th>Class</th><th></th><th>Misc</th><th></th><th title="Armor check penalty, size, Bardic Knowledge, the circlet and conditions">Other</th></tr></thead><tbody>${rows}</tbody></table></div>
    <p class="note">“Other” holds size (+4 Stealth, +2 Fly), Bardic Knowledge (${sg(C.O.bk.n)} on every Knowledge), the Circlet of Persuasion (+3 on Cha-based skills) and conditions. Misc holds Gift of Tongues (+1 Bluff and Diplomacy) and Keen Senses (+2 Perception). Jack-of-All-Trades makes every skill a class skill and lets him use any skill untrained.</p>
-   <p class="note">From the paper sheet: it uses Bardic Knowledge +7 (it’s +8 at bard 16) and doesn’t give Disable Device and Swim the class-skill +3, so those run a little higher here. Perform (dance) and (percussion) were written on the Profession lines. The ranks add up to 129 against 128 available, so one rank is over.</p>
+   <p class="note">From the paper sheet: it uses Bardic Knowledge +7 (it’s +8 at bard 16 and 17) and doesn’t give Disable Device and Swim the class-skill +3, so those run a little higher here. Perform (dance) and (percussion) were written on the Profession lines. The ranks add up to 129 against 128 available, so one rank is over.</p>
   </section>
   <section class="panel"><header><h2>Versatile Performance</h2><span class="muted">${vm} Perform type${vm===1?'':'s'} at bard ${C.L.bard}. Each one stands in for two skills.</span></header>
    <div class="grid2">${[...Array(vm).keys()].map(i=>field(`Choice ${i+1} (bard ${2+4*i})`,sel(`versatile.${i}`,[['','—'],...Object.keys(VP).map(k=>[k,`${k[0].toUpperCase()+k.slice(1)}: ${VP[k].map(s=>SKILLS.find(x=>x.k===s).n).join(', ')}`])],{rr:1,label:'Versatile performance '+(i+1)}))).join('')}</div>
@@ -1074,7 +1081,7 @@ function pSpells(){
     <tr><td class="l">Left today</td><td>—</td>${sl.map(l=>{const t=slotInfo(l,C).total;return `<td>${t?Math.max(0,t-castOf(l)):'—'}</td>`}).join('')}</tr>
     <tr><td class="l">Save DC</td>${[0,...sl].map(l=>`<td class="tot">${spDC(l,'',C)}</td>`).join('')}</tr>
    </tbody></table></div>
-   <p class="note">Bards cast spontaneously: any spell he knows, using a slot of its level. Press Cast on a spell (or tap a slot pip) to spend a slot. ★ spells also switch on their effect for him. His known spells come from his spell sheet. That sheet gives 8/8/7/6/5/4 spells per day and 6/6/6/6/5/4/3 spells known. The bard tables with Cha 24 give 7/7/7/5/4/2 and 6/6/6/5/5/4/2, so the Extra slots and Extra known boxes on each level make up the difference. Clear them to go by the book.</p>
+   <p class="note">Bards cast spontaneously: any spell he knows, using a slot of its level. Press Cast on a spell (or tap a slot pip) to spend a slot. ★ spells also switch on their effect for him. His known spells come from his spell sheet (6/6/6/6/5/4/3, the bard 17 table). The sheet gives 8/8/7/6/5/4 spells per day; the bard 17 table with Cha 24 gives 7/7/7/5/5/3, so the Extra slots boxes make up the difference. Clear them to go by the book.</p>
   </section>
   ${[0,...sl].map(lvBlock).join('')}
   ${scrollsPanel(C)}
@@ -1112,10 +1119,11 @@ function pPerform(){
    <div class="perfnow">
     <div class="row" style="justify-content:space-between"><span class="big">${cur?`Performing: ${cur.n}`:lg?`${lg.n} lingering`:'Not performing'}</span><span><b style="font-size:1.4rem">${left}</b> <span class="muted">of ${mx} rounds left</span></span></div>
     <div class="rounds" aria-label="${left} of ${mx} rounds left">${[...Array(mx).keys()].map(i=>`<i class="${i<left?'':'u'}"></i>`).join('')}</div>
-    <div class="row">${cur||lg?`<button class="btn pri" data-act="perfRound">Next round${cur?' (−1 round)':''}</button>`:''}${cur?`<button class="btn" data-act="perfStop">Stop performing</button>`:''}
+    ${dmRound!=null?`<p class="note" style="margin:0"><b>Round ${dmRound}</b> on the DM’s initiative tracker: each new round there counts a performance round here by itself, so there’s no need to press Next round.</p>`:''}
+    <div class="row">${cur||lg?`<button class="btn${dmRound!=null?'':' pri'}" data-act="perfRound">Next round${cur?' (−1 round)':''}</button>`:''}${cur?`<button class="btn" data-act="perfStop">Stop performing</button>`:''}
      <small class="muted">${cur?(lingers()?'When he stops, the effects linger 2 more rounds (Lingering Performance).':'The effects end when he stops.'):lg?`Effects last ${n(S.perf.linger)} more round${n(S.perf.linger)===1?'':'s'}; starting a new performance ends them.`:'Start a performance below. Each round he keeps it up costs one round.'}</small></div>
    </div>
-   <p class="note">Inspire Courage${b>=9?', Inspire Greatness':''}${b>=15?' and Inspire Heroics':''} switch on their bonuses for him on every tab while they run (Greatness and Heroics only with “On himself too”). Greatness adds 2d10 ${sg(2*C.ab.con.mod)} temp HP when it starts and takes them away when it ends. Paper sheet: 38 rounds; the rules give 4 + Cha 7 + 2 × 15 = 41 (set your own number on the Class Abilities tab).</p>
+   <p class="note">Inspire Courage${b>=9?', Inspire Greatness':''}${b>=15?' and Inspire Heroics':''} switch on their bonuses for him on every tab while they run (Greatness and Heroics only with “On himself too”). Greatness adds 2d10 ${sg(2*C.ab.con.mod)} temp HP when it starts and takes them away when it ends. Paper sheet: 38 rounds; the rules give 4 + Cha ${C.ab.cha.mod} + 2 × ${b-1} = ${4+C.ab.cha.mod+2*(b-1)} (set your own number on the Class Abilities tab). <b>Inspire Courage reaches the whole party:</b> while he performs it (and while it lingers), every party sheet switches on its Inspire Courage ${sg(icBonus())} and switches it off when it ends.</p>
   </section>
   <div class="perfgrid">${PERF.map(card).join('')}</div>`;
 }
@@ -1240,7 +1248,7 @@ function pAbilities(){
     ${a.key==='perf'?`<div class="ovr"><label class="row">Rounds/day ${num('ov.perf.uses',{rr:1,label:'Performance rounds override'})}</label><span>rules say ${4+compute(false).ab.cha.mod+2*(L.bard-1)}; paper sheet says 38; leave blank to use the rules</span></div>`:''}
     ${hasNote?`<div class="ovr" style="display:block">${area(k+'.note',{rows:2,label:a.name+' notes'})}</div>`:`<div class="ovr"><button class="btn x" data-act="addNote" data-k="${k}.note">+ Add note or DM ruling</button></div>`}</div></div>`}).join('')||'<p class="muted">Set a Bard level on the Overview tab to see abilities here.</p>'}</div></section>
   <div class="cols">${customList('racial','Racial Traits','Gnome (Magical Linguist, Gift of Tongues)')}${customList('talents','Other Abilities','')}</div>
-  ${customList('feats','Feats','8 feats at character level 16')}`;
+  ${customList('feats','Feats','9 feats at character level 17: the paper sheet lists 8, so pick one more')}`;
 }
 
 function condCards(list,map){
@@ -1415,6 +1423,22 @@ function watchPartyRest(db){
     render();setStatus(`Long rest from the DM: healed ${h} HP, daily uses reset`);scheduleSave(true);
   },()=>{});
 }
+/* the DM's initiative tracker posts party/round; each new round while he performs (or a performance lingers) counts one round here.
+   S.dmRound remembers the last round counted for that combat, so reloading or the DM stepping back never charges a round twice. */
+let dmRound=null;
+function watchDmRound(db){
+  db.doc('party/round').onSnapshot(s=>{
+    const d=s.exists?(s.data()||{}):{},cid=String(d.cid||''),r=Math.floor(n(d.round)),was=dmRound;
+    dmRound=d.active&&cid?r:null;
+    if(dmRound===null){if(was!==null)render();return}
+    const prev=S.dmRound||{};
+    if(prev.cid!==cid){S.dmRound={cid,round:r};render();scheduleSave(true);return}
+    if(r<=n(prev.round)){if(was!==dmRound)render();return}
+    const busy=S.perf.cur||n(S.perf.linger)>0,from=n(prev.round);S.dmRound={cid,round:r};
+    for(let i=from;i<r&&i<from+20;i++)perfRound();
+    render();if(busy)setStatus(`Round ${r} on the DM’s tracker: performance round counted`);scheduleSave(true);
+  },()=>{});
+}
 function pushLink(){const rep=Object.assign(dmReport(),{live:liveStats(),restAt:S.lastPartyRest||''});try{localStorage.setItem('saviors-link-namfoodle',JSON.stringify(rep))}catch(e){}if(window.sheetsReport)window.sheetsReport('namfoodle',rep)}
 function dmPanel(){
   const L=(S.sdLog||[]).slice(-12).reverse();
@@ -1454,6 +1478,13 @@ function load(d){
     s.bag=(s.bag||[]).filter(g=>!/^Potion of /.test(g.item||''));
     if(n(s.used.lute))s.used.lute=0;
     s.v=2;}
+  /* v3: bard 17 (+6 HP: average d8 + Con), and the bard 17 tables cover the extra spells known */
+  if(d&&(d.v||1)<3){
+    const c=s.classes.find(x=>x.preset==='Bard');
+    if(c&&n(c.level)===16){c.level=17;if(s.hp.mode!=='auto'){s.hp.max=n(s.hp.max)+6;s.hp.cur=n(s.hp.cur)+6;}}
+    if(JSON.stringify(s.spx)==='{"1":1,"2":1,"4":1,"5":1,"6":2}')s.spx=clone(DEFAULT.spx);
+    if(JSON.stringify(s.knx)==='{"3":1,"6":1}')s.knx={};
+    s.v=3;}
   return s;
 }
 async function boot(){
@@ -1464,8 +1495,10 @@ async function boot(){
   try{
     const [db,as]=await Promise.all([cl.use('db'),cl.use('assets').catch(()=>null)]);assets=as;
     if(db){dbRef=db.doc('sheets/namfoodle');const snap=await dbRef.get();
+      /* start from what the party already sees, so opening the sheet doesn't switch anyone's Inspire Courage off */
+      cloudDb=db;db.doc('party/perform').get().then(p=>{const c=(p.exists&&(p.data()||{}).courage)||{};lastCourage=c.at?(!!c.on)+':'+(+c.bonus||0):'false:'+icBonus();postCourage();}).catch(()=>{});
       if(snap.exists&&!dirty){S=load(clone(snap.data()));render();}
-      setStatus(dirty?'Unsaved changes':'Saved');if(dirty)flush();watchPartyRest(db);pushLink();}
+      setStatus(dirty?'Unsaved changes':'Saved');if(dirty)flush();watchPartyRest(db);watchDmRound(db);pushLink();}
     else{document.getElementById('backup').hidden=false;setStatus('Edits save in this browser');}
   }catch(e){setStatus('Couldn’t load saved sheet; showing local copy')}
 }

@@ -3323,6 +3323,15 @@ function liveStats(){
     level:A.L.total,classes:S.classes.filter(c=>n(c.level)>0).map(c=>`${c.name} ${Math.floor(n(c.level))}`).join(' / '),
     conds:A.M.active.map(c=>({n:String(cname(c)),buff:!!c.buff}))};
 }
+/* Namfoodle's Inspire Courage reaches the whole party: his sheet posts party/perform when he starts or stops it */
+function watchPartyCourage(db){
+  db.doc('party/perform').onSnapshot(s=>{
+    if(!s.exists)return;const c=(s.data()||{}).courage||{},at=String(c.at||'');
+    if(!at||at===S.partyCourageAt)return;S.partyCourageAt=at;
+    const on=!!c.on,b=Math.floor(+c.bonus);if(b>0)S.courage=b;
+    S.cond.courage=on;render();setStatus(on?`Namfoodle is performing: Inspire Courage ${sg(cBonus())}`:'Namfoodle’s Inspire Courage ended');scheduleSave(true);
+  },()=>{});
+}
 /* a long rest called from the DM's party sheet: applied once per call, same as pressing Long rest here */
 function watchPartyRest(db){
   db.doc('party/rest').onSnapshot(s=>{
@@ -3975,7 +3984,7 @@ async function boot(){
     const [db,as]=await Promise.all([cl.use('db'),cl.use('assets').catch(()=>null)]);assets=as;
     if(db){dbRef=db.doc('sheets/'+CHAR);const snap=await dbRef.get();
       if(snap.exists&&!dirty){S=load(clone(snap.data()));render();if(migrated)scheduleSave(true);}
-      setStatus(dirty?'Unsaved changes':'Saved');if(dirty)flush();watchPartyRest(db);pushLink();}
+      setStatus(dirty?'Unsaved changes':'Saved');if(dirty)flush();watchPartyRest(db);watchPartyCourage(db);pushLink();}
     else setStatus('Edits save in this browser');
   }catch(e){setStatus('Couldn’t load saved sheet; showing local copy')}
 }
