@@ -576,6 +576,15 @@ const BUFFS=[
  {id:'heroism',n:'Heroism',e:'+2 morale on attacks, saves, skill checks.',fx:[['atk',2,'morale'],['save',2,'morale'],['skill',2,'morale']]},
  {id:'courage',n:()=>`Inspire Courage ${sg(cBonus())}`,e:()=>`Bardic performance: ${sg(cBonus())} competence on attack and weapon damage rolls, ${sg(cBonus())} morale on saves against charm and fear.`,fx:()=>[['atk',cBonus(),'competence'],['dmg',cBonus(),'competence']]},
 ];
+/* Namfoodle’s performances, switched on from his sheet (see watchPartyPerform) */
+const PP=()=>S.partyPerf||{};
+BUFFS.push(
+ {id:'pgreat',n:'Inspire Greatness',e:'Namfoodle’s performance: 2 bonus Hit Dice (2d10 + Con as temp HP), +2 competence on attack rolls, +1 competence on Fortitude.',fx:[['atk',2,'competence'],['fort',1,'competence']]},
+ {id:'pheroics',n:'Inspire Heroics',e:'Namfoodle’s performance: +4 morale on saving throws and +4 dodge bonus to AC.',fx:[['save',4,'morale'],['acDodge',4,'dodge']]},
+ {id:'pcomp',n:()=>`Inspire Competence ${sg(Math.floor(+PP().compBonus)||5)}`,e:()=>`Namfoodle’s performance: ${sg(Math.floor(+PP().compBonus)||5)} competence on ${PP().compSkillName||'one skill'} checks.`,fx:()=>PP().compSkill?[['sk.'+PP().compSkill,Math.floor(+PP().compBonus)||5,'competence']]:[]},
+ {id:'pcounter',n:'Countersong',e:()=>`Namfoodle is playing Countersong: against a magical sonic effect within 30 ft., use his Perform result (d20 ${sg(Math.floor(+PP().counter)||0)}) instead of your save if it is higher.`},
+ {id:'pdistract',n:'Distraction',e:()=>`Namfoodle is performing Distraction: against an illusion (pattern or figment) within 30 ft., use his Perform result (d20 ${sg(Math.floor(+PP().distract)||0)}) instead of your save if it is higher.`}
+);
 BUFFS.forEach(b=>b.buff=true);
 function cBonus(){const v=Math.floor(+S.courage);return isFinite(v)?v:4}
 const ok=k=>k.replace(/\./g,'_');
@@ -1909,13 +1918,27 @@ function liveStats(){
     level:A.L.total,classes:S.classes.filter(c=>n(c.level)>0).map(c=>`${c.name} ${Math.floor(n(c.level))}`).join(' / '),
     conds:A.M.active.map(c=>({n:String(cname(c)),buff:!!c.buff}))};
 }
-/* Namfoodle's Inspire Courage reaches the whole party: his sheet posts party/perform when he starts or stops it */
-function watchPartyCourage(db){
+/* Namfoodle’s performances reach the party: his sheet posts party/perform, one section per performance stamped with when it changed */
+function watchPartyPerform(db){
+  const ME='ensley';
   db.doc('party/perform').onSnapshot(s=>{
-    if(!s.exists)return;const c=(s.data()||{}).courage||{},at=String(c.at||'');
-    if(!at||at===S.partyCourageAt)return;S.partyCourageAt=at;
-    const on=!!c.on,b=Math.floor(+c.bonus);if(b>0)S.courage=b;
-    S.cond.courage=on;render();setStatus(on?`Namfoodle is performing: Inspire Courage ${sg(cBonus())}`:'Namfoodle’s Inspire Courage ended');scheduleSave(true);
+    if(!s.exists)return;const d=s.data()||{},seen=S.partySeen=S.partySeen||{},pp=S.partyPerf=S.partyPerf||{},ch=[];let touched=false;
+    if(S.partyCourageAt&&!seen.courage)seen.courage=S.partyCourageAt;
+    const sec=(k,fn)=>{const x=d[k];if(!x||!x.at||seen[k]===x.at)return;seen[k]=x.at;touched=true;fn(x)};
+    const mine=x=>!!x.on&&(x.targets||[]).includes(ME);
+    sec('courage',x=>{const b=Math.floor(+x.bonus);if(b>0)S.courage=b;if(!!S.cond.courage!==!!x.on)ch.push(x.on?`Inspire Courage ${sg(cBonus())}`:'Inspire Courage ended');S.cond.courage=!!x.on});
+    sec('greatness',x=>{const on=mine(x);
+      if(on&&!S.cond.pgreat){const cm=conMod(),r=Math.max(2,1+Math.floor(Math.random()*10)+1+Math.floor(Math.random()*10)+2*cm),old=n(S.hp.temp);S.hp.temp=Math.max(old,r);S.partyGhp=S.hp.temp-old;hpLog(`Inspire Greatness: 2d10 ${sg(2*cm)} = ${r} temp HP`)}
+      if(!on&&S.cond.pgreat&&n(S.partyGhp)){const t=Math.min(n(S.hp.temp),n(S.partyGhp));S.hp.temp=n(S.hp.temp)-t;S.partyGhp=0;if(t)hpLog(`Inspire Greatness ended: −${t} temp HP`)}
+      if(on!==!!S.cond.pgreat)ch.push(on?'Inspire Greatness':'Inspire Greatness ended');S.cond.pgreat=on});
+    sec('heroics',x=>{const on=mine(x);if(on!==!!S.cond.pheroics)ch.push(on?'Inspire Heroics':'Inspire Heroics ended');S.cond.pheroics=on});
+    sec('competence',x=>{const on=!!x.on&&x.target===ME;pp.compSkill=x.skill;pp.compSkillName=x.skillName;pp.compBonus=x.bonus;if(on!==!!S.cond.pcomp)ch.push(on?`Inspire Competence on ${x.skillName}`:'Inspire Competence ended');S.cond.pcomp=on});
+    sec('countersong',x=>{pp.counter=x.perform;if(!!x.on!==!!S.cond.pcounter)ch.push(x.on?'Countersong':'Countersong ended');S.cond.pcounter=!!x.on});
+    sec('distraction',x=>{pp.distract=x.perform;if(!!x.on!==!!S.cond.pdistract)ch.push(x.on?'Distraction':'Distraction ended');S.cond.pdistract=!!x.on});
+    /* a heal is a one-off: only one from the last 15 minutes lands, so a sheet opened later doesn't heal again */
+    sec('soothing',x=>{if(!x.id||Date.now()-Date.parse(x.at)>9e5)return;const mx=compute(true).O['hp.max'].n,bf=n(S.hp.cur);S.hp.cur=Math.min(mx,bf+Math.floor(+x.heal||0));
+      ['fatigued','sickened','shaken'].forEach(c=>S.cond[c]=false);hpLog(`Namfoodle’s Soothing Performance: healed ${S.hp.cur-bf}`);ch.push(`Soothing Performance healed ${S.hp.cur-bf}`)});
+    if(!touched)return;render();if(ch.length)setStatus('Namfoodle: '+ch.join(', '));scheduleSave(true);
   },()=>{});
 }
 /* a long rest called from the DM's party sheet: applied once per call, same as pressing Long rest here */
@@ -1989,7 +2012,7 @@ async function boot(){
     const [db,as]=await Promise.all([cl.use('db'),cl.use('assets').catch(()=>null)]);assets=as;
     if(db){dbRef=db.doc('sheets/ensley');const snap=await dbRef.get();
       if(snap.exists&&!dirty){S=load(clone(snap.data()));render();}
-      setStatus(dirty?'Unsaved changes':'Saved');if(dirty)flush();watchPartyRest(db);watchPartyCourage(db);pushLink();}
+      setStatus(dirty?'Unsaved changes':'Saved');if(dirty)flush();watchPartyRest(db);watchPartyPerform(db);pushLink();}
     else setStatus('Edits save in this browser');
   }catch(e){setStatus('Couldn’t load saved sheet; showing local copy')}
 }

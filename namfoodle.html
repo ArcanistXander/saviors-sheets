@@ -299,6 +299,7 @@ td.tot{font-weight:700;font-size:1.08rem;min-width:3em}
 .dctbl td.tot{font-size:1.1rem}
 .vers{font-size:.78rem;color:var(--accent);white-space:nowrap}
 .known{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:6px}
+/* target picker for performances with a limit */dialog.picker{border:1px solid var(--accent);border-radius:10px;background:var(--surface);color:var(--ink);padding:18px 20px;width:min(420px,calc(100% - 32px));box-shadow:0 12px 40px rgba(0,0,0,.4)}dialog.picker::backdrop{background:rgba(10,6,2,.55)}dialog.picker form{display:grid;gap:10px}dialog.picker h2{font-size:1.25rem}dialog.picker p{margin:0}.pk{display:grid;gap:6px}.pk label{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:6px;padding:6px 10px}.pk label:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}.pk label:has(input:disabled){opacity:.5}.pkmsg{font-size:.85rem;color:var(--muted);min-height:1.2em}.pkon{font-size:.88rem;background:var(--sunk);border-radius:4px;padding:4px 8px}
 </style>
 </head>
 <body>
@@ -693,7 +694,7 @@ const PERF=[
  {id:'countersong',n:'Countersong',lvl:1,kind:'Audible',e:C=>`Counters magical attacks that depend on sound (not language-dependent effects) within 30 ft. Each ally in range, himself included, may use his Perform check result instead of their saving throw. Uses Perform (keyboard, percussion, wind, string or sing).`,k:C=>[['Perform (strings)',sg(performTotal('string',C)??0)],['Range','30 ft.']]},
  {id:'distraction',n:'Distraction',lvl:1,kind:'Visual',e:C=>`Counters magic that depends on sight (illusion patterns and figments) within 30 ft. Allies use his Perform check result instead of their save. Uses Perform (act, comedy, dance or oratory).`,k:C=>[['Perform (dance)',sg(performTotal('dance',C)??0)],['Range','30 ft.']]},
  {id:'fascinate',n:'Fascinate',lvl:1,kind:'Audible + visual',e:C=>`Up to ${1+Math.floor((levels().bard-1)/3)} creatures within 90 ft. that can see and hear him must make a Will save or sit fascinated while he plays: −4 on skill checks made as reactions. Any obvious threat breaks it.`,k:C=>[['Will DC',perfDC(C)],['Targets',1+Math.floor((levels().bard-1)/3)],['Range','90 ft.']]},
- {id:'courage',n:'Inspire Courage',lvl:1,kind:'Audible',self:'courage',e:C=>`Allies within 30 ft. who hear him, himself included: ${sg(icBonus())} competence on attack and weapon damage rolls, ${sg(icBonus())} morale on saves against charm and fear.`,k:C=>[['Bonus',sg(icBonus())],['Range','30 ft.']]},
+ {id:'courage',n:'Inspire Courage',lvl:1,kind:'Audible',self:'courage',e:C=>`Every ally who can hear him, himself included (no range limit): ${sg(icBonus())} competence on attack and weapon damage rolls, ${sg(icBonus())} morale on saves against charm and fear.`,k:C=>[['Bonus',sg(icBonus())],['Range','anyone who can hear him']]},
  {id:'competence',n:'Inspire Competence',lvl:3,kind:'Audible',e:C=>`One ally within 30 ft. gets ${sg(compBonus())} competence on checks with one skill while he keeps performing (the DM may limit how long). He can’t use it on himself.`,k:C=>[['Bonus',sg(compBonus())],['Range','30 ft.']]},
  {id:'suggestion',n:'Suggestion',lvl:6,kind:'Audible',free:true,e:C=>`A creature he has already fascinated gets a <i>suggestion</i> (as the spell). It doesn’t break the fascinate or cost extra rounds, but takes a standard action. Will save negates; language-dependent, mind-affecting.`,k:C=>[['Will DC',perfDC(C)],['Needs','Fascinate first']]},
  {id:'dirge',n:'Dirge of Doom',lvl:8,kind:'Audible + visual',e:C=>`Enemies within 30 ft. are shaken (−2 attack, saves, skills, ability checks) while they can hear him and stay in range. No save. Fear, mind-affecting; doesn’t stack with other shaken effects.${vestS().lv>=1?' <b>Mythcarver (awakened):</b> pick one creature in range: it rolls its next saving throw twice and takes the lower, even if it is immune to mind-affecting fear.':''}`,k:C=>[['Range','30 ft.'],['Save','none']]},
@@ -864,15 +865,59 @@ function render(){
   const P={overview:pOverview,skills:pSkills,saves:pSaves,attacks:pAttacks,spells:pSpells,perform:pPerform,treasures:pTreasures,abilities:pAbilities,conditions:pConditions,gear:pGear}[tab];
   const pg=document.getElementById('page');const openD=[...pg.querySelectorAll('details[id][open]')].map(d=>d.id);
   pg.innerHTML=P();openD.forEach(id=>{const d=document.getElementById(id);if(d)d.open=true});
-  renderArt(); refresh(); postCourage();
+  renderArt(); refresh(); postPerf();
 }
-/* Inspire Courage reaches the whole party: the other sheets watch party/perform and switch their own Inspire Courage on and off with it */
-let cloudDb=null,lastCourage=null;
-function postCourage(){
-  if(!cloudDb||lastCourage===null)return;
-  const on=perfActive('courage'),b=icBonus(),key=on+':'+b;if(key===lastCourage)return;lastCourage=key;
-  cloudDb.doc('party/perform').set({courage:{on,bonus:b,by:'namfoodle',at:new Date().toISOString()}}).catch(()=>{lastCourage=null});
+/* His performances reach the party: this sheet posts party/perform, one section per performance, each stamped with the time it last changed.
+   The other sheets watch it and switch their own bonuses on and off. Greatness, Heroics and Competence go only to the allies picked. */
+const PARTY=[['namfoodle','Namfoodle (himself)'],['drax','Drax'],['sinafey','Sinafey'],['ensley','Ensley'],['lork','Lork'],['vex','Vex’ahlia'],['owlbear','Owlbear Man']];
+const LINKED=['drax','sinafey','ensley'];   // sheets that listen for his performances
+const PICK={greatness:{max:()=>1+Math.floor((levels().bard-9)/3),self:true},heroics:{max:()=>1+Math.floor((levels().bard-15)/3),self:true},competence:{max:()=>1,self:false,skill:true}};
+const tgOf=id=>{S.perf.tg=S.perf.tg||{};return S.perf.tg[id]||{who:[],skill:''}};
+const pname=k=>(PARTY.find(x=>x[0]===k)||[k,k])[1].replace(' (himself)','');
+let cloudDb=null,lastPerf=null,lastDoc={};
+function perfSections(){
+  const C=compute(true),on=id=>perfActive(id),t=id=>on(id)?tgOf(id).who.filter(k=>k!=='namfoodle'):[];
+  const cs=tgOf('competence'),sk=SKILLS.find(s=>s.k===cs.skill);
+  return {courage:{on:on('courage'),bonus:icBonus()},
+    greatness:{on:on('greatness'),targets:t('greatness')},
+    heroics:{on:on('heroics'),targets:t('heroics')},
+    competence:{on:on('competence'),target:t('competence')[0]||'',skill:cs.skill||'',skillName:sk?sk.n:'',bonus:compBonus()},
+    countersong:{on:on('countersong'),perform:performTotal('string',C)},
+    distraction:{on:on('distraction'),perform:performTotal('dance',C)},
+    soothing:S.perf.soothe?{id:S.perf.soothe.id,heal:S.perf.soothe.heal,all:true}:{id:''}};
 }
+function postPerf(){
+  if(!cloudDb||lastPerf===null)return;
+  const cur=perfSections(),now=new Date().toISOString(),doc={by:'namfoodle'};let changed=false;
+  for(const k in cur){const key=JSON.stringify(cur[k]);if(lastPerf[k]===key&&lastDoc[k]){doc[k]=lastDoc[k];continue}
+    lastPerf[k]=key;doc[k]=Object.assign({},cur[k],{at:now});changed=true;}
+  if(!changed)return;lastDoc=doc;
+  cloudDb.doc('party/perform').set(doc).catch(()=>{lastPerf=null});
+}
+/* the pop-up for a performance with a limited number of targets */
+function openPicker(id,start){
+  const p=perfDef(id),P=PICK[id],mx=P.max(),tg=tgOf(id),list=PARTY.filter(x=>P.self||x[0]!=='namfoodle');
+  const dlg=document.createElement('dialog');dlg.className='picker';
+  dlg.innerHTML=`<form method="dialog"><h2>${esc(p.n)}</h2><p class="muted">Pick ${mx===1?'one':`up to ${mx}`} within 30 ft.${P.self?' He can include himself.':''}</p>
+   <div class="pk">${list.map(([k,l])=>`<label><input type="${mx===1?'radio':'checkbox'}" name="who" value="${k}" ${tg.who.includes(k)?'checked':''}> ${esc(l)}${k==='namfoodle'||LINKED.includes(k)?'':' <small class="muted">(no sheet link yet: tell them)</small>'}</label>`).join('')}</div>
+   ${P.skill?`<label class="field"><span class="lbl">Skill</span><select name="skill">${SKILLS.filter(s=>!/\d$/.test(s.k)||s.k.endsWith('1')).map(s=>`<option value="${s.k}"${tg.skill===s.k?' selected':''}>${esc(s.n)}</option>`).join('')}</select></label>`:''}
+   <p class="pkmsg" role="status"></p>
+   <div class="row" style="justify-content:flex-end"><button class="btn" value="cancel">Cancel</button><button class="btn pri" value="ok">${start?'Start performing':'Update'}</button></div></form>`;
+  document.body.appendChild(dlg);
+  const boxes=[...dlg.querySelectorAll('[name=who]')],msg=dlg.querySelector('.pkmsg');
+  const lim=()=>{if(mx===1)return;const c=boxes.filter(b=>b.checked).length;boxes.forEach(b=>b.disabled=!b.checked&&c>=mx);msg.textContent=`${c} of ${mx} picked`};
+  boxes.forEach(b=>b.addEventListener('change',lim));lim();
+  dlg.addEventListener('cancel',()=>dlg.remove());
+  dlg.querySelector('form').addEventListener('submit',e=>{e.preventDefault();const ok=!!e.submitter&&e.submitter.value==='ok';
+    if(ok){const who=boxes.filter(b=>b.checked).map(b=>b.value);if(!who.length){msg.textContent='Pick at least one first.';return}
+      const was=selfIn(id);S.perf.tg=S.perf.tg||{};S.perf.tg[id]={who,skill:P.skill?dlg.querySelector('[name=skill]').value:''};
+      if(start)perfStart(id,true);
+      else if(perfActive(id)){if(was&&!selfIn(id))perfClearBuff(id);else if(!was&&selfIn(id))perfApplyBuff(id);dayLog(`${p.n}: now on ${who.map(pname).join(', ')}`)}
+      render();scheduleSave();}
+    dlg.close();dlg.remove();});
+  dlg.showModal();
+}
+const selfIn=id=>id==='courage'||tgOf(id).who.includes('namfoodle');
 
 function pOverview(){
   const cls=S.classes.map((c,i)=>`<tr>
@@ -1107,13 +1152,16 @@ function scrollsPanel(C){
 function pPerform(){
   const C=compute(true),b=C.L.bard,mx=perfMax(C),used=Math.min(mx,n(S.used.perf)),left=mx-used,cur=perfDef(S.perf.cur),lg=n(S.perf.linger)>0?perfDef(S.perf.lingerOf):null;
   const act=b>=13?'swift':b>=7?'move':'standard';
-  const card=p=>{const lock=b<p.lvl,on=S.perf.cur===p.id,li=lingerOn(p.id),selfable=p.self==='greatness'||p.self==='heroics';
+  const party=p=>{if(lock(p))return '';const ac=S.perf.cur===p.id||lingerOn(p.id);
+    if(PICK[p.id]){const tg=tgOf(p.id),sk=SKILLS.find(s=>s.k===tg.skill);return ac?`<div class="pkon"><b>On:</b> ${tg.who.map(pname).map(esc).join(', ')||'nobody'}${sk?` · ${esc(sk.n)}`:''} <button class="btn x" data-act="perfPick" data-id="${p.id}">Change targets</button></div>`:`<small class="muted">Picks up to ${PICK[p.id].max()} when it starts${tg.who.length?`; last time: ${tg.who.map(pname).map(esc).join(', ')}`:''}</small>`}
+    if(['courage','countersong','distraction','soothing'].includes(p.id))return `<small class="muted">${ac?'<b>Reaching the party:</b> their sheets show it now.':'Reaches every linked party sheet.'}</small>`;return ''};
+  const lock=p=>b<p.lvl;
+  const card=p=>{const lock=b<p.lvl,on=S.perf.cur===p.id,li=lingerOn(p.id);
     return `<div class="perf${on?' on':''}${li?' linger':''}${lock?' locked':''}"><div class="top"><span class="lv">Bard ${p.lvl}</span><b>${p.n}</b><small class="muted">${p.kind}</small>${on?'<small class="fxtag">PERFORMING</small>':li?`<small class="fxtag">LINGERING ${n(S.perf.linger)}</small>`:''}</div>
      <div class="e">${p.e(C)}</div>
      <div class="k">${p.k(C).map(([a,v])=>`<span>${a} <b>${v}</b></span>`).join('')}</div>
      ${lock?'':`<div class="act">${p.free?'<small class="muted">Rides on Fascinate: no extra rounds</small>':on?`<button class="btn" data-act="perfStop">Stop</button>`:`<button class="btn pri" data-act="perfStart" data-id="${p.id}"${left<(p.cost||1)?' disabled':''}>${p.cost?`Perform (${p.cost} rounds)`:S.perf.cur?'Switch to this':'Start'}</button>`}
-      ${selfable?`<label class="row"><input type="checkbox" class="cs" data-p="perf.self.${p.self}" ${S.perf.self[p.self]?'checked':''}> <small>On himself too</small></label>`:''}
-      ${p.id==='dirge'&&vestS().lv>=1&&(on||li)?`<button class="btn" data-act="dread">Mythcarver: mark a dread target</button>`:''}</div>`}
+      ${p.id==='dirge'&&vestS().lv>=1&&(on||li)?`<button class="btn" data-act="dread">Mythcarver: mark a dread target</button>`:''}</div>${party(p)}`}
     </div>`};
   return `<section class="panel"><header><h2>Bardic Performance</h2><span class="muted">${mx} rounds per day · starting one is a ${act} action, keeping it up is free</span><button class="btn" data-act="perfReset" style="margin-left:auto">New day: reset rounds</button></header>
    <div class="perfnow">
@@ -1123,7 +1171,7 @@ function pPerform(){
     <div class="row">${cur||lg?`<button class="btn${dmRound!=null?'':' pri'}" data-act="perfRound">Next round${cur?' (−1 round)':''}</button>`:''}${cur?`<button class="btn" data-act="perfStop">Stop performing</button>`:''}
      <small class="muted">${cur?(lingers()?'When he stops, the effects linger 2 more rounds (Lingering Performance).':'The effects end when he stops.'):lg?`Effects last ${n(S.perf.linger)} more round${n(S.perf.linger)===1?'':'s'}; starting a new performance ends them.`:'Start a performance below. Each round he keeps it up costs one round.'}</small></div>
    </div>
-   <p class="note">Inspire Courage${b>=9?', Inspire Greatness':''}${b>=15?' and Inspire Heroics':''} switch on their bonuses for him on every tab while they run (Greatness and Heroics only with “On himself too”). Greatness adds 2d10 ${sg(2*C.ab.con.mod)} temp HP when it starts and takes them away when it ends. Paper sheet: 38 rounds; the rules give 4 + Cha ${C.ab.cha.mod} + 2 × ${b-1} = ${4+C.ab.cha.mod+2*(b-1)} (set your own number on the Class Abilities tab). <b>Inspire Courage reaches the whole party:</b> while he performs it (and while it lingers), every party sheet switches on its Inspire Courage ${sg(icBonus())} and switches it off when it ends.</p>
+   <p class="note"><b>His performances reach the party.</b> Courage, Countersong, Distraction and Soothing Performance go to every linked party sheet (Drax, Sinafey, Ensley). Greatness, Heroics and Competence have a limit, so a pop-up asks who they’re on when he starts them; only the picked allies get the bonus, and their bonuses switch off when it ends or stops lingering. Inspire Courage${b>=9?', Inspire Greatness':''}${b>=15?' and Inspire Heroics':''} also change his own numbers when he’s one of the targets. Greatness adds 2d10 ${sg(2*C.ab.con.mod)} temp HP when it starts and takes them away when it ends. Paper sheet: 38 rounds; the rules give 4 + Cha ${C.ab.cha.mod} + 2 × ${b-1} = ${4+C.ab.cha.mod+2*(b-1)} (set your own number on the Class Abilities tab).</p>
   </section>
   <div class="perfgrid">${PERF.map(card).join('')}</div>`;
 }
@@ -1496,7 +1544,8 @@ async function boot(){
     const [db,as]=await Promise.all([cl.use('db'),cl.use('assets').catch(()=>null)]);assets=as;
     if(db){dbRef=db.doc('sheets/namfoodle');const snap=await dbRef.get();
       /* start from what the party already sees, so opening the sheet doesn't switch anyone's Inspire Courage off */
-      cloudDb=db;db.doc('party/perform').get().then(p=>{const c=(p.exists&&(p.data()||{}).courage)||{};lastCourage=c.at?(!!c.on)+':'+(+c.bonus||0):'false:'+icBonus();postCourage();}).catch(()=>{});
+      cloudDb=db;db.doc('party/perform').get().then(p=>{const d=(p.exists&&p.data())||{};lastDoc=d;lastPerf={};
+        for(const k in d){if(d[k]&&typeof d[k]==='object'){const x=Object.assign({},d[k]);delete x.at;lastPerf[k]=JSON.stringify(x)}}postPerf();}).catch(()=>{});
       if(snap.exists&&!dirty){S=load(clone(snap.data()));render();}
       setStatus(dirty?'Unsaved changes':'Saved');if(dirty)flush();watchPartyRest(db);watchDmRound(db);pushLink();}
     else{document.getElementById('backup').hidden=false;setStatus('Edits save in this browser');}
@@ -1582,20 +1631,22 @@ function diceRange(info){const list=diceIn(info.dmgT);return{min:list.reduce((a,
 /* ---------- bardic performance actions ---------- */
 function perfClearBuff(id){const p=perfDef(id);if(!p||!p.self)return;S.cond[p.self]=false;
   if(id==='greatness'&&n(S.perf.ghp)){const t=Math.min(n(S.hp.temp),n(S.perf.ghp));S.hp.temp=n(S.hp.temp)-t;if(t)hpLog(`Inspire Greatness ended: −${t} temp HP`);S.perf.ghp=0}}
-function perfApplyBuff(id){const p=perfDef(id);if(!p||!p.self)return;if(p.self!=='courage'&&!S.perf.self[p.self])return;
+function perfApplyBuff(id){const p=perfDef(id);if(!p||!p.self)return;if(!selfIn(id))return;
   S.cond[p.self]=true;
   if(id==='greatness'&&!n(S.perf.ghp)){const cm=compute(true).ab.con.mod,r=Math.max(2,dice(2,10)+2*cm),old=n(S.hp.temp);S.hp.temp=Math.max(old,r);S.perf.ghp=S.hp.temp-old;
     hpLog(`Inspire Greatness: 2d10 ${sg(2*cm)} = ${r} temp HP`);}}
 function endAllPerf(){if(S.perf.cur)perfClearBuff(S.perf.cur);if(n(S.perf.linger)>0)perfClearBuff(S.perf.lingerOf);S.perf.cur='';S.perf.linger=0;S.perf.lingerOf=''}
-function perfStart(id){
+function perfStart(id,picked){
   const C=compute(true),p=perfDef(id);if(!p||levels().bard<p.lvl||p.free)return;const cost=p.cost||1;
   if(perfLeft(C)<cost){setStatus('Not enough performance rounds left today.');return}
+  if(PICK[id]&&!picked){openPicker(id,true);return}   // limited targets: ask who first
   endAllPerf();   // a new performance ends the old one, and anything still lingering
   S.used.perf=n(S.used.perf)+cost;
   if(p.cost){const r=dice(3,8)+Math.min(35,levels().bard),mx=hpMaxNow(),bf=n(S.hp.cur);S.hp.cur=Math.min(mx,bf+r);
     ['fatigued','sickened','shaken'].forEach(c=>S.cond[c]=false);hpLog(`Soothing Performance: 3d8+${Math.min(35,levels().bard)} = ${r}, healed ${S.hp.cur-bf}`);
+    S.perf.soothe={id:newId(),heal:r};   // the party sheets heal by the same roll
     dayLog(`Soothing Performance (4 rounds): ${r} healing to everyone within 30 ft.; fatigued, sickened and shaken removed`);setTimeout(()=>setStatus(`Soothing Performance: ${r} HP to everyone within 30 ft.`),600);return}
-  S.perf.cur=id;perfApplyBuff(id);dayLog(`Started ${p.n}`);
+  S.perf.cur=id;perfApplyBuff(id);dayLog(`Started ${p.n}${PICK[id]?` on ${tgOf(id).who.map(pname).join(', ')}`:''}`);
 }
 function perfStop(){const id=S.perf.cur;if(!id)return;const p=perfDef(id);S.perf.cur='';
   if(lingers()){S.perf.linger=2;S.perf.lingerOf=id;dayLog(`Stopped ${p.n}; it lingers 2 rounds`)}else{perfClearBuff(id);dayLog(`Stopped ${p.n}`)}}
@@ -1683,6 +1734,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(
    case 'scrollUse':{const x=S.scrolls[i];if(!x||n(x.qty)<1)return;x.qty=n(x.qty)-1;dayLog(`Read a scroll of ${x.name||'a spell'}${/bard/i.test(x.cls)?'':` (UMD DC ${20+n(x.cl)})`}`);setStatus(`Scroll of ${x.name} used: ${x.qty} left`);render();break;}
    /* performance */
    case 'perfStart':perfStart(b.dataset.id);render();break;
+   case 'perfPick':openPicker(b.dataset.id,false);return;
    case 'perfStop':perfStop();render();break;
    case 'perfRound':perfRound();render();break;
    case 'perfQuick':{const id=b.dataset.id;if(S.perf.cur===id)perfStop();else perfStart(id);render();break;}
