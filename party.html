@@ -170,18 +170,20 @@ table.stats{min-width:520px}
 .ini-ctl button:disabled{opacity:.45;cursor:not-allowed}
 .ini-alert{background:var(--weak-soft);color:var(--weak);border-radius:6px;padding:8px 12px;font-weight:700;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center}
 .ini-list{list-style:none;margin:0;padding:0;background:var(--panel);border:1px solid var(--rule);border-radius:8px;overflow:hidden}
-.ini-row{display:grid;grid-template-columns:1.1em 4.4em minmax(0,1fr) auto;gap:6px 10px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--rule)}
+.ini-row{display:grid;grid-template-columns:1.25rem 4.75rem minmax(0,1fr) auto;gap:6px 16px;align-items:center;padding:10px 14px 10px 10px;border-bottom:1px solid var(--rule)}
 .ini-row:last-child{border-bottom:0}
 .ini-row.cur{background:var(--accent-soft);box-shadow:inset 4px 0 0 var(--accent)}
 .ini-row.held{background:var(--fly-soft)}
 .ini-row.out .name{color:var(--muted)}
-.ini-mark{color:var(--accent);font-weight:700}
-input.ini-in{width:4.4em;font-family:var(--display);font-size:1.15rem;font-weight:700;text-align:center}
-.ini-who{display:grid;gap:3px;min-width:0}
+.ini-mark{color:var(--accent);font-weight:700;text-align:center}
+input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15rem;font-weight:700;text-align:center}
+.ini-who{display:grid;gap:2px;min-width:0}
+.ini-who .name{font-size:1.15rem}
 .ini-who .dmin{display:flex;flex-wrap:wrap;gap:6px}
 .ini-who .dmin input{flex:1;min-width:9em;width:auto}
 .ini-who input.ini-name{font-weight:700}
 .ini-sub{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;font-size:.85rem;color:var(--muted)}
+.ini-sub .st{font-variant-numeric:tabular-nums}.ini-sub .st b{color:var(--ink);font-weight:700}
 .tag{font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;border-radius:4px;padding:1px 6px}
 .tag.dm{background:var(--fly-soft);color:var(--fly)}
 .tag.hold{background:var(--fly);color:var(--panel)}
@@ -191,7 +193,7 @@ input.ini-in{width:4.4em;font-family:var(--display);font-size:1.15rem;font-weigh
 .ini-act button{padding:3px 9px;font-size:.85rem}
 .ini-act button.step{padding:0;width:26px;height:26px}
 .ini-act button:disabled{opacity:.35;cursor:not-allowed}
-@media (max-width:560px){.ini-row{grid-template-columns:1em 3.8em minmax(0,1fr)}input.ini-in{width:3.8em}.ini-act{grid-column:2/-1;justify-content:flex-start}}
+@media (max-width:560px){.ini-row{grid-template-columns:1rem 4rem minmax(0,1fr);gap:6px 12px}.ini-act{grid-column:2/-1;justify-content:flex-start}}
 .ini-side{display:grid;gap:10px;background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:12px 14px}
 .ini-side h2{font-family:var(--display);margin:0;font-size:1.25rem}
 .fx-form{display:grid;gap:6px}
@@ -1131,10 +1133,10 @@ input.ini-in{width:4.4em;font-family:var(--display);font-size:1.15rem;font-weigh
     var rl=I.list.filter(rolled), ri=rl.indexOf(e);
     if(!p)sub.push('<span class="tag dm">DM</span>');
     if(e.held)sub.push('<span class="tag hold">Holding</span>');
-    if(m!=null)sub.push('<span>Init '+fmt(m,true)+'</span>');
+    if(m!=null)sub.push('<span class="st">Init <b>'+fmt(m,true)+'</b></span>');
     if(p){var L=readLink(p.id);
-      if(L&&L.hp)sub.push('<span>HP '+(+L.hp.cur||0)+'/'+(+L.hp.max||0)+'</span>');
-      else{var mx=effMax(p),ch=curHp(p);if(mx!=null)sub.push('<span>HP '+ch+'/'+mx+'</span>')}
+      if(L&&L.hp)sub.push('<span class="st">HP <b>'+(+L.hp.cur||0)+'</b> / '+(+L.hp.max||0)+'</span>');
+      else{var mx=effMax(p),ch=curHp(p);if(mx!=null)sub.push('<span class="st">HP <b>'+ch+'</b> / '+mx+'</span>')}
       var pf=perfOf(p);if(pf)sub.push('<span class="tag fx">♪ '+esc(pf.n)+(pf.linger?' lingering':'')+'</span>');
       var l=live(p);(l&&l.conds||[]).filter(function(x){return !x.buff}).forEach(function(x){sub.push('<span class="chip on">'+esc(x.n)+'</span>')});
     }
