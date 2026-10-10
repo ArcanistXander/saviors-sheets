@@ -554,7 +554,7 @@ input.ini-in{width:4.4em;font-family:var(--display);font-size:1.15rem;font-weigh
     } else {
       tools=(confirmRest?'<button class="primary" id="rest-yes">Yes, long rest for everyone</button><button id="rest-no">Cancel</button>':'<button id="rest-all">Long rest (everyone)</button>')+allPaperBtn()+'<button id="stats-btn">Perception · CMB · CMD</button><button id="reset-hp">Reset all HP</button><button id="export-btn">Export backup</button><button id="import-btn">Import backup</button><input type="file" id="import-file" accept=".json,application/json" hidden><button class="primary" id="edit-btn">Edit sheet</button>';
     }
-    autoTimers();
+    autoTimers();postRound();
     var ir=ini().round, onInit=view==='init'&&!editing;
     root.innerHTML=
       '<header><div><h1>Saviors of Tal’Dorei</h1><p class="sub">Party quick reference · Pathfinder 1e · updated '+esc(state.updated)+'</p></div>'+
@@ -1030,10 +1030,35 @@ input.ini-in{width:4.4em;font-family:var(--display);font-size:1.15rem;font-weigh
     if(ch)saveExtras();
   }
   // Tell the character sheets the round, so Namfoodle's sheet spends a performance round each new round.
+  // Also tells each hero's sheet whose turn it is (js/turn.js): turn and next are hero ids, only for heroes reading a live
+  // sheet; turnName is what players see, and DM slots show as "Enemy" so their names stay hidden.
+  function sheetId(e){var p=e&&hero(e);return p&&!p.paper&&SHEET_PAGES[p.id]?p.id:''}
+  function shownName(e){return e?(e.pc?eName(e):'Enemy'):''}
   function postRound(){
-    var I=ini(), key=(I.cid||'')+':'+(I.round||0);
+    var I=ini(), c=I.round?entry(I,I.turn):null, nx=I.round?peek(I,1):null;
+    var doc={cid:I.cid||'',round:I.round||0,active:!!I.round,turn:sheetId(c),turnName:shownName(c),
+      next:nx&&nx.e!==c?sheetId(nx.e):'',nextName:nx&&nx.e!==c?shownName(nx.e):'',
+      held:I.round?I.list.filter(function(e){return e.held}).map(sheetId).filter(Boolean):[]};
+    var key=JSON.stringify(doc);
     if(!cloudDb||key===lastRoundKey) return; lastRoundKey=key;
-    cloudDb.doc('party/round').set({cid:I.cid||'',round:I.round||0,active:!!I.round,at:new Date().toISOString()}).catch(function(){lastRoundKey=null});
+    doc.at=new Date().toISOString();
+    cloudDb.doc('party/round').set(doc).catch(function(){lastRoundKey=null});
+  }
+  function holdTurn(I,id){var e=entry(I,id);if(!e)return;nextTurn(I);e.held=true}
+  function actNow(I,id){var e=entry(I,id),c=entry(I,I.turn);if(!e)return;e.held=false;if(c&&c!==e)placeBy(I,e,c,false);e.started=I.round;I.turn=e.id}
+  // A player's Hold, End turn or Act now from their own sheet. It only counts for the turn it was sent on, so a double tap
+  // or a late message never skips anyone.
+  var replySeen={}, pageOpened=new Date().toISOString();
+  function takeReply(id,d){
+    if(!d||!d.at||d.at<=(replySeen[id]||pageOpened))return; replySeen[id]=d.at;
+    var I=ini(), p=state.party.find(function(x){return x.id===id}), e=entry(I,'pc-'+id);
+    if(!p||p.paper||!e||!I.round||d.cid!==I.cid||+d.round!==I.round)return;
+    if((d.act==='end'||d.act==='hold')&&I.turn===e.id){
+      initGo(function(I){if(d.act==='end')nextTurn(I);else holdTurn(I,e.id)});
+      statusMsg=p.name+(d.act==='end'?' ended their turn.':' is holding their turn.');render();
+    } else if(d.act==='act'&&e.held){
+      initGo(function(I){actNow(I,e.id)});statusMsg=p.name+' acts now.';render();
+    }
   }
   // A spell's duration in rounds from its sheet description ("Touch, 1 min/level." · "… for 16 rounds." · "concentration").
   // null = lasts until ended (concentration); undefined = no timer (instantaneous, or longer than a day).
@@ -1192,8 +1217,8 @@ input.ini-in{width:4.4em;font-family:var(--display);font-size:1.15rem;font-weigh
       var tg=d.iup?rl[i-1]:rl[i];if(e&&tg){placeBy(I,e,tg,!d.iup);saveExtras();}render();
       var mv=document.querySelector('[data-'+(d.iup?'iup':'idown')+'="'+e.id+'"]');if(mv&&!mv.disabled)mv.focus();return;
     }
-    else if(d.ihold)initGo(function(I){var e=entry(I,d.ihold);if(!e)return;nextTurn(I);e.held=true;});
-    else if(d.iact)initGo(function(I){var e=entry(I,d.iact),c=entry(I,I.turn);if(!e)return;e.held=false;if(c&&c!==e)placeBy(I,e,c,false);e.started=I.round;I.turn=e.id;});
+    else if(d.ihold)initGo(function(I){holdTurn(I,d.ihold)});
+    else if(d.iact)initGo(function(I){actNow(I,d.iact)});
     else if(d.iunhold){I=ini();var u=entry(I,d.iunhold);if(u)u.held=false;saveExtras();render();}
     else if(d.idel)initGo(function(I){if(I.turn===d.idel)nextTurn(I);I.list=I.list.filter(function(e){return e.id!==d.idel});I.fx.forEach(function(f){if(f.who===d.idel)f.who='';if(f.anchor===d.idel)f.anchor=''})});
     else if(t.id==='fx-add'){
@@ -1512,6 +1537,8 @@ input.ini-in{width:4.4em;font-family:var(--display);font-size:1.15rem;font-weigh
         statusMsg='Saved online';render();
         ref.onSnapshot(function(s){if(s.exists&&!s.metadata.hasPendingWrites)cloudApply(s.data())},function(){});
         // conditions the DM has sent to heroes' own sheets (kept whole, since each write replaces the document)
+        Object.keys(SHEET_PAGES).forEach(function(id){db.doc('party/turn-'+id).onSnapshot(function(s){if(s.exists)takeReply(id,s.data())},function(){})});
+        lastRoundKey=null;postRound();
         db.doc('party/conds').onSnapshot(function(s){if(!s.metadata||!s.metadata.hasPendingWrites)dmConds=(s.exists&&s.data())||{}},function(){});
         // Character sheets on this site post their spells and HP here, live, without the sync phrase.
         if(db.collection)db.collection('reports').onSnapshot(function(qs){
