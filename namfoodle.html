@@ -86,7 +86,8 @@ details.more p{white-space:pre-line;margin:.4em 0 0;font-size:.92rem}
 .nowrap{white-space:nowrap}
 .geartbl{table-layout:fixed;min-width:640px}
 .geartbl .c-item{width:36%}.geartbl .c-desc{width:40%}.geartbl .c-loc{width:14%}.geartbl .c-wt{width:5.5em}.geartbl .c-x{width:2.5em}
-.geartbl td input[type=text]{width:100%}
+.geartbl td input[type=text],.geartbl td select{width:100%}
+.havtbl tr.noterow td{border-top:0;padding-top:0;padding-bottom:8px}.havtbl tr.noterow input{font-size:.88rem;color:var(--muted);background:transparent;border-color:transparent;border-bottom:1px dashed var(--line);border-radius:0}.havtbl tr.noterow input:hover,.havtbl tr.noterow input:focus{border-color:var(--line);background:var(--surface);color:var(--ink);border-radius:4px}
 .geartbl td:first-child input{font-weight:700}
 .geartbl tr.future td{color:var(--muted)}
 .roll{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font-size:.88rem;padding:4px 0}
@@ -562,9 +563,9 @@ const HARP=[
 /* ---------- default state: Namfoodle’s paper sheet ---------- */
 const sk=(r,m=0,sub='')=>({ranks:r,misc:m,sub});
 const DEFAULT={
- v:3, levelLog:[],
+ v:5, levelLog:[],
  acItems:[{name:'Ring of Protection +4',slot:'Ring',type:'deflection',bonus:4,on:true}],
- potions:[{name:'Cure Moderate Wounds (party bag)',dice:'2d8',bonus:3,qty:1},{name:'Cure Light Wounds (party bag)',dice:'1d8',bonus:1,qty:4}],
+ potions:[{name:'Cure Moderate Wounds',dice:'2d8',bonus:3,qty:1},{name:'Cure Light Wounds',dice:'1d8',bonus:1,qty:4}],
  otherPotions:[{name:'Water Breathing',qty:3,effect:'Breathe water freely for 10 hours (CL 5). Can still breathe air.',clr:''},{name:'Remove Blindness/Deafness',qty:1,effect:'Cures blindness or deafness (pick one), magical or mundane.',clr:'blinded,deafened'},{name:'Lesser Restoration',qty:1,effect:'Ends magical ability penalties, heals 1d4 ability damage to one ability, ends fatigue, and turns exhaustion into fatigue.',clr:'fatigued'},{name:'Neutralize Poison',qty:1,effect:'Removes one poison from him: d20 + 7 against the poison’s DC. Also immune to it for 70 minutes.',clr:''},{name:'Remove Curse',qty:1,effect:'Removes one curse: d20 + 5 against the curse’s DC.',clr:''}],
  info:{name:'Namfoodle Nackle',nick:'Noodle',player:'',race:'Gnome',alignment:'Neutral Good',deity:'',size:'Small',gender:'',age:'',height:'3′4″',weight:'39 lb.',hair:'Long straight light brown hair, goatee',eyes:'Green',speed:20,
   languages:'Common, Gnome, Sylvan, Draconic, Elven, Goblin, Dwarven, Orc, Giant, Abyssal, Celestial, Infernal, Gnoll, Terran, Undercommon, Ignan, Aquan, Auran, Halfling, Ancient Draconic, Ancient Common',
@@ -587,7 +588,7 @@ const DEFAULT={
   sense:sk(1),sleight:sk(4),spellcraft:sk(14),stealth:sk(10),swim:sk(1),umd:sk(10)},
  versatile:['strings','sing','dance','percussion'],
  attacks:[
-  {id:'myth',name:'Mythcarver',vest:true,kind:'melee',abil:'dex',enh:0,misc:0,dice:'1d4',dmgAbil:'str',dmgMisc:0,extra:'',crit:'19–20/×2',range:'',type:'P',uses:0,notes:'Silvered shortsword, Weapon Finesse. Bonus and force damage follow the vestige state on the Treasures tab. Paper sheet: 22/17/12, d4+5+d6.',
+  {id:'myth',name:'Mythcarver',vest:true,kind:'melee',abil:'dex',enh:0,misc:0,dice:'1d4',dmgAbil:'str',dmgMisc:0,extra:'',crit:'19–20/×2',range:'',type:'P',uses:0,notes:'Silvered shortsword, Weapon Finesse. Bonus and force damage follow the vestige state on the Magic Weapons tab. Paper sheet: 22/17/12, d4+5+d6.',
    desc:'Legendary shortsword, Vestige of Divergence. Once wielded by the White Duke and many master bards before him. It resonates with nearby musical tones.'},
   {id:'xbow',name:'+1 Flaming Burst Light Crossbow',kind:'ranged',abil:'dex',enh:1,misc:0,dice:'1d4',dmgAbil:'none',dmgMisc:0,extra:'+1d6 fire',crit:'19–20/×2 (+1d10 fire)',range:'30 ft.',type:'P',uses:0,
    notes:'Rapid Reload makes reloading a free action, so he gets every iterative attack. Point Blank Shot: +1 attack and damage within 30 ft. (toggle on the Conditions tab). Paper sheet: 19/14/9, d4+1+d6.',desc:'Bolts and screaming bolts on the paper sheet. On a critical hit, flaming burst adds +1d10 fire.'},
@@ -635,6 +636,7 @@ const DEFAULT={
   {name:'Wand of Web (CL 3)',ch:35,notes:'20-ft.-radius spread, 130 ft., Reflex DC 17.'},
   {name:'Wand of Fireball (CL 12)',ch:4,notes:'12d6 fire, 20-ft. radius, Reflex DC 19 half (paper sheet). The charges read “4/5”.'},
   {name:'Wand of Cure Serious Wounds, “Good Girl”',ch:38,notes:'Heals 3d8+10 (paper sheet).'},
+  {name:'Wand of Stabilize',ch:5,notes:'Haversack, right pouch. Stabilizes a dying creature (touch). Charges read 5 at the sheet’s edge.'},  {name:'Bone wand of Enlarge/Reduce Person',ch:'',notes:'Haversack, right pouch. Charges are cut off on the sheet.'},
  ],
  scrolls:[
   {name:'Permanency',cls:'Wizard',lvl:5,cl:9,qty:1},{name:'Glitterdust',cls:'Bard',lvl:2,cl:4,qty:2},{name:'Campfire Wall',cls:'Bard',lvl:3,cl:7,qty:1},
@@ -648,24 +650,24 @@ const DEFAULT={
   {item:'+1 Mithril Chain Shirt',desc:'Armor +5, max Dex +6, no check penalty.',loc:'Body',wt:6.25},
   {item:'Belt pouches, locked ×2',desc:'',loc:'Belt',wt:0.25},
   {item:'Mandolin',desc:'',loc:'Shoulder',wt:2},
-  {item:'Mythcarver',desc:'Legendary shortsword, Vestige of Divergence. Treasures tab.',loc:'Hip',wt:2},
-  {item:'Harp of the Storm',desc:'Two hands to play. 10 charges. Treasures tab.',loc:'',wt:0},
+  {item:'Mythcarver',desc:'Legendary shortsword, Vestige of Divergence. Magic Weapons tab.',loc:'Hip',wt:2},
+  {item:'Harp of the Storm',desc:'Two hands to play. 10 charges. Magic Weapons tab.',loc:'',wt:0},
   {item:'+1 Flaming Burst Light Crossbow',desc:'Bolts and screaming bolts.',loc:'',wt:2},
   {item:'+1 Dagger Whip',desc:'',loc:'',wt:2},
   {item:'Masterwork Dagger',desc:'',loc:'',wt:1},
-  {item:'Cape of the Mountebank',desc:'Dimension door 1/day. Treasures tab.',loc:'Shoulders',wt:1},
+  {item:'Cape of the Mountebank',desc:'Dimension door 1/day. Magic Weapons tab.',loc:'Shoulders',wt:1},
   {item:'Ring of Protection +4',desc:'Deflection (AC items table).',loc:'Right hand',wt:0},
   {item:'Ring of Feather Fall',desc:'Activates when he falls more than 5 ft.',loc:'Left hand',wt:0},
   {item:'Ring of Acid Resistance',desc:'Acid resistance 10.',loc:'Left hand',wt:0},
   {item:'Circlet of Persuasion',desc:'+3 competence on Cha-based checks.',loc:'Head',wt:0},
-  {item:'Brooch of Shielding',desc:'Absorbs magic missiles. Treasures tab.',loc:'Cape brooch',wt:0},
+  {item:'Brooch of Shielding',desc:'Absorbs magic missiles. Magic Weapons tab.',loc:'Cape brooch',wt:0},
   {item:'Belt of Incredible Dexterity +2',desc:'Silver buckle shaped like a tiger.',loc:'Waist',wt:1},
   {item:'Boots of Spider Climbing',desc:'As spider climb: climb speed 20 ft. on walls and ceilings.',loc:'Feet',wt:1},
   {item:'Earring of Whisper',desc:'Acts as the message cantrip.',loc:'Left ear',wt:0},
   {item:'Glove of Blasting',desc:'Scorching ray 1/day.',loc:'Hand',wt:0},
   {item:'Cone of Clarity',desc:'+2 DC on spells with a verbal component. Swift action to use.',loc:'Belt',wt:0},
   {item:'Amulet of Endure Elements',desc:'',loc:'Neck',wt:0},
-  {item:'Force Lute',desc:'Pale-ash lute with strings of blue magical force. Repelling Strum; Acoustic Sphere 1/day. Treasures tab.',loc:'',wt:0},
+  {item:'Force Lute',desc:'Pale-ash lute with strings of blue magical force. Repelling Strum; Acoustic Sphere 1/day. Magic Weapons tab.',loc:'',wt:0},
   {item:'Flute',desc:'1/day: heals everyone within 30 ft. 1d10 + Cha. 1/week: tree stride.',loc:'',wt:0},
   {item:'Singing Dawn Blade',desc:'',loc:'',wt:0},
   {item:'Message string to Maffei',desc:'Acts as sending to Maffei.',loc:'',wt:0},
@@ -687,6 +689,71 @@ const DEFAULT={
   {item:'200 ft. rope, pitons, snowshoes, trail rations (11 days)',desc:'',wt:0},
  ],
  treasure:'Coins: 5,548 pp · 35,433 gp · 18,389 sp · 6,609 cp\nGems: assorted bag (1,120 gp); aquamarine (600 gp), garnet (100 gp), coral (120 gp), topaz (500 gp), jet (120 gp), onyx (20 gp), red spinel (100 gp), pearl (60 gp), rose quartz (80 gp), pearl (90 gp)\nBag of diamonds: 50 gp ×2, 500 gp ×2, 3,000 gp ×2\nBank in Belhaim: Brittan & Sons Money Lenders',
+ /* the party's Bag of Holding, from its sheet; each item belongs to one table (cat) */
+ boh:{type:'',notes:'Bank in Belhaim: Brittan & Sons Money Lenders.',
+  coins:{pp:5548,gp:35433,sp:18389,cp:6609},
+  items:[
+   {cat:'wear',item:'Magical amulets, Cult of Remnants',qty:'',desc:'',wt:8},
+   {cat:'wear',item:'Fire crown of fireballs',qty:1,desc:'From the drider.',wt:4},
+   {cat:'weapon',item:'Cask of black powder',qty:1,desc:'',wt:0},
+   {cat:'wondrous',item:'Mithril scroll case',qty:1,desc:'Holds the scrolls above.',wt:0},
+   {cat:'wondrous',item:'Beads of Sustenance',qty:40,desc:'',wt:0},
+   {cat:'wondrous',item:'Aero automaton & manual',qty:1,desc:'Full body, with gem.',wt:0},
+   {cat:'books',item:'Whispered One / Vecna diary books',qty:'',desc:'',wt:0},
+   {cat:'supplies',item:'Trail rations',qty:50,desc:'Days.',wt:0},
+   {cat:'supplies',item:'Elven wine',qty:1,desc:'Bottle.',wt:0},
+   {cat:'supplies',item:'Rope, 200 ft.',qty:1,desc:'',wt:0},
+   {cat:'supplies',item:'Pitons',qty:'',desc:'',wt:0},
+   {cat:'supplies',item:'Snowshoes',qty:'',desc:'',wt:0},
+   {cat:'supplies',item:'Trail rations',qty:11,desc:'Days (the second batch on the sheet).',wt:0},
+  ],
+  gems:[
+   {name:'Assorted bag of gems',value:1120,qty:1},{name:'Aquamarine',value:600,qty:1},{name:'Garnet',value:100,qty:1},{name:'Coral',value:120,qty:1},
+   {name:'Topaz',value:500,qty:1},{name:'Jet',value:120,qty:1},{name:'Onyx',value:20,qty:1},{name:'Red spinel',value:100,qty:1},
+   {name:'Pearl',value:60,qty:1},{name:'Rose quartz',value:80,qty:1},{name:'Pearl',value:90,qty:1},
+   {name:'Diamond (bag of diamonds)',value:50,qty:2},{name:'Diamond (bag of diamonds)',value:500,qty:2},{name:'Diamond (bag of diamonds)',value:3000,qty:2},
+  ]},
+ /* potions he keeps on his person (none on the sheets yet) */
+ carry:{potions:[],other:[]},
+ /* his Handy Haversack, from its sheet: left and right pouches hold 20 lb., the main pouch 80 lb. */
+ hav:{
+  items:[
+   {cat:'books',pouch:'left',item:'Map / scroll case',qty:1,desc:'',wt:0.25},
+   {cat:'supplies',pouch:'left',item:'Lock, good quality',qty:1,desc:'DC 30 to open.',wt:0.25},
+   {cat:'books',pouch:'left',item:'Vial of ink & ink pen',qty:1,desc:'',wt:0},
+   {cat:'books',pouch:'left',item:'Parchment sheets',qty:8,desc:'',wt:0},
+   {cat:'supplies',pouch:'left',item:'Candles',qty:4,desc:'',wt:0},
+   {cat:'supplies',pouch:'left',item:'Chalk',qty:3,desc:'',wt:0},
+   {cat:'books',pouch:'left',item:'Notes on the Verdant Expanse',qty:2,desc:'Two parchment pages, and the journal from the Traveller.',wt:0},
+   {cat:'wondrous',pouch:'left',item:'Stone of sending (Allura)',qty:1,desc:'Paired with Allura.',wt:0},
+   {cat:'supplies',pouch:'main',item:'Bedroll',qty:1,desc:'',wt:1.25},
+   {cat:'supplies',pouch:'main',item:'Silk rope, 50 ft.',qty:1,desc:'',wt:1.25},
+   {cat:'supplies',pouch:'main',item:'Crowbar',qty:1,desc:'',wt:1.25},
+   {cat:'alch',pouch:'main',item:'Sunrods',qty:0,desc:'None left.',wt:0.5},
+   {cat:'alch',pouch:'main',item:'Tindertwigs',qty:10,desc:'',wt:0},
+   {cat:'alch',pouch:'main',item:'Smoke sticks',qty:2,desc:'',wt:1},
+   {cat:'alch',pouch:'main',item:'Tanglefoot bags',qty:2,desc:'',wt:8},
+   {cat:'alch',pouch:'main',item:'Alchemist’s fire',qty:3,desc:'',wt:3},
+   {cat:'alch',pouch:'main',item:'Acid flasks',qty:2,desc:'',wt:2},
+   {cat:'alch',pouch:'main',item:'Silversheen',qty:1,desc:'1 hour: one melee weapon or 20 pieces of ammunition.',wt:1},
+   {cat:'wondrous',pouch:'main',item:'Gold-plated sextant',qty:1,desc:'Hunclay’s observatory (noted beside it).',wt:0.5},
+   {cat:'wondrous',pouch:'main',item:'Everburning torch',qty:1,desc:'',wt:0},
+   {cat:'supplies',pouch:'right',item:'Waterskin',qty:1,desc:'',wt:1},
+   {cat:'supplies',pouch:'right',item:'Trail rations',qty:13,desc:'',wt:2},
+   {cat:'supplies',pouch:'right',item:'Flask of whiskey',qty:1,desc:'',wt:0.25},
+   {cat:'other',pouch:'right',item:'Gems and coins',qty:'',desc:'His purse: counted on the On Namfoodle sub-tab.',wt:2.5},
+   {cat:'wondrous',pouch:'right',item:'Wand of stabilize',qty:1,desc:'Charges on the Attacks tab.',wt:0},
+   {cat:'wondrous',pouch:'right',item:'Bone wand of enlarge/reduce person',qty:1,desc:'Charges on the Attacks tab.',wt:0},
+   {cat:'wondrous',pouch:'right',item:'Bead of daylight',qty:1,desc:'As the daylight spell: 30 ft., 1 minute.',wt:0},
+  ],
+  potions:[{name:'Cure Light Wounds',dice:'1d8',bonus:1,qty:3},{name:'Cure Moderate Wounds',dice:'2d8',bonus:3,qty:0},{name:'Cure Serious Wounds',dice:'3d8',bonus:5,qty:0}],
+  other:[
+   {name:'Elixir of frost resistance',qty:1,effect:'Resistance to cold. The amount and duration aren’t on the sheet; check with the DM.',clr:''},
+   {name:'Potion of stone giant’s strength',qty:1,effect:'His Strength becomes 23 (per the sheet).',clr:''},
+   {name:'Potion of frost breath',qty:1,effect:'Breath weapon: 6d6 cold, Reflex DC 15 for half.',clr:''},
+   {name:'Potion of gaseous form',qty:1,effect:'As the spell for 10 minutes (CL 5): fly 10 ft., DR 10/magic, can’t attack or cast.',clr:''},
+   {name:'Potion of invisibility',qty:1,effect:'Invisible for 3 minutes (CL 3) or until he attacks. Drinking it switches on Invisible.',clr:'',set:'invisible'},
+  ]},
  notes:'',
  journal:[{date:'',title:'',text:''},{date:'',title:'',text:''}],
  traits:'Bold, confident, inquisitive, obsessed with exploring ancient sites. Likes to perform, entertain and party.',
@@ -933,7 +1000,7 @@ function autoAbilities(L){
 }
 
 /* ---------- rendering ---------- */
-const TABS=[['overview','Overview'],['skills','Skills'],['saves','Saving Throws'],['attacks','Attacks'],['spells','Spells'],['perform','Performance'],['treasures','Treasures'],['abilities','Class Abilities'],['conditions','Conditions'],['gear','Gear & Notes'],['journal','Journal']];
+const TABS=[['overview','Overview'],['skills','Skills'],['saves','Saving Throws'],['attacks','Attacks'],['spells','Spells'],['perform','Performance'],['treasures','Magic Weapons'],['abilities','Class Abilities'],['conditions','Conditions'],['gear','Gear & Notes'],['journal','Journal']];
 let tab=(()=>{const h=(location.hash||'').slice(1);if(TABS.some(t=>t[0]===h))return h;const s=ls.get('namfoodle-tab');return TABS.some(t=>t[0]===s)?s:'overview'})();
 
 function renderTabs(){
@@ -1144,7 +1211,7 @@ function pAttacks(){
      ${field('Critical',txt(`attacks.${i}.crit`,{w:'9em',rr:1}))}${field('Range',txt(`attacks.${i}.range`,{w:'7em',rr:1}))}${field('Type',txt(`attacks.${i}.type`,{w:'3.5em',rr:1}))}
      ${field('Uses/day',num(`attacks.${i}.uses`,{w:'3.4em',rr:1}))}
     </div>
-    ${a.vest?'<p class="note">Mythcarver’s bonus (+2 / +3 / +4) and force damage come from its state on the Treasures tab.</p>':''}
+    ${a.vest?'<p class="note">Mythcarver’s bonus (+2 / +3 / +4) and force damage come from its state on the Magic Weapons tab.</p>':''}
     ${field('Notes',txt(`attacks.${i}.notes`,{w:'100%',label:'Attack notes',rr:1}))}
     ${field('Description',area(`attacks.${i}.desc`,{rows:3,label:'Weapon description'}))}</details></div>`).join('');
   const act=C.M.active.filter(c=>c.fx&&(typeof c.fx==='function'||c.fx.some(f=>/atk|dmg|str|dex/.test(f[0]))));
@@ -1215,7 +1282,7 @@ function pSpells(){
    <p class="note">Bards cast spontaneously: any spell he knows, using a slot of its level. Press Cast on a spell (or tap a slot pip) to spend a slot. ★ spells also switch on their effect for him. His known spells come from his spell sheet (6/6/6/6/5/4/3, the bard 17 table). The sheet gives 8/8/7/6/5/4 spells per day; the bard 17 table with Cha 24 gives 7/7/7/5/5/3, so the Extra slots boxes make up the difference. Clear them to go by the book.</p>
   </section>
   ${[0,...sl].map(lvBlock).join('')}
-  ${scrollsPanel(C)}
+  <section class="panel"><header><h2>Scrolls</h2></header><p class="note" style="margin:0">His scrolls are in the mithril scroll case in the party Bag of Holding: ${(S.scrolls||[]).reduce((a,x)=>a+Math.max(0,n(x.qty)),0)} scrolls.</p><div class="row"><button class="btn" data-act="goBag">Open the Bag of Holding</button></div></section>
   ${dmPanel()}`;
 }
 function scrollsPanel(C){
@@ -1464,38 +1531,76 @@ addEventListener('keydown',e=>{if(tab!=='journal'||/^(INPUT|TEXTAREA|SELECT)$/.t
   if(e.key==='ArrowRight'){jTurn(jAt+jStep());e.preventDefault()}else if(e.key==='ArrowLeft'){jTurn(jAt-jStep());e.preventDefault()}});
 let jWasOne=null;addEventListener('resize',()=>{if(tab!=='journal')return;const o=jOne();if(jWasOne!==null&&o!==jWasOne){jClamp();render()}jWasOne=o});
 document.addEventListener('change',e=>{if(e.target&&e.target.id==='jgo')jTurn(Math.floor(+e.target.value))});
+/* ---------- gear: three sub-tabs. On him, his Handy Haversack (three pouches), and the party's Bag of Holding, each sorted into tables ---------- */
+let gearSub=(v=>['on','hav','bag'].includes(v)?v:'on')(ls.get('namfoodle-gearsub'));
+const BOH_CATS=[['wear','Wearable Items','Rings, amulets, crowns and other things you put on'],['weapon','Weapons & Explosives',''],['alch','Alchemical Items','Thrown flasks, sunrods, tindertwigs, oils'],['armor','Armor & Shields',''],['wondrous','Wondrous Items & Curios','Magic items you use rather than wear, and odd finds'],['books','Books & Documents','Maps, notes, writing kit'],['supplies','Supplies & Provisions','Food, drink, rope and travel gear'],['other','Other','']];
+const HIDE_EMPTY=['alch','other'];
+const BOH_TYPES=[['','Type not written down'],['I','Type I: holds 250 lb.'],['II','Type II: holds 500 lb.'],['III','Type III: holds 1,000 lb.'],['IV','Type IV: holds 1,500 lb.']];
+const BOH_LIM={I:250,II:500,III:1000,IV:1500};
+const POUCH=[['left','Left pouch',20],['main','Main pouch',80],['right','Right pouch',20]];
+const fmtN=v=>Math.round(v*100)/100>=1000?Math.round(v).toLocaleString():String(Math.round(v*100)/100);
+function bohData(){const b=S.boh=S.boh||clone(DEFAULT.boh);b.items=b.items||[];b.gems=b.gems||[];b.coins=b.coins||{pp:0,gp:0,sp:0,cp:0};return b}
+function havData(){const h=S.hav=S.hav||clone(DEFAULT.hav);h.items=h.items||[];h.potions=h.potions||[];h.other=h.other||[];return h}
 function pGear(){
+  const seg=[['on','On Namfoodle'],['hav','Handy Haversack'],['bag','Bag of Holding']];
+  const sub={on:'What he wears and carries',hav:'Three pouches; the wearer pulls out what he wants as a move action',bag:'The Belhaim Saviors’ shared bag, sorted by kind'}[gearSub];
+  return `<div class="row" style="justify-content:space-between"><div class="seg" role="group" aria-label="Gear sections">${seg.map(([k,l])=>`<button data-act="gearSub" data-v="${k}" aria-pressed="${gearSub===k}">${l}</button>`).join('')}</div><span class="muted">${sub}</span></div>`
+    +(gearSub==='bag'?pBag():gearSub==='hav'?pHav():pOnHim());
+}
+/* potion tables for any container: hp = path of the healing list, op = path of the other list */
+function potionPanels(hp,op,where){
+  const pots=getP(hp)||[],oth=getP(op)||[],mxHp=hpMaxNow(),idk=hp.replace(/\W/g,'_');
+  return `<section class="panel"><header><h2>Healing Potions</h2><span class="muted">${where} · HP ${n(S.hp.cur)} / ${mxHp} · roll the dice, type the total, press Drink</span></header>
+   <div class="scroll"><table class="pots"><thead><tr><th class="l">Potion</th><th>Heals</th><th>Qty</th><th>Dice total</th><th></th><th></th></tr></thead><tbody>
+   ${pots.map((p,i)=>{const dl=diceIn(p.dice),lo=dl.reduce((a,[c])=>a+c,0),hi=dl.reduce((a,[c,s])=>a+c*s,0);
+     return `<tr class="${n(p.qty)<1?'future':''}"><td class="l">${txt(`${hp}.${i}.name`,{w:'100%',label:'Potion name'})}</td>
+      <td class="nowrap">${txt(`${hp}.${i}.dice`,{w:'3.6em',rr:1,label:'Healing dice'})} + ${num(`${hp}.${i}.bonus`,{w:'3.2em',rr:1,label:'Healing bonus'})}</td>
+      <td>${num(`${hp}.${i}.qty`,{w:'3.4em',rr:1,label:'Quantity'})}</td>
+      <td><input type="number" id="pot-roll-${idk}-${i}" data-cap="${hi}" min="${lo}" max="${hi}" placeholder="${lo}–${hi}" style="width:5em" aria-label="${esc(p.name)} dice total"></td>
+      <td><button class="btn pri" data-act="potDrink" data-l="${hp}" data-i="${i}"${n(p.qty)<1?' disabled':''}>Drink</button></td>
+      <td><button class="btn x" data-act="potDel" data-l="${hp}" data-i="${i}" aria-label="Remove potion">✕</button></td></tr>`}).join('')||'<tr><td colspan="6" class="muted">No healing potions here.</td></tr>'}
+   </tbody></table></div>
+   <div class="row"><button class="btn" data-act="potAdd" data-l="${hp}">Add healing potion</button></div>
+  </section>
+  <section class="panel"><header><h2>Other Potions</h2><span class="muted">${where} · Drink takes one off the count</span></header>
+   <div class="scroll"><table class="geartbl" style="min-width:560px"><colgroup><col style="width:28%"><col style="width:5.5em"><col><col style="width:5.5em"><col class="c-x"></colgroup>
+   <thead><tr><th class="l">Potion</th><th>Qty</th><th class="l">Effect</th><th></th><th></th></tr></thead><tbody>
+   ${oth.map((p,i)=>`<tr class="${n(p.qty)<1?'future':''}"><td class="l">${txt(`${op}.${i}.name`,{label:'Potion name'})}</td>
+     <td>${num(`${op}.${i}.qty`,{w:'3.4em',rr:1,label:'Quantity'})}</td>
+     <td class="l">${txt(`${op}.${i}.effect`,{label:'Effect'})}</td>
+     <td><button class="btn pri" data-act="opDrink" data-l="${op}" data-i="${i}"${n(p.qty)<1?' disabled':''}>Drink</button></td>
+     <td><button class="btn x" data-act="opDel" data-l="${op}" data-i="${i}" aria-label="Remove potion">✕</button></td></tr>`).join('')||'<tr><td colspan="5" class="muted">No other potions here.</td></tr>'}
+   </tbody></table></div>
+   <div class="row"><button class="btn" data-act="opAdd" data-l="${op}">Add potion</button></div>
+  </section>`;
+}
+/* item tables for a container, one per kind; pouch adds a column for the haversack’s three pouches */
+function itemTables(path,items,pouch){
+  /* the haversack’s tables give each item’s notes a full-width line of their own, under the item, so the pouch column doesn’t squeeze them */
+  return BOH_CATS.map(([k,t,hint])=>{const rows=items.map((x,i)=>[x,i]).filter(([x])=>(BOH_CATS.some(c=>c[0]===x.cat)?x.cat:'other')===k);
+    if(HIDE_EMPTY.includes(k)&&!rows.length)return '';
+    const cols=pouch?'<col><col style="width:4.8em"><col style="width:6.2em"><col style="width:4.8em"><col style="width:9.5em"><col class="c-x">':'<col style="width:28%"><col style="width:5em"><col><col style="width:5em"><col style="width:10.5em"><col class="c-x">';
+    const head=pouch?'<th class="l">Item</th><th>Qty</th><th class="l">Pouch</th><th>Wt</th><th class="l">Move to</th><th></th>':'<th class="l">Item</th><th>Qty</th><th class="l">Notes</th><th>Wt</th><th class="l">Move to</th><th></th>';
+    const tail=(x,i)=>`<td>${num(`${path}.${i}.wt`,{w:'3.8em',step:'0.25',rr:1,label:'Weight'})}</td>
+       <td class="l">${sel(`${path}.${i}.cat`,BOH_CATS.map(c=>[c[0],c[1]]),{label:'Move to table'})}</td><td><button class="btn x" data-act="itemDel" data-l="${path}" data-i="${i}" aria-label="Remove ${esc(x.item||'item')}">✕</button></td>`;
+    const row=([x,i])=>pouch
+      ?`<tr class="itemrow"><td class="l">${txt(`${path}.${i}.item`,{label:'Item'})}</td><td>${num(`${path}.${i}.qty`,{w:'3.6em',label:'Quantity'})}</td><td class="l">${sel(`${path}.${i}.pouch`,POUCH.map(p=>[p[0],p[1].replace(' pouch','')]),{label:'Pouch'})}</td>${tail(x,i)}</tr>
+        <tr class="noterow"><td class="l" colspan="6">${txt(`${path}.${i}.desc`,{label:'Notes',ph:'Notes…'})}</td></tr>`
+      :`<tr><td class="l">${txt(`${path}.${i}.item`,{label:'Item'})}</td><td>${num(`${path}.${i}.qty`,{w:'3.6em',label:'Quantity'})}</td><td class="l">${txt(`${path}.${i}.desc`,{label:'Notes'})}</td>${tail(x,i)}</tr>`;
+    return `<section class="panel"><header><h2>${t}</h2><span class="muted">${rows.length} item${rows.length===1?'':'s'}${hint?` · ${hint}`:''}</span></header>
+     <div class="scroll"><table class="geartbl${pouch?' havtbl':''}" style="min-width:${pouch?600:640}px"><colgroup>${cols}</colgroup>
+     <thead><tr>${head}</tr></thead><tbody>
+     ${rows.map(row).join('')||`<tr><td colspan="6" class="muted">Nothing here yet.</td></tr>`}
+     </tbody></table></div><div class="row"><button class="btn" data-act="itemAdd" data-l="${path}" data-k="${k}">Add to ${t}</button></div></section>`}).join('');
+}
+function pOnHim(){
   const C=compute(true);
   const str=C.ab.str.sc;const heavy=str<=0?0:str<30?HEAVY[str]:(k=>HEAVY[str-10*k]*Math.pow(4,k))(Math.floor((str-20)/10));
   const sizeMul=[.125,.25,.5,.75,1,2,4,8,16][C.si];const H=heavy*sizeMul,Lt=Math.floor(H/3),Md=Math.floor(H*2/3);
   const wt=S.gear.reduce((a,g)=>a+n(g.wt),0)+n(S.shield.wt);
   const load=wt<=Lt?'Light':wt<=Md?'Medium':wt<=H?'Heavy':'Overloaded';
   const arm=k=>`<div class="grid2">${field('Name',txt(`${k}.name`))}${field('AC bonus',num(`${k}.bonus`))}${k==='armor'?field('Max Dex',num(`${k}.maxDex`,{label:'Max Dex (blank = none)'})):''}${field('Check penalty',num(`${k}.acp`))}${k==='armor'?field('Speed in armor',num(`${k}.speed`,{rr:1,label:'Speed in armor (0 = normal)'})):''}</div>`;
-  const pots=S.potions||[];const mxHp=hpMaxNow();
-  return `<section class="panel"><header><h2>Healing Potions</h2><span class="muted">HP ${n(S.hp.cur)} / ${mxHp} · roll the dice, type the total, press Drink</span></header>
-   <div class="scroll"><table class="pots"><thead><tr><th class="l">Potion</th><th>Heals</th><th>Qty</th><th>Dice total</th><th></th><th></th></tr></thead><tbody>
-   ${pots.map((p,i)=>{const dl=diceIn(p.dice),lo=dl.reduce((a,[c])=>a+c,0),hi=dl.reduce((a,[c,s])=>a+c*s,0);
-     return `<tr><td class="l">${txt(`potions.${i}.name`,{w:'100%',label:'Potion name'})}</td>
-      <td class="nowrap">${txt(`potions.${i}.dice`,{w:'3.6em',rr:1,label:'Healing dice'})} + ${num(`potions.${i}.bonus`,{w:'3.2em',rr:1,label:'Healing bonus'})}</td>
-      <td>${num(`potions.${i}.qty`,{w:'3.4em',rr:1,label:'Quantity'})}</td>
-      <td><input type="number" id="pot-roll-${i}" data-cap="${hi}" min="${lo}" max="${hi}" placeholder="${lo}–${hi}" style="width:5em" aria-label="${esc(p.name)} dice total"></td>
-      <td><button class="btn pri" data-act="potDrink" data-i="${i}"${n(p.qty)<1?' disabled':''}>Drink</button></td>
-      <td><button class="btn x" data-act="potDel" data-i="${i}" aria-label="Remove potion">✕</button></td></tr>`}).join('')||'<tr><td colspan="6" class="muted">No potions.</td></tr>'}
-   </tbody></table></div>
-   <div class="row"><button class="btn" data-act="potAdd">Add potion</button></div>
-  </section>
-  <section class="panel"><header><h2>Other Potions</h2><span class="muted">Party Bag of Holding · Drink takes one off the count</span></header>
-   <div class="scroll"><table class="geartbl" style="min-width:560px"><colgroup><col style="width:28%"><col style="width:5.5em"><col><col style="width:5.5em"><col class="c-x"></colgroup>
-   <thead><tr><th class="l">Potion</th><th>Qty</th><th class="l">Effect</th><th></th><th></th></tr></thead><tbody>
-   ${(S.otherPotions||[]).map((p,i)=>`<tr class="${n(p.qty)<1?'future':''}"><td class="l">${txt(`otherPotions.${i}.name`,{label:'Potion name'})}</td>
-     <td>${num(`otherPotions.${i}.qty`,{w:'3.4em',rr:1,label:'Quantity'})}</td>
-     <td class="l">${txt(`otherPotions.${i}.effect`,{label:'Effect'})}</td>
-     <td><button class="btn pri" data-act="opDrink" data-i="${i}"${n(p.qty)<1?' disabled':''}>Drink</button></td>
-     <td><button class="btn x" data-act="opDel" data-i="${i}" aria-label="Remove potion">✕</button></td></tr>`).join('')||'<tr><td colspan="5" class="muted">No other potions.</td></tr>'}
-   </tbody></table></div>
-   <div class="row"><button class="btn" data-act="opAdd">Add potion</button></div>
-   <p class="note">Drinking Remove Blindness/Deafness or Lesser Restoration also clears blinded, deafened or fatigued on the Conditions tab if they’re on.</p>
-  </section>
+  return `${potionPanels('carry.potions','carry.other','On his person (belt, bandolier)')}
   <div class="cols">
    <section class="panel"><header><h2>Armor</h2></header>${arm('armor')}<p class="note">Light armor: bards cast without arcane spell failure (the paper sheet lists 10% for the shirt). Its weight is in Equipment.</p></section>
    <section class="panel"><header><h2>Shield</h2></header>${arm('shield')}</section>
@@ -1508,25 +1613,64 @@ function pGear(){
     ${S.gear.map((g,i)=>`<tr><td class="l">${txt(`gear.${i}.item`,{w:'100%',label:'Item'})}</td><td class="l">${txt(`gear.${i}.desc`,{w:'100%',label:'Description'})}</td><td class="l">${txt(`gear.${i}.loc`,{w:'100%',label:'Location'})}</td><td>${num(`gear.${i}.wt`,{step:'0.25',rr:1,label:'Weight'})}</td><td><button class="btn x" data-act="delGear" data-i="${i}" aria-label="Remove item">✕</button></td></tr>`).join('')}
     </tbody></table></div><div class="row"><button class="btn" data-act="addGear">Add item</button></div></section>
   <div class="cols">
-   <section class="panel"><header><h2>Carrying &amp; Coin</h2></header>
+   <section class="panel"><header><h2>Carrying &amp; Coin</h2><span class="muted">His own purse, in the haversack’s right pouch</span></header>
     <div class="kv"><label>Light</label><b>up to ${Lt} lb.</b><label>Medium</label><b>${Lt+1}–${Md} lb.</b><label>Heavy</label><b>${Md+1}–${H} lb.</b><label>Lift / drag</label><b>${H*2} / ${H*5} lb.</b></div>
     ${load!=='Light'?`<p class="note warn">${load} load.</p>`:''}
-    <p class="note">Coins ride in the Handy Haversack, which carries its contents weightlessly, so they don’t count toward his load. (The paper sheet uses Medium-size limits: 33 / 66 / 100 lb.)</p>
+    <p class="note">The Handy Haversack always weighs 5 lb. however full it is, so what’s inside doesn’t count toward his load. (The paper sheet uses Medium-size limits: 33 / 66 / 100 lb.)</p>
     <div class="grid2">${field('Platinum',num('coins.pp',{rr:1}))}${field('Gold',num('coins.gp',{rr:1}))}${field('Silver',num('coins.sp',{rr:1}))}${field('Copper',num('coins.cp',{rr:1}))}</div>
     ${field('In the bank',txt('bank'))}
    </section>
-   <section class="panel"><header><h2>Party Bag of Holding</h2><span class="muted">The Belhaim Saviors</span></header>
-    <div class="scroll"><table class="geartbl" style="min-width:480px"><colgroup><col class="c-item"><col class="c-desc"><col class="c-wt"><col class="c-x"></colgroup>
-    <thead><tr><th class="l">Item</th><th class="l">Notes</th><th>Wt</th><th></th></tr></thead><tbody>
-    ${(S.bag||[]).map((g,i)=>`<tr><td class="l">${txt(`bag.${i}.item`,{w:'100%',label:'Item'})}</td><td class="l">${txt(`bag.${i}.desc`,{w:'100%',label:'Notes'})}</td><td>${num(`bag.${i}.wt`,{rr:1,label:'Weight'})}</td><td><button class="btn x" data-act="delBag" data-i="${i}" aria-label="Remove item">✕</button></td></tr>`).join('')}
-    </tbody></table></div><div class="row"><button class="btn" data-act="addBag">Add item</button></div>
-    ${field('Party treasure',area('treasure',{rows:6}))}
+   <section class="panel"><header><h2>Containers</h2></header>
+    <p class="note" style="margin:0">His Handy Haversack and the party’s Bag of Holding each have their own sub-tab, sorted into tables.</p>
+    <div class="row"><button class="btn pri" data-act="gearSub" data-v="hav">Open the Handy Haversack</button><button class="btn" data-act="gearSub" data-v="bag">Open the Bag of Holding</button></div>
    </section>
   </div>
   <div class="cols">
    <section class="panel"><header><h2>Character History</h2></header>${area('history',{rows:9})}</section>
    <section class="panel"><header><h2>Session Notes</h2></header>${area('notes',{rows:9})}</section>
   </div>`;
+}
+function pHav(){
+  const H=havData(),potN=H.potions.reduce((a,p)=>a+Math.max(0,n(p.qty)),0)+H.other.reduce((a,p)=>a+Math.max(0,n(p.qty)),0);
+  const used=k=>H.items.filter(x=>(x.pouch||'main')===k).reduce((a,x)=>a+n(x.wt),0)+(k==='main'?potN*.1:0);
+  return `<section class="panel"><header><h2>Handy Haversack</h2><span class="muted">On his back · always weighs 5 lb.</span></header>
+    <div class="grid2">${POUCH.map(([k,l,lim])=>{const u=used(k);return `<div class="field"><span class="lbl">${l}</span><b style="font-size:1.2rem${u>lim?';color:var(--bad)':''}">${fmtN(u)} <span class="muted" style="font-size:.95rem">/ ${lim} lb.</span></b><div class="hpbar"><i style="width:${Math.min(100,u/lim*100)}%"${u>lim?' class="low"':''}></i></div></div>`}).join('')}</div>
+    ${POUCH.some(([k,,lim])=>used(k)>lim)?'<p class="note warn">A pouch is over what it can hold.</p>':''}
+    <p class="note">Main pouch holds 80 lb. (8 cu. ft.); each side pouch 20 lb. (2 cu. ft.). Whatever he reaches for is on top: taking an item out is a move action that doesn’t provoke attacks of opportunity. The haversack and everything in it get +2 resistance on saves. Potions count 0.1 lb. each, in the main pouch. His coins and gems are on the On Namfoodle sub-tab; the wands’ charges are on the Attacks tab.</p>
+  </section>
+  ${potionPanels('hav.potions','hav.other','Main pouch')}
+  ${itemTables('hav.items',H.items,true)}`;
+}
+function pBag(){
+  const C=compute(true),B=bohData(),pots=S.potions||[];
+  const itemsWt=B.items.reduce((a,x)=>a+n(x.wt),0),coinsN=n(B.coins.pp)+n(B.coins.gp)+n(B.coins.sp)+n(B.coins.cp),coinWt=coinsN/50;
+  const potWt=(pots.reduce((a,p)=>a+n(p.qty),0)+(S.otherPotions||[]).reduce((a,p)=>a+n(p.qty),0))*0.1;
+  const tot=itemsWt+coinWt+potWt,lim=BOH_LIM[B.type];
+  const coinGp=n(B.coins.pp)*10+n(B.coins.gp)+n(B.coins.sp)/10+n(B.coins.cp)/100,gemGp=B.gems.reduce((a,g)=>a+n(g.value)*Math.max(0,n(g.qty)),0);
+  return `<section class="panel"><header><h2>Bag of Holding</h2><span class="muted">The Belhaim Saviors · the Saviors of Tal’Dorei</span></header>
+    <div class="row" style="align-items:end">${field('Bag type',sel('boh.type',BOH_TYPES,{label:'Bag of Holding type'}))}
+     <div class="field"><span class="lbl">Weight inside</span><b style="font-size:1.2rem">${fmtN(tot)} lb.${lim?` <span class="muted" style="font-size:.95rem">of ${lim.toLocaleString()}</span>`:''}</b></div>
+     <div class="field"><span class="lbl">Worth</span><b style="font-size:1.2rem">${fmtN(coinGp+gemGp)} gp</b><small class="muted">coins ${fmtN(coinGp)} + gems ${fmtN(gemGp)}</small></div></div>
+    ${lim&&tot>lim?`<p class="note warn">That’s more than a type ${B.type} bag holds (${lim.toLocaleString()} lb.). The coins alone weigh ${fmtN(coinWt)} lb. (50 coins per pound).</p>`:''}
+    <p class="note">Weight counts items, potions (0.1 lb. each) and coins (${coinsN.toLocaleString()} coins = ${fmtN(coinWt)} lb.). Taking something out is a move action. Never put the bag inside a portable hole or another extradimensional space.</p>
+  </section>
+  ${potionPanels('potions','otherPotions','Bag of Holding')}
+  ${scrollsPanel(C)}
+  ${itemTables('boh.items',B.items,false)}
+  <div class="cols">
+   <section class="panel"><header><h2>Coins</h2><span class="muted">${fmtN(coinGp)} gp in all</span></header>
+    <div class="scroll"><table class="geartbl" style="min-width:320px"><thead><tr><th class="l">Coin</th><th>Count</th><th>Worth (gp)</th></tr></thead><tbody>
+    ${[['pp','Platinum',10],['gp','Gold',1],['sp','Silver',.1],['cp','Copper',.01]].map(([k,l,m])=>`<tr><td class="l"><b>${l}</b></td><td>${num(`boh.coins.${k}`,{w:'7em',rr:1,label:l+' coins'})}</td><td>${fmtN(n(B.coins[k])*m)}</td></tr>`).join('')}
+    </tbody></table></div>
+   </section>
+   <section class="panel"><header><h2>Gems</h2><span class="muted">${fmtN(gemGp)} gp in all</span></header>
+    <div class="scroll"><table class="geartbl" style="min-width:420px"><colgroup><col><col style="width:7em"><col style="width:5em"><col style="width:6.5em"><col class="c-x"></colgroup>
+    <thead><tr><th class="l">Gem</th><th>Value (gp)</th><th>Qty</th><th>Total</th><th></th></tr></thead><tbody>
+    ${B.gems.map((g,i)=>`<tr><td class="l">${txt(`boh.gems.${i}.name`,{label:'Gem'})}</td><td>${num(`boh.gems.${i}.value`,{w:'5.5em',rr:1,label:'Value each'})}</td><td>${num(`boh.gems.${i}.qty`,{w:'3.4em',rr:1,label:'Quantity'})}</td><td>${fmtN(n(g.value)*Math.max(0,n(g.qty)))}</td><td><button class="btn x" data-act="gemDel" data-i="${i}" aria-label="Remove gem">✕</button></td></tr>`).join('')||'<tr><td colspan="5" class="muted">No gems.</td></tr>'}
+    </tbody></table></div><div class="row"><button class="btn" data-act="gemAdd">Add gem</button></div>
+   </section>
+  </div>
+  <section class="panel"><header><h2>Bag Notes</h2></header>${area('boh.notes',{rows:3,label:'Bag notes'})}</section>`;
 }
 
 /* ---------- refresh computed outputs ---------- */
@@ -1544,7 +1688,7 @@ function refresh(){
     `<button class="qt" data-act="perfQuick" data-id="courage" aria-pressed="${S.perf.cur==='courage'||lingerOn('courage')}" title="Start or stop Inspire Courage">Inspire Courage ${sg(icBonus())}</button>`+
     `<button class="qt" data-act="cone" aria-pressed="${!!S.cone}" title="Cone of Clarity: +2 DC on spells with a verbal component">Cone of Clarity${S.cone?' +2 DC':''}</button>`+
     `<button class="qt" data-act="quick" data-id="haste" aria-pressed="${!!S.cond.haste}" title="+1 attack, +1 dodge AC and Reflex, +30 ft. speed">Haste</button>`+
-    `<button class="qt dim" data-act="tab" data-t="treasures" aria-pressed="true" title="Mythcarver’s state: change it on the Treasures tab">Mythcarver · ${esc(vestS().n)}</button>`+
+    `<button class="qt dim" data-act="tab" data-t="treasures" aria-pressed="true" title="Mythcarver’s state: change it on the Magic Weapons tab">Mythcarver · ${esc(vestS().n)}</button>`+
     `<button class="qt" data-act="tab" data-t="treasures" aria-pressed="${n(S.harp.ch)>0}" title="Harp of the Storm charges">Harp · ${Math.max(0,n(S.harp.ch))}/10</button>`;
   const chips=A.M.active.filter(c=>!['courage','haste'].includes(c.id)).map(c=>`<button class="chip${c.buff?' buff':''}" data-act="tab" data-t="conditions">${cname(c)}</button>`);
   if(A.M.neg)chips.push(`<button class="chip" data-act="tab" data-t="conditions">${A.M.neg} negative level${A.M.neg>1?'s':''}</button>`);
@@ -1674,6 +1818,18 @@ function load(d){
     if(JSON.stringify(s.spx)==='{"1":1,"2":1,"4":1,"5":1,"6":2}')s.spx=clone(DEFAULT.spx);
     if(JSON.stringify(s.knx)==='{"3":1,"6":1}')s.knx={};
     s.v=3;}
+  /* v4: the party bag gets its own sorted sub-tab; anything added to the old bag list lands in Other, edited treasure notes in Bag Notes */
+  if(d&&(d.v||1)<4){
+    if(!d.boh){s.boh=clone(DEFAULT.boh);
+      const known=new Set(DEFAULT.bag.map(g=>String(g.item).toLowerCase()));
+      (d.bag||[]).filter(g=>g&&String(g.item||'').trim()&&!known.has(String(g.item).toLowerCase())&&!/^Potion of /.test(g.item)).forEach(g=>s.boh.items.push({cat:'other',item:g.item,qty:'',desc:g.desc||'',wt:n(g.wt)}));
+      if(typeof d.treasure==='string'&&d.treasure.trim()&&d.treasure!==DEFAULT.treasure)s.boh.notes=(s.boh.notes+'\n'+d.treasure).trim();}
+    s.v=4;}
+  /* v5: Beads of Sustenance are 40 beads, not 40 lb.; the haversack's two wands join the wand list */
+  if(d&&(d.v||1)<5){
+    (s.boh.items||[]).forEach(x=>{if(/beads of sustenance/i.test(x.item||'')&&n(x.wt)===40&&!n(x.qty)){x.qty=40;x.wt=0;if(/weight column/.test(x.desc||''))x.desc=''}});
+    s.charged=s.charged||[];['Wand of Stabilize','Bone wand of Enlarge/Reduce Person'].forEach(nm=>{if(!s.charged.some(c=>String(c.name||'').toLowerCase()===nm.toLowerCase()))s.charged.push(clone(DEFAULT.charged.find(c=>c.name===nm)))});
+    s.v=5;}
   return s;
 }
 async function boot(){
@@ -1862,8 +2018,12 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(
    case 'delItem':S[b.dataset.k].splice(i,1);render();break;
    case 'addGear':S.gear.push({item:'',desc:'',loc:'',wt:0});render();break;
    case 'delGear':S.gear.splice(i,1);render();break;
-   case 'addBag':(S.bag=S.bag||[]).push({item:'',desc:'',wt:0});render();break;
-   case 'delBag':S.bag.splice(i,1);render();break;
+   case 'gearSub':gearSub=['on','hav','bag'].includes(b.dataset.v)?b.dataset.v:'on';ls.set('namfoodle-gearsub',gearSub);if(tab!=='gear'){tab='gear';ls.set('namfoodle-tab',tab)}render();window.scrollTo({top:Math.min(window.scrollY,document.getElementById('tabs').offsetTop),behavior:'instant'});return;
+   case 'goBag':gearSub='bag';ls.set('namfoodle-gearsub','bag');tab='gear';ls.set('namfoodle-tab',tab);render();window.scrollTo({top:document.getElementById('tabs').offsetTop,behavior:'instant'});return;
+   case 'itemAdd':{const l=b.dataset.l||'boh.items';if(l==='hav.items')havData();else bohData();const L=getP(l);L.push(Object.assign({cat:b.dataset.k||'other',item:'',qty:1,desc:'',wt:0},l==='hav.items'?{pouch:'main'}:{}));render();const el=document.getElementById('i-'+(l+'.'+(L.length-1)+'.item').replace(/\W/g,'_'));if(el)el.focus();break;}
+   case 'itemDel':{const L=getP(b.dataset.l||'boh.items')||[],x=L[i];if(!x)return;if(String(x.item||'').trim()&&!confirm(`Remove “${x.item}” for good?`))return;L.splice(i,1);render();break;}
+   case 'gemAdd':bohData().gems.push({name:'',value:0,qty:1});render();break;
+   case 'gemDel':bohData().gems.splice(i,1);render();break;
    case 'use':{const k=b.dataset.k,u=n(S.used[k]);S.used[k]=(i===u-1)?u-1:i+1;
      const nm={lore:'Lore Master',cape:'Cape of the Mountebank',lute:'Acoustic Sphere (Force Lute)',flute:'Flute healing',glove:'Glove of Blasting','w.flute':'Flute (tree stride)','myth.spirit':'Mythcarver’s spirit','sla.mark':'arcane mark','sla.comp':'comprehend languages','sla.msg':'message','sla.read':'read magic'}[k];
      if(nm)dayLog(S.used[k]>u?`Used ${nm}`:`Undid ${nm}`);
@@ -1913,10 +2073,11 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(
    case 'strum':{if(perfLeft(compute(true))<1){setStatus('No performance rounds left today.');return}S.used.perf=n(S.used.perf)+1;const r=dice(3,4);
      S.itemLast={k:'strum',txt:`Repelling Strum: ${r} force. Fortitude DC 16 or pushed back 10 ft.`};dayLog(`Force Lute: Repelling Strum, ${r} force (1 performance round)`);render();break;}
    case 'sphere':{if(n(S.used.lute)>=1)return;S.used.lute=1;dayLog('Force Lute: Acoustic Sphere (75 HP, Reflex DC 16 for an unwilling target)');setStatus('Acoustic Sphere cast: 75 HP');render();break;}
-   case 'opDrink':{const p=(S.otherPotions||[])[i];if(!p||n(p.qty)<1)return;p.qty=n(p.qty)-1;const cl=String(p.clr||'').split(',').map(s=>s.trim()).filter(Boolean),was=cl.filter(c=>S.cond[c]);
-     was.forEach(c=>S.cond[c]=false);dayLog(`Drank ${p.name}${was.length?` (cleared ${was.join(', ')})`:''}`);setStatus(`Drank ${p.name}: ${p.qty} left`);render();break;}
-   case 'opAdd':(S.otherPotions=S.otherPotions||[]).push({name:'',qty:1,effect:'',clr:''});render();break;
-   case 'opDel':S.otherPotions.splice(i,1);render();break;
+   case 'opDrink':{const L=getP(b.dataset.l||'otherPotions')||[],p=L[i];if(!p||n(p.qty)<1)return;p.qty=n(p.qty)-1;const cl=String(p.clr||'').split(',').map(s=>s.trim()).filter(Boolean),was=cl.filter(c=>S.cond[c]);
+     was.forEach(c=>S.cond[c]=false);if(p.set)S.cond[p.set]=true;   // e.g. invisibility switches on its buff
+     dayLog(`Drank ${p.name}${was.length?` (cleared ${was.join(', ')})`:''}${p.set?` (${p.set} on)`:''}`);setStatus(`Drank ${p.name}: ${p.qty} left`);render();break;}
+   case 'opAdd':{const l=b.dataset.l||'otherPotions';if(!Array.isArray(getP(l)))setP(l,[]);getP(l).push({name:'',qty:1,effect:'',clr:''});render();break;}
+   case 'opDel':{(getP(b.dataset.l||'otherPotions')||[]).splice(i,1);render();break;}
    case 'weekReset':delete S.used['w.flute'];dayLog('New week: flute ready');render();break;
    case 'brooch':S.brooch=Math.max(0,n(S.brooch)+n(b.dataset.d));render();break;
    case 'broochHit':{const x=amt('brooch-amt');if(!x)return;const ab=Math.min(x,n(S.brooch)),thru=x-ab;S.brooch=n(S.brooch)-ab;
@@ -1943,13 +2104,13 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(
    case 'miDel':S.mitems.splice(i,1);render();break;
    case 'acAdd':(S.acItems=S.acItems||[]).push({name:'',slot:'Ring',type:'deflection',bonus:1,on:true});render();break;
    case 'acDel':S.acItems.splice(i,1);render();break;
-   case 'potDrink':{const p=(S.potions||[])[i];if(!p||n(p.qty)<1)return;const dl=diceIn(p.dice),lo=dl.reduce((a,[c])=>a+c,0),hi=dl.reduce((a,[c,s])=>a+c*s,0);
-     const el=document.getElementById('pot-roll-'+i);const x=Math.floor(n((el||{}).value));
+   case 'potDrink':{const l=b.dataset.l||'potions',p=(getP(l)||[])[i];if(!p||n(p.qty)<1)return;const dl=diceIn(p.dice),lo=dl.reduce((a,[c])=>a+c,0),hi=dl.reduce((a,[c,s])=>a+c*s,0);
+     const el=document.getElementById('pot-roll-'+l.replace(/\W/g,'_')+'-'+i);const x=Math.floor(n((el||{}).value));
      if(!(x>=lo&&x<=hi)){setStatus(`Type the ${p.dice} total (${lo}–${hi}).`);if(el)el.focus();return}
      const am=x+n(p.bonus),mx=hpMaxNow(),bf=n(S.hp.cur);S.hp.cur=Math.min(mx,bf+am);const h=S.hp.cur-bf;
      p.qty=n(p.qty)-1;hpLog(`Drank ${p.name}: ${x}+${n(p.bonus)} = ${am}, healed ${h}`);setTimeout(()=>setStatus(`${p.name}: healed ${h} HP`),800);render();break;}
-   case 'potAdd':(S.potions=S.potions||[]).push({name:'Cure Light Wounds',dice:'1d8',bonus:1,qty:1});render();break;
-   case 'potDel':S.potions.splice(i,1);render();break;
+   case 'potAdd':{const l=b.dataset.l||'potions';if(!Array.isArray(getP(l)))setP(l,[]);getP(l).push({name:'Cure Light Wounds',dice:'1d8',bonus:1,qty:1});render();break;}
+   case 'potDel':{(getP(b.dataset.l||'potions')||[]).splice(i,1);render();break;}
    case 'clearRolls':Object.keys(rolls).forEach(k=>{if(k!=='ac')delete rolls[k]});render();return;
    case 'heal':{const src=b.dataset.src||'hpamt',mx=hpMaxNow();if(!amt(src))return;const bf=n(S.hp.cur);S.hp.cur=Math.min(mx,n(S.hp.cur)+amt(src));hpLog(`Healed ${S.hp.cur-bf}`);S.hp.nl=Math.max(0,n(S.hp.nl)-amt(src));render();break;}
    case 'full':{const h=longRest(true);hpLog(`Long rest, healed ${h}`);setTimeout(()=>setStatus(`Long rest: healed ${h} HP, daily uses reset`),800);render();break;}
