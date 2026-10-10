@@ -6,7 +6,7 @@
 <style>body{margin:0}img{max-width:100%}</style>
 <title>Namfoodle · Pathfinder Character Sheet</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus+SC&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus+SC&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Caveat:wght@400;600&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=swap">
 <style>
 /* Layout: persistent header (identity left, portrait top-right, stat strip below), sticky tab bar, one panel grid per tab */
 :root{
@@ -300,6 +300,91 @@ td.tot{font-weight:700;font-size:1.08rem;min-width:3em}
 .vers{font-size:.78rem;color:var(--accent);white-space:nowrap}
 .known{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:6px}
 /* target picker for performances with a limit */dialog.picker{border:1px solid var(--accent);border-radius:10px;background:var(--surface);color:var(--ink);padding:18px 20px;width:min(420px,calc(100% - 32px));box-shadow:0 12px 40px rgba(0,0,0,.4)}dialog.picker::backdrop{background:rgba(10,6,2,.55)}dialog.picker form{display:grid;gap:10px}dialog.picker h2{font-size:1.25rem}dialog.picker p{margin:0}.pk{display:grid;gap:6px}.pk label{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:6px;padding:6px 10px}.pk label:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}.pk label:has(input:disabled){opacity:.5}.pkmsg{font-size:.85rem;color:var(--muted);min-height:1.2em}.pkon{font-size:.88rem;background:var(--sunk);border-radius:4px;padding:4px 8px}
+/* journal: an old leather-bound book; the cover swings open, pages turn */
+.jwrap{display:grid;gap:12px;justify-items:center;padding:8px 0 4px}
+.book{--ph:clamp(470px,72vh,640px);position:relative;width:min(100%,1040px);height:var(--ph);perspective:2400px;
+  border-radius:10px;padding:14px;background:radial-gradient(120% 90% at 30% 20%,#6b3f1f,#4a2a12 55%,#331c0b);
+  box-shadow:0 2px 0 #2a1608,0 18px 40px rgba(0,0,0,.45),inset 0 0 0 2px rgba(0,0,0,.35),inset 0 0 40px rgba(0,0,0,.45)}
+.book::after{content:"";position:absolute;inset:6px;border:2px dashed rgba(214,170,98,.35);border-radius:7px;pointer-events:none}
+.book .corner{position:absolute;width:34px;height:34px;z-index:6;pointer-events:none;background:linear-gradient(135deg,#d9b46a,#8a6a2c 60%,#5c4416)}
+.book .corner.tl{top:0;left:0;clip-path:polygon(0 0,100% 0,0 100%);border-top-left-radius:10px}
+.book .corner.tr{top:0;right:0;clip-path:polygon(0 0,100% 0,100% 100%);border-top-right-radius:10px}
+.book .corner.bl{bottom:0;left:0;clip-path:polygon(0 0,0 100%,100% 100%);border-bottom-left-radius:10px}
+.book .corner.br{bottom:0;right:0;clip-path:polygon(100% 0,0 100%,100% 100%);border-bottom-right-radius:10px}
+.pages{position:relative;display:grid;grid-template-columns:1fr 1fr;height:100%;transform-style:preserve-3d;z-index:1}
+.book.one .pages{grid-template-columns:1fr}
+.jpage{position:relative;display:grid;grid-template-rows:auto 1fr auto;gap:6px;padding:26px 30px 14px;min-width:0;min-height:0;overflow:hidden;color:#3b2a14;
+  background:radial-gradient(130% 100% at 50% 40%,#f6ead0 0%,#efdfba 55%,#dcc591 100%);
+  font-family:"Caveat","Segoe Print",cursive}
+.jpage::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;mix-blend-mode:multiply;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .42 0 0 0 0 .22 0 0 0 .35 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E"),
+  radial-gradient(40% 25% at 85% 90%,rgba(150,100,40,.18),transparent 70%),radial-gradient(30% 20% at 12% 8%,rgba(150,100,40,.14),transparent 70%)}
+.jpage.l{border-radius:4px 0 0 4px;box-shadow:inset -26px 0 30px -18px rgba(70,40,10,.55)}
+.jpage.r{border-radius:0 4px 4px 0;box-shadow:inset 26px 0 30px -18px rgba(70,40,10,.55)}
+.book.one .jpage{border-radius:4px;box-shadow:inset 18px 0 24px -16px rgba(70,40,10,.5)}
+.jpage>*{position:relative}
+.jhead{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:baseline;border-bottom:1.5px solid rgba(110,70,30,.45);padding-bottom:4px}
+.jpage input,.jpage textarea{font:inherit;color:inherit;background:transparent;border:0;border-radius:0;padding:0;outline:none}
+.jpage input:focus-visible,.jpage textarea:focus-visible{outline:none;background-color:rgba(255,248,225,.4)}
+.jdate{width:8.5em;font-size:1.15rem;color:#6d5232}
+.jtitle{font-family:"IM Fell English",Georgia,serif;font-size:1.45rem;font-style:italic;min-width:0;width:100%}
+.jtext{width:100%;height:100%;min-height:0;resize:none;font-size:1.32rem;line-height:30px;padding-top:2px;
+  background-image:repeating-linear-gradient(to bottom,transparent 0 29px,rgba(120,85,40,.28) 29px 30px)!important;background-attachment:local!important;overflow:auto}
+.jtext::placeholder,.jpage input::placeholder{color:rgba(90,65,35,.45)}
+.jfoot{display:flex;justify-content:space-between;align-items:center;font-family:"IM Fell English",Georgia,serif;font-size:.95rem;color:#7a5c38}
+.jfoot button{font:inherit;font-size:.82rem;background:transparent;border:0;color:#8b5a3a;text-decoration:underline dotted;padding:0}
+.jpage.l .jfoot{flex-direction:row-reverse}
+.jtitlepage,.jblank{grid-template-rows:none}
+.jtitlepage{display:grid;place-content:center;justify-items:center;text-align:center;gap:10px;font-family:"IM Fell English",Georgia,serif}
+.jtitlepage .t1{font-style:italic;font-size:1.2rem;color:#6d5232}
+.jtitlepage .t2{font-family:"IM Fell English SC",Georgia,serif;font-size:clamp(1.6rem,3.4vw,2.3rem);line-height:1.1;color:#3b2a14}
+.jtitlepage .t3{font-size:1.05rem;color:#5a4325}
+.jtitlepage .orn{font-size:1.6rem;color:#8b5a20;letter-spacing:.3em}
+.jtitlepage .t4{font-family:"Caveat",cursive;font-size:1.3rem;color:#6d5232;margin-top:18px;transform:rotate(-2deg)}
+.jblank{display:grid;place-content:center;justify-items:center;gap:10px;color:#7a5c38;font-family:"IM Fell English",Georgia,serif;font-style:italic}
+.jblank button{font-family:"Caveat",cursive;font-size:1.4rem;color:#5a3418;background:rgba(255,248,225,.5);border:1.5px dashed #8b5a3a;border-radius:6px;padding:4px 16px}
+.jcorner{position:absolute;bottom:0;width:46px;height:46px;border:0;background:transparent;z-index:3;padding:0}
+.jcorner.n{right:0;background:linear-gradient(315deg,rgba(150,110,60,.4) 0 30%,transparent 31%)}
+.jcorner.p{left:0;background:linear-gradient(45deg,rgba(150,110,60,.4) 0 30%,transparent 31%)}
+.jcorner:hover{filter:brightness(.8)}
+.jcorner:disabled{display:none}
+.ribbon{position:absolute;top:-6px;right:24px;width:14px;height:calc(var(--ph) * .55);z-index:4;pointer-events:none;
+  background:linear-gradient(90deg,#7a1414,#a52222 50%,#6e1010);clip-path:polygon(0 0,100% 0,100% 100%,50% 92%,0 100%);filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
+.book.one .ribbon{right:20px}
+/* cover: swings open on its spine */
+.cover{position:absolute;top:14px;bottom:14px;left:50%;width:calc(50% - 14px);transform-origin:left center;transform-style:preserve-3d;z-index:5;pointer-events:none}
+.book.one .cover{left:14px;width:calc(100% - 28px)}
+.cover>div{position:absolute;inset:-14px -14px -14px 0;border-radius:4px 10px 10px 4px;backface-visibility:hidden}
+.cover .front{display:grid;place-content:center;justify-items:center;gap:12px;text-align:center;color:#e6c57e;
+  background:radial-gradient(90% 70% at 40% 30%,#7a4723,#56311a 60%,#3b2210),#4a2a12;
+  box-shadow:inset 0 0 0 10px rgba(0,0,0,.12),inset 0 0 0 12px rgba(214,170,98,.45),inset 0 0 0 26px rgba(0,0,0,.1),inset 0 0 0 27px rgba(214,170,98,.35),inset 0 0 50px rgba(0,0,0,.5)}
+.cover .front b{font-family:"IM Fell English SC",Georgia,serif;font-weight:400;font-size:clamp(1.6rem,4vw,2.6rem);letter-spacing:.06em;line-height:1.15;text-shadow:0 1px 0 #2a1608,0 -1px 0 rgba(255,230,170,.35)}
+.cover .front i{font-family:"IM Fell English",Georgia,serif;font-size:1.1rem;opacity:.85}
+.cover .front .orn{font-size:2rem;letter-spacing:.4em}
+.cover .back{transform:rotateY(180deg);border-radius:10px 4px 4px 10px;background:linear-gradient(90deg,#8a6a45,#a5825a);box-shadow:inset 0 0 30px rgba(0,0,0,.35)}
+.book .cover{display:none}
+.book.opening .cover{display:block;animation:coverOpen 1.3s cubic-bezier(.45,.05,.3,1) calc(.25s + var(--jt,0ms)) forwards,coverGone .01s linear calc(1.55s + var(--jt,0ms)) forwards}
+.book.opening .jpage.l,.book.opening.one .jpage{animation:pageIn .5s ease calc(1.1s + var(--jt,0ms)) both}
+@keyframes coverOpen{from{transform:rotateY(0)}to{transform:rotateY(-178deg)}}
+@keyframes coverGone{to{visibility:hidden}}
+@keyframes pageIn{from{opacity:0}to{opacity:1}}
+/* a page turning: a blank leaf sweeps across the spine */
+.leaf{position:absolute;top:0;bottom:0;width:50%;z-index:4;transform-style:preserve-3d;pointer-events:none}
+.leaf>div{position:absolute;inset:0;backface-visibility:hidden;background:linear-gradient(90deg,#e3cc98,#f4e7c8 40%,#efdfba)}
+.leaf .b{transform:rotateY(180deg);background:linear-gradient(270deg,#e3cc98,#f4e7c8 40%,#efdfba)}
+.leaf.next{left:50%;transform-origin:left center;animation:turnNext .7s ease-in-out forwards}
+.leaf.prev{left:0;transform-origin:right center;animation:turnPrev .7s ease-in-out forwards}
+.book.one .leaf{width:100%}
+.book.one .leaf.next{left:0;animation-name:turnNextOne}
+.book.one .leaf.prev{left:0;transform-origin:left center;animation-name:turnPrevOne}
+@keyframes turnNext{from{transform:rotateY(0)}50%{filter:brightness(.92)}to{transform:rotateY(-180deg)}}
+@keyframes turnPrev{from{transform:rotateY(0)}50%{filter:brightness(.92)}to{transform:rotateY(180deg)}}
+@keyframes turnNextOne{from{transform:rotateY(0);opacity:1}to{transform:rotateY(-180deg);opacity:.3}}
+@keyframes turnPrevOne{from{transform:rotateY(-180deg);opacity:.3}to{transform:rotateY(0);opacity:1}}
+.jbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:center}
+.jbar select{max-width:16em}
+@media (prefers-reduced-motion:reduce){.book.opening .cover,.leaf{display:none!important}.book.opening .jpage.l,.book.opening.one .jpage{animation:none}}
+@media (max-width:520px){.jpage{padding:20px 26px 12px 18px}.jtext{font-size:1.2rem}}
 </style>
 </head>
 <body>
@@ -603,6 +688,7 @@ const DEFAULT={
  ],
  treasure:'Coins: 5,548 pp · 35,433 gp · 18,389 sp · 6,609 cp\nGems: assorted bag (1,120 gp); aquamarine (600 gp), garnet (100 gp), coral (120 gp), topaz (500 gp), jet (120 gp), onyx (20 gp), red spinel (100 gp), pearl (60 gp), rose quartz (80 gp), pearl (90 gp)\nBag of diamonds: 50 gp ×2, 500 gp ×2, 3,000 gp ×2\nBank in Belhaim: Brittan & Sons Money Lenders',
  notes:'',
+ journal:[{date:'',title:'',text:''},{date:'',title:'',text:''}],
  traits:'Bold, confident, inquisitive, obsessed with exploring ancient sites. Likes to perform, entertain and party.',
  history:'World of Exandria, realm of Tal’Dorei. Born in Issylra.\nTraveled to Vasselheim to study at the Bardic College.\nDislikes intelligent reptiles; hates lizardfolk.\nLeft his homeland at a young age with wanderlust, focused on exploring ancient runes full of secrets from the past, and languages.\nStudent of the Alabaster Lyceum (magic arts).\nMember of the Cobalt Reserve.\nMember of the Golden Grin (contact: Dr.).',
  art:null
@@ -847,7 +933,7 @@ function autoAbilities(L){
 }
 
 /* ---------- rendering ---------- */
-const TABS=[['overview','Overview'],['skills','Skills'],['saves','Saving Throws'],['attacks','Attacks'],['spells','Spells'],['perform','Performance'],['treasures','Treasures'],['abilities','Class Abilities'],['conditions','Conditions'],['gear','Gear & Notes']];
+const TABS=[['overview','Overview'],['skills','Skills'],['saves','Saving Throws'],['attacks','Attacks'],['spells','Spells'],['perform','Performance'],['treasures','Treasures'],['abilities','Class Abilities'],['conditions','Conditions'],['gear','Gear & Notes'],['journal','Journal']];
 let tab=(()=>{const h=(location.hash||'').slice(1);if(TABS.some(t=>t[0]===h))return h;const s=ls.get('namfoodle-tab');return TABS.some(t=>t[0]===s)?s:'overview'})();
 
 function renderTabs(){
@@ -862,7 +948,7 @@ function render(){
   syncConHP();
   document.getElementById('f-name').value=S.info.name||'';
   renderTabs();
-  const P={overview:pOverview,skills:pSkills,saves:pSaves,attacks:pAttacks,spells:pSpells,perform:pPerform,treasures:pTreasures,abilities:pAbilities,conditions:pConditions,gear:pGear}[tab];
+  const P={overview:pOverview,skills:pSkills,saves:pSaves,attacks:pAttacks,spells:pSpells,perform:pPerform,treasures:pTreasures,abilities:pAbilities,conditions:pConditions,gear:pGear,journal:pJournal}[tab];
   const pg=document.getElementById('page');const openD=[...pg.querySelectorAll('details[id][open]')].map(d=>d.id);
   pg.innerHTML=P();openD.forEach(id=>{const d=document.getElementById(id);if(d)d.open=true});
   renderArt(); refresh(); postPerf();
@@ -1326,6 +1412,58 @@ function pConditions(){
    </section></div>`;
 }
 
+/* ---------- journal: an old leather-bound book. Page 0 is the title page; his pages follow. Two pages side by side, one on a phone ---------- */
+let bookOpen=tab==='journal',bookT0=0,jFlipping=false;
+let jAt=(()=>{const v=Math.floor(+ls.get('namfoodle-jpage'));return isFinite(v)&&v>=0?v:0})();
+const jOne=()=>window.innerWidth<760;
+const jList=()=>{S.journal=Array.isArray(S.journal)?S.journal:[];return [null,...S.journal]};
+const jStep=()=>jOne()?1:2;
+function jClamp(){const L=jList(),st=jStep();jAt=Math.max(0,Math.min(jAt-(jAt%st),Math.floor(Math.max(0,L.length-1)/st)*st));ls.set('namfoodle-jpage',String(jAt))}
+function jPage(v,side){
+  const L=jList(),cls=`jpage ${side}`;
+  if(v===0)return `<div class="${cls} jtitlepage"><span class="t1">The Journal of</span><span class="t2">${esc(S.info.name||'Namfoodle Nackle')}</span>${S.info.nick?`<span class="t1">“${esc(S.info.nick)}”</span>`:''}
+    <span class="orn">♪ ❦ ♪</span><span class="t3">Bard of the Belhaim Saviors</span><span class="t3">Realm of Tal’Dorei</span><span class="t4">If found, return to the Golden Grin, Emon.<br>Reward in song, and in gold.</span></div>`;
+  if(v>=L.length)return `<div class="${cls} jblank"><span>A fresh page…</span><button data-act="jadd">+ Begin a new page</button></div>`;
+  const i=v-1,p=L[v]||{};
+  return `<div class="${cls}"><div class="jhead"><input class="jdate" data-p="journal.${i}.date" value="${esc(p.date)}" placeholder="Date…" aria-label="Page ${v} date"><input class="jtitle" data-p="journal.${i}.title" value="${esc(p.title)}" placeholder="Title of this entry" aria-label="Page ${v} title"></div>
+    <textarea class="jtext" data-p="journal.${i}.text" placeholder="Write here…" aria-label="Page ${v} text">${esc(p.text)}</textarea>
+    <div class="jfoot"><span>— ${v} —</span><button data-act="jtear" data-i="${i}" title="Remove this page">tear out this page</button></div></div>`;
+}
+function jSpread(){const one=jOne(),L=jList();
+  return (one?jPage(jAt,''):jPage(jAt,'l')+jPage(jAt+1,'r'))
+    +`<button class="jcorner p" data-act="jprev" aria-label="Previous page"${jAt<=0?' disabled':''}></button><button class="jcorner n" data-act="jnext" aria-label="Next page"${jAt+jStep()>L.length?' disabled':''}></button>`;
+}
+function jBar(){const L=jList(),one=jOne(),last=L.length-1;
+  const lab=one?`Page ${jAt===0?'title':jAt} of ${last}`:(jAt===0?`Title page and page 1 of ${last}`:`Pages ${jAt}–${Math.min(jAt+1,last+1)} of ${last}`);
+  return `<button class="btn" data-act="jprev"${jAt<=0?' disabled':''}>‹ Turn back</button><span class="muted">${lab}</span><button class="btn" data-act="jnext"${jAt+jStep()>L.length?' disabled':''}>Turn forward ›</button>
+   <select id="jgo" aria-label="Go to page"><option value="0">Title page</option>${L.slice(1).map((p,i)=>`<option value="${i+1}"${(one?jAt===i+1:Math.floor((i+1)/2)*2===jAt)?' selected':''}>${i+1}. ${esc((p&&p.title)||(p&&p.date)||'Untitled')}</option>`).join('')}</select>
+   <button class="btn pri" data-act="jadd">+ Add a page</button>`;
+}
+function pJournal(){
+  jClamp();if(bookOpen){bookT0=Date.now();bookOpen=false}const el=Date.now()-bookT0,open=el<1700;
+  return `<section class="panel"><header><h2>Journal</h2><span class="muted">His leather-bound journal · type straight onto the page, it saves as he writes</span></header>
+   <div class="jwrap"><div class="book${jOne()?' one':''}${open?' opening':''}" id="book" style="--jt:-${open?el:0}ms">
+     <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+     <div class="pages" id="jpages">${jSpread()}</div>
+     <span class="ribbon" aria-hidden="true"></span>
+     <div class="cover" aria-hidden="true"><div class="front"><span class="orn">❦</span><b>The Journal of<br>${esc(S.info.name||'Namfoodle Nackle')}</b><i>Bard · The Belhaim Saviors</i><span class="orn">♪</span></div><div class="back"></div></div>
+    </div>
+    <div class="jbar" id="jbar">${jBar()}</div></div>
+   <p class="note">Turn pages with the buttons, the folded page corners, or the ← → keys. Every page saves online with the rest of his sheet.</p></section>`;
+}
+/* turn to another spread: a blank leaf sweeps across while the pages change underneath */
+function jTurn(to){
+  const L=jList();to=Math.max(0,Math.min(to,L.length));const st=jStep();to-=to%st;if(to===jAt||jFlipping)return;
+  const dir=to>jAt?'next':'prev',book=document.getElementById('book'),pg=document.getElementById('jpages');
+  const done=()=>{jAt=to;jClamp();if(pg)pg.innerHTML=jSpread();const bar=document.getElementById('jbar');if(bar)bar.innerHTML=jBar()};
+  if(!book||matchMedia('(prefers-reduced-motion: reduce)').matches){done();return}
+  jFlipping=true;const leaf=document.createElement('div');leaf.className='leaf '+dir;leaf.innerHTML='<div class="f"></div><div class="b"></div>';book.appendChild(leaf);
+  setTimeout(done,340);setTimeout(()=>{leaf.remove();jFlipping=false},720);
+}
+addEventListener('keydown',e=>{if(tab!=='journal'||/^(INPUT|TEXTAREA|SELECT)$/.test((e.target||{}).tagName||''))return;
+  if(e.key==='ArrowRight'){jTurn(jAt+jStep());e.preventDefault()}else if(e.key==='ArrowLeft'){jTurn(jAt-jStep());e.preventDefault()}});
+let jWasOne=null;addEventListener('resize',()=>{if(tab!=='journal')return;const o=jOne();if(jWasOne!==null&&o!==jWasOne){jClamp();render()}jWasOne=o});
+document.addEventListener('change',e=>{if(e.target&&e.target.id==='jgo')jTurn(Math.floor(+e.target.value))});
 function pGear(){
   const C=compute(true);
   const str=C.ab.str.sc;const heavy=str<=0?0:str<30?HEAVY[str]:(k=>HEAVY[str-10*k]*Math.pow(4,k))(Math.floor((str-20)/10));
@@ -1703,7 +1841,15 @@ document.addEventListener('change',e=>{const t=e.target;
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,i=+b.dataset.i;
   const amt=id=>Math.max(0,Math.floor(n((document.getElementById(id)||{}).value)));
   switch(a){
-   case 'tab':tab=b.dataset.t;ls.set('namfoodle-tab',tab);render();window.scrollTo({top:Math.min(window.scrollY,document.getElementById('tabs').offsetTop),behavior:'instant'});return;
+   case 'jprev':jTurn(jAt-jStep());return;
+   case 'jnext':jTurn(jAt+jStep());return;
+   case 'jadd':{S.journal=Array.isArray(S.journal)?S.journal:[];S.journal.push({date:'',title:'',text:''});const v=S.journal.length;
+     scheduleSave();if(v>=jAt&&v<jAt+jStep()){const pg=document.getElementById('jpages');if(pg)pg.innerHTML=jSpread();const bar=document.getElementById('jbar');if(bar)bar.innerHTML=jBar()}else jTurn(v);
+     setTimeout(()=>{const t=document.querySelector(`[data-p="journal.${v-1}.title"]`);if(t)t.focus({preventScroll:true})},760);return;}
+   case 'jtear':{const p=S.journal[i];if(!p)return;const has=String(p.title||'')+String(p.text||'')+String(p.date||'');
+     if(has.trim()&&!confirm(`Tear out page ${i+1}${p.title?` (“${p.title}”)`:''}? What’s written on it will be lost.`))return;
+     S.journal.splice(i,1);jClamp();render();break;}
+   case 'tab':if(b.dataset.t==='journal'&&tab!=='journal')bookOpen=true;tab=b.dataset.t;ls.set('namfoodle-tab',tab);render();window.scrollTo({top:Math.min(window.scrollY,document.getElementById('tabs').offsetTop),behavior:'instant'});return;
    case 'addClass':S.classes.push(Object.assign({preset:'Custom',level:1},{name:'New class',hd:8,bab:'3/4',fort:'poor',ref:'poor',will:'good',prestige:false,sp:2,skills:''}));render();break;
    case 'delClass':S.classes.splice(i,1);render();break;
    case 'addAtk':S.attacks.push({id:newId(),name:'',kind:'melee',abil:'dex',enh:0,misc:0,dice:'1d4',dmgAbil:'str',dmgMisc:0,extra:'',crit:'×2',range:'',type:'',uses:0,notes:'',desc:''});render();break;
