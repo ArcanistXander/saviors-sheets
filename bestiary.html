@@ -89,6 +89,7 @@ kbd{font:inherit;font-size:.8em;border:1px solid var(--rule);border-bottom-width
 <main id="root"><p class="minor">Loading the bestiary…</p></main>
 <script src="js/firebase-config.js"></script>
 <script src="js/cloud.js"></script>
+<script src="js/spells.js"></script>
 <script src="js/statblock.js"></script>
 <script>
 /* The whole bestiary is one online document, party/bestiary: {monsters:[…], ready:[{id,count}]}.
@@ -101,7 +102,7 @@ kbd{font:inherit;font-size:.8em;border:1px solid var(--rule);border-bottom-width
   if(!Array.isArray(data.ready))data.ready=[];
   var ui={sel:'',q:'',tag:'',sort:'name'};
   try{Object.assign(ui,JSON.parse(localStorage.getItem(UIKEY)||'{}'))}catch(e){}
-  var mode='view', draft=null, pasteText='', statusMsg='', confirmDel=false, cloudOk=false;
+  var foundT=null, mode='view', draft=null, pasteText='', statusMsg='', confirmDel=false, cloudOk=false;
 
   function save(){
     try{localStorage.setItem(STORE,JSON.stringify(data))}catch(e){}
@@ -153,7 +154,7 @@ kbd{font:inherit;font-size:.8em;border:1px solid var(--rule);border-bottom-width
     root.innerHTML='<header><div><h1>Bestiary</h1><p class="sub">Monsters and NPCs for the Saviors’ fights · <a href="party.html">Party Sheet</a> · <a href="index.html">All sheets</a></p></div>'+
       '<div class="tools">'+(statusMsg?'<span class="status" role="status">'+esc(statusMsg)+'</span>':'')+
       '<button id="b-paste">Paste stat block</button><button id="b-new">New monster</button><button id="b-export">Export file</button><button id="b-import">Import file</button>'+
-      '<input type="file" id="b-file" accept=".json,.txt,application/json,text/plain" hidden></div></header>'+
+      '<input type="file" id="b-file" accept=".docx,.json,.txt,application/json,text/plain" hidden></div></header>'+
       '<div class="lay">'+side+'<div class="view">'+body+'</div></div>'+
       '<footer>'+(cloudOk?'Saved online, so the Party Sheet on any device can add these monsters to a fight.':'Saved in this browser only for now.')+' Press <kbd>/</kbd> to search, <kbd>↑</kbd> <kbd>↓</kbd> to move through the list.</footer>';
   }
@@ -166,20 +167,27 @@ kbd{font:inherit;font-size:.8em;border:1px solid var(--rule);border-bottom-width
       '</div></div></section><section class="box">'+S.render(m)+
       (m.raw?'<details class="raw" style="margin-top:12px"><summary>Full stat block as pasted</summary><pre>'+esc(m.raw)+'</pre></details>':'')+'</section>';
   }
+  function foundTxt(t){
+    if(!String(t||'').trim())return '';
+    var l=S.parse(t);
+    return l.length?'Found '+l.length+': '+l.map(function(m){return m.name+(m.count>1?' ×'+m.count:'')+(m.cr?' (CR '+m.cr+')':'')}).join(', '):'No stat block found yet. Start from the name line.';
+  }
   function pasteView(){
-    return '<section class="box paste"><h2>Paste stat blocks</h2><p class="minor" style="margin:0 0 8px">Copy from Archives of Nethys, d20pfsrd or a PDF, starting at the name line (“Balor CR 20”). Paste several in a row to add them all.</p>'+
-      '<textarea id="p-text" aria-label="Stat block text" placeholder="Balor CR 20&#10;XP 307,200&#10;CE Large outsider (chaotic, demon, evil, extraplanar)&#10;Init +11; Senses darkvision 60 ft., true seeing; Perception +31&#10;DEFENSE&#10;AC 36, touch 17, flat-footed 28 …">'+esc(pasteText)+'</textarea>'+
+    return '<section class="box paste"><h2>Paste stat blocks</h2><p class="minor" style="margin:0 0 8px">Copy from your Word notes, Archives of Nethys, d20pfsrd or a PDF, starting at the monster’s name. Paste several in a row to add them all, or use <b>Import file</b> to read a Word document.</p>'+
+      '<textarea id="p-text" aria-label="Stat block text" placeholder="Grimspindle, the Weald-Hag&#10;CR 15 (XP 51,200) CE Medium fey (hag) Init +7; Senses darkvision 60 ft.; Perception +26&#10;AC 29, touch 14, flat-footed 25 (+3 Dex, +1 dodge, +15 natural)&#10;hp 220 (19d10+114)&#10;Fort +14, Ref +13, Will +18 …">'+esc(pasteText)+'</textarea>'+
+      '<p class="minor" id="p-found" role="status" style="margin:8px 0 0">'+esc(foundTxt(pasteText))+'</p>'+
       '<div class="vbar" style="margin-top:8px"><div class="grp"><label class="minor" style="display:flex;gap:6px;align-items:center;white-space:nowrap">Tag <input id="p-tag" placeholder="e.g. Session 14" style="width:12em"></label></div>'+
       '<div class="grp"><button id="p-cancel">Cancel</button><button class="primary" id="p-go">Add to bestiary</button></div></div></section>';
   }
   var GROUPS=[
-    ['Basics',[['name','Name','w2'],['cr','CR'],['xp','XP'],['type','Alignment, size, type','wall'],['tags','Tags (comma separated)','w2'],['init','Init'],['perception','Perception'],['senses','Senses','w2'],['aura','Aura','w2']]],
+    ['Basics',[['name','Name','w2'],['cr','CR'],['xp','XP'],['count','Usual number'],['type','Alignment, size, type','wall'],['tags','Tags (comma separated)','w2'],['init','Init'],['perception','Perception'],['senses','Senses','w2'],['aura','Aura','w2']]],
     ['Defense',[['ac','AC'],['touch','Touch'],['ff','Flat-footed'],['acNote','AC breakdown','w2'],['hp','HP'],['hpDice','Hit dice'],['hpNote','Regeneration, fast healing…','w2'],
       ['fort','Fort'],['ref','Ref'],['will','Will'],['saveNote','Save notes','w2'],['da','Defensive abilities','w2'],['dr','DR'],['sr','SR'],['immune','Immune','w2'],['resist','Resist','w2'],['weak','Weaknesses','w2']]],
-    ['Offense',[['speed','Speed','wall'],['melee','Melee','wall',3],['ranged','Ranged','wall',2],['space','Space / reach','w2'],['specAtk','Special attacks','w2'],['spells','Spells and spell-like abilities','wall',6]]],
+    ['Offense',[['speed','Speed','wall'],['melee','Melee','wall',3],['ranged','Ranged','wall',2],['space','Space / reach','w2'],['specAtk','Special attacks','w2'],['spells','Spells and spell-like abilities (one level or frequency per line: “9th—meteor swarm, time stop”)','wall',6],
+      ['spellNotes','Your spell descriptions (homebrew or changed spells, one per line: “Name: what it does”). These replace the built-in ones.','wall',3]]],
     ['Statistics',[['abilities','Ability scores','wall'],['bab','Base attack'],['cmb','CMB'],['cmd','CMD'],['feats','Feats','wall',2],['skills','Skills','wall',2],['languages','Languages','w2'],['sq','SQ','w2'],['gear','Gear','wall',2]]],
     ['Special abilities',[['special','','wall',8]]],
-    ['Tactics and notes',[['tactics','Tactics','wall',3],['notes','DM notes','wall',3]]]
+    ['Tactics and notes',[['tactics','Tactics','wall',3],['desc','Description','wall',3],['notes','DM notes','wall',3]]]
   ];
   function editView(){
     var m=draft;
@@ -226,7 +234,7 @@ kbd{font:inherit;font-size:.8em;border:1px solid var(--rule);border-bottom-width
         addParsed(got,tag);mode='view';pasteText='';render();break;}
       case 'v-edit':draft=JSON.parse(JSON.stringify(mon(ui.sel)));mode='edit';statusMsg='';render();document.querySelector('[data-f="name"]').focus();break;
       case 'v-dup':{var c=JSON.parse(JSON.stringify(mon(ui.sel)));c.id=S.newId();c.name=c.name+' (copy)';draft=c;mode='edit';render();var nm=document.querySelector('[data-f="name"]');nm.focus();nm.select();break;}
-      case 'v-ready':addReady(ui.sel,1);statusMsg='Added to the next fight';render();break;
+      case 'v-ready':addReady(ui.sel,readyCount(ui.sel)?1:Math.max(1,parseInt(mon(ui.sel).count,10)||1));statusMsg='Added to the next fight';render();break;
       case 'v-del':confirmDel=true;render();document.getElementById('v-del-no').focus();break;
       case 'v-del-no':confirmDel=false;render();break;
       case 'v-del-yes':{var gone=mon(ui.sel);data.monsters=data.monsters.filter(function(m){return m.id!==ui.sel});data.ready=data.ready.filter(function(r){return r.id!==ui.sel});
@@ -243,7 +251,7 @@ kbd{font:inherit;font-size:.8em;border:1px solid var(--rule);border-bottom-width
     var el=ev.target;
     if(el.id==='q'){ui.q=el.value;saveUi();var pos=el.selectionStart;render();var q=document.getElementById('q');q.focus();try{q.setSelectionRange(pos,pos)}catch(e){}}
     else if(el.dataset.f&&draft)draft[el.dataset.f]=el.value;
-    else if(el.id==='p-text')pasteText=el.value;
+    else if(el.id==='p-text'){pasteText=el.value;clearTimeout(foundT);foundT=setTimeout(function(){var pf=document.getElementById('p-found');if(pf)pf.textContent=foundTxt(pasteText)},250)}
   });
   document.addEventListener('change',function(ev){
     var el=ev.target;
@@ -271,7 +279,17 @@ kbd{font:inherit;font-size:.8em;border:1px solid var(--rule);border-bottom-width
     statusMsg='Exported '+data.monsters.length+' monsters';render();
   }
   // A .json from Export adds its monsters (same id: replaced by the file's version); a .txt is read as pasted stat blocks.
+  // A Word file opens in the paste box first, so you can check what it found and trim anything you don't want.
   function importFile(file){
+    if(/\.docx$/i.test(file.name)){
+      file.arrayBuffer().then(S.docxText).then(function(txt){
+        mode='paste';pasteText=txt;var l=S.parse(txt);
+        statusMsg=l.length?'Read '+file.name+'. Check the list under the text, then Add to bestiary.':'Couldn’t find a stat block in '+file.name+'.';
+        render();var t=document.getElementById('p-text');if(t)t.focus();
+      }).catch(function(){statusMsg='Couldn’t read '+file.name+'. Is it a Word (.docx) file?';render()})
+        .then(function(){var f=document.getElementById('b-file');if(f)f.value=''});
+      return;
+    }
     var r=new FileReader();
     r.onload=function(){
       var txt=String(r.result||''), list=null;
