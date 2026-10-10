@@ -300,6 +300,27 @@ td.tot{font-weight:700;font-size:1.08rem;min-width:3em}
 .dctbl td.tot{font-size:1.1rem}
 .vers{font-size:.78rem;color:var(--accent);white-space:nowrap}
 .known{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:6px}
+/* overview: abilities and HP side by side, then AC and combat across the full width */
+.cols2{display:grid;gap:18px;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+@media (max-width:760px){.cols2{grid-template-columns:1fr}}
+.actop{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:14px;align-items:center}
+@media (max-width:760px){.actop{grid-template-columns:1fr}}
+.actop .big3 .v{font-size:2rem}
+.acedit{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.acedit .field input{width:100%}
+@media (max-width:460px){.acedit{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.acparts{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:6px;border-top:1px solid var(--line);padding-top:10px}
+.acparts span{display:grid;justify-items:center;gap:1px;background:var(--sunk);border-radius:var(--r);padding:5px 4px}
+.acparts small{font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.acparts b{font-size:1.1rem}
+.acparts span:first-child{background:var(--accent-soft)}
+.ctiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,138px),1fr));gap:10px}
+.ctile{display:grid;gap:4px;align-content:start;background:var(--sunk);border-radius:var(--r);padding:10px 12px;min-width:0}
+.ctile .v{font-size:1.45rem;font-weight:600;line-height:1.15}
+.ctile .rf{flex-wrap:wrap;font-size:.82rem}
+.ctile select{max-width:100%;font-size:.85rem}
+.ctile input[type=number]{width:3.3em;padding:2px 3px;font-size:.85rem}
+.ctile .rf{gap:3px}
 /* target picker for performances with a limit */dialog.picker{border:1px solid var(--accent);border-radius:10px;background:var(--surface);color:var(--ink);padding:18px 20px;width:min(420px,calc(100% - 32px));box-shadow:0 12px 40px rgba(0,0,0,.4)}dialog.picker::backdrop{background:rgba(10,6,2,.55)}dialog.picker form{display:grid;gap:10px}dialog.picker h2{font-size:1.25rem}dialog.picker p{margin:0}.pk{display:grid;gap:6px}.pk label{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:6px;padding:6px 10px}.pk label:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}.pk label:has(input:disabled){opacity:.5}.pkmsg{font-size:.85rem;color:var(--muted);min-height:1.2em}.pkon{font-size:.88rem;background:var(--sunk);border-radius:4px;padding:4px 8px}
 /* journal: an old leather-bound book; the cover swings open, pages turn */
 .jwrap{display:grid;gap:12px;justify-items:center;padding:8px 0 4px}
@@ -1084,7 +1105,7 @@ function pOverview(){
     <td>${num(`classes.${i}.sp`,{w:'3.2em',label:'Skill points per level'})}</td>
     <td><button class="btn x" data-act="delClass" data-i="${i}" aria-label="Remove class">✕</button></td></tr>
     <tr><td colspan="11" class="l" style="border-top:0;padding-top:0">${txt(`classes.${i}.skills`,{w:'100%',label:'Class skills',ph:'Class skills, comma separated'})}</td></tr>`).join('');
-  return `<div class="cols">
+  return `<div class="cols2">
    <section class="panel"><header><h2>Ability Scores</h2><span class="muted">Adj covers permanent changes; worn items are on the Gear tab</span></header>
     <div class="scroll"><table class="abtbl"><thead><tr><th class="l">Ability</th><th>Base</th><th>Adj</th><th>Score</th><th>Mod</th></tr></thead><tbody>
     ${ABIL.map(a=>`<tr><td title="${ABN[a]}">${a.toUpperCase()}</td><td>${num(`ab.${a}.base`,{label:ABN[a]+' base'})}</td><td>${num(`ab.${a}.temp`,{label:ABN[a]+' adjustment'})}</td><td class="tot">${out(`ab.${a}.sc`)}</td><td><span class="mod" data-o="ab.${a}.mod"></span></td></tr>`).join('')}
@@ -1099,24 +1120,27 @@ function pOverview(){
     <p class="note">Long rest heals level + Con modifier (${levels().total} + ${conMod()}), clears nonlethal damage, resets spell slots, performance rounds and daily items, and gives the Harp of the Storm 1d10 charges back. Damage uses temp HP first. Acid damage: his ring stops the first 10 of each hit.</p>
     <div class="row"><span class="lbl">Hero points spent</span>${pips('hero',3)}<small class="muted">${3-Math.min(3,n(S.used.hero))} of 3 left</small></div>
    </section>
-   <section class="panel"><header><h2>Armor Class</h2></header>
-    <div class="big3"><div><span class="lbl">AC</span><div class="v" data-o="ac.total"></div></div><div><span class="lbl">Touch</span><div class="v" data-o="ac.touch"></div></div><div><span class="lbl">Flat-footed</span><div class="v" data-o="ac.ff"></div></div></div>
-    <div class="formula">10 + armor <b data-o="ac.armor"></b> + shield <b data-o="ac.shield"></b> + Dex <b data-o="ac.dex"></b> + natural <b data-o="ac.nat"></b> + deflection <b data-o="ac.defl"></b> + dodge <b data-o="ac.dodgeT"></b> + size <b data-o="size"></b> + other <b data-o="ac.oth"></b> + conditions <b data-o="ac.cond"></b></div>
-    <div class="grid2">${field('Extra natural',num('ac.natural'))}${field('Extra deflection',num('ac.deflection'))}${field('Dodge',num('ac.dodge'))}${field('Misc',num('ac.misc'))}</div>
-    <p class="note">Paper sheet: AC 26, touch 21, flat-footed 20 (27 / 22 against giants). Turn on “Fighting a giant” on the Conditions tab for the +4 dodge bonus. Armor and rings are on the Gear tab. ${S.cond.prone?`Prone: AC <b data-o="ac.vsMelee"></b> vs melee, <b data-o="ac.vsRanged"></b> vs ranged.`:''}</p>
-   </section>
-   <section class="panel"><header><h2>Combat</h2></header>
-    <div class="kv">
-     <label>Base attack</label><b data-o="bab.iter"></b>
-     <label>Initiative</label><span><b data-o="init"></b> &nbsp;<span class="muted">misc</span> ${num('init.misc',{label:'Initiative misc'})}</span>
-     <label>CMB</label><span><b data-o="cmb"></b> &nbsp;${sel('cmbAbil',[['str','uses Str'],['dex','uses Dex (Agile Maneuvers)']],{label:'CMB ability'})} ${num('cmbMisc',{label:'CMB misc'})}</span>
-     <label>CMD</label><span><b data-o="cmd"></b> &nbsp;<span class="muted">misc</span> ${num('cmdMisc',{label:'CMD misc'})}</span>
-     <label>Land speed</label><span><b data-o="speed.land"></b> &nbsp;<span class="muted">base</span> ${num('info.speed',{label:'Base speed'})} <span class="muted">bonus</span> ${num('speedMisc',{label:'Speed bonus'})}</span>
-     <label>Climb</label><span>20 ft. with the Boots of Spider Climbing</span>
-     <label>Size</label><span>${sel('info.size',SIZES,{label:'Size'})}</span>
-    </div>
-    <p class="note">The paper sheet lists CMB 15 and CMD 33. By the rules, CMB is BAB + Dex (Agile Maneuvers) − 1 size = <b data-o="cmb"></b>, and CMD is 10 + BAB + Str + Dex + dodge + deflection − size = <b data-o="cmd"></b>.</p></section>
   </div>
+  <section class="panel"><header><h2>Armor Class</h2><span class="muted">Armor and rings are on the Gear tab</span></header>
+   <div class="actop">
+    <div class="big3"><div><span class="lbl">AC</span><div class="v" data-o="ac.total"></div></div><div><span class="lbl">Touch</span><div class="v" data-o="ac.touch"></div></div><div><span class="lbl">Flat-footed</span><div class="v" data-o="ac.ff"></div></div></div>
+    <div class="acedit">${field('Extra natural',num('ac.natural'))}${field('Extra deflection',num('ac.deflection'))}${field('Dodge',num('ac.dodge'))}${field('Misc',num('ac.misc'))}</div>
+   </div>
+   <div class="acparts" aria-label="AC breakdown"><span><small>Base</small><b>10</b></span><span><small>Armor</small><b data-o="ac.armor"></b></span><span><small>Shield</small><b data-o="ac.shield"></b></span><span><small>Dex</small><b data-o="ac.dex"></b></span><span><small>Natural</small><b data-o="ac.nat"></b></span><span><small>Deflection</small><b data-o="ac.defl"></b></span><span><small>Dodge</small><b data-o="ac.dodgeT"></b></span><span><small>Size</small><b data-o="size"></b></span><span><small>Other</small><b data-o="ac.oth"></b></span><span><small>Conditions</small><b data-o="ac.cond"></b></span></div>
+   <p class="note">Paper sheet: AC 26, touch 21, flat-footed 20 (27 / 22 against giants). Turn on “Fighting a giant” on the Conditions tab for the +4 dodge bonus. ${S.cond.prone?`Prone: AC <b data-o="ac.vsMelee"></b> vs melee, <b data-o="ac.vsRanged"></b> vs ranged.`:''}</p>
+  </section>
+  <section class="panel"><header><h2>Combat</h2></header>
+   <div class="ctiles">
+    <div class="ctile"><span class="lbl">Base attack</span><b class="v" data-o="bab.iter"></b><small class="muted">Bard ¾ progression</small></div>
+    <div class="ctile"><span class="lbl">Initiative</span><b class="v" data-o="init"></b><label class="rf">misc ${num('init.misc',{label:'Initiative misc'})}</label></div>
+    <div class="ctile"><span class="lbl">CMB</span><b class="v" data-o="cmb"></b><label class="rf">uses ${sel('cmbAbil',[['str','Str'],['dex','Dex']],{label:'CMB ability (Dex with Agile Maneuvers)'})}</label><label class="rf">misc ${num('cmbMisc',{label:'CMB misc'})}</label></div>
+    <div class="ctile"><span class="lbl">CMD</span><b class="v" data-o="cmd"></b><label class="rf">misc ${num('cmdMisc',{label:'CMD misc'})}</label></div>
+    <div class="ctile"><span class="lbl">Land speed</span><b class="v" data-o="speed.land"></b><label class="rf">base ${num('info.speed',{label:'Base speed'})}</label><label class="rf">bonus ${num('speedMisc',{label:'Speed bonus'})}</label></div>
+    <div class="ctile"><span class="lbl">Climb speed</span><b class="v">20 ft.</b><small class="muted">Boots of Spider Climbing</small></div>
+    <div class="ctile"><span class="lbl">Size</span>${sel('info.size',SIZES,{label:'Size'})}<small class="muted">+1 attack and AC, −1 CMB</small></div>
+   </div>
+   <p class="note">The paper sheet lists CMB 15 and CMD 33. By the rules, CMB is BAB + Dex (Agile Maneuvers) − 1 size = <b data-o="cmb"></b>, and CMD is 10 + BAB + Str + Dex + dodge + deflection − size = <b data-o="cmd"></b>.</p>
+  </section>
   <section class="panel"><header><h2>Identity</h2></header>
    <div class="grid2">
     ${field('Nickname',txt('info.nick'))}${field('Race',txt('info.race'))}${field('Alignment',txt('info.alignment'))}${field('Deity',txt('info.deity'))}${field('Gender',txt('info.gender'))}
