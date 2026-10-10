@@ -1,0 +1,1477 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}</style>
+<title>Lork · Pathfinder Character Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus+SC&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap">
+<style>
+/* Layout: persistent header (identity left, portrait top-right, stat strip below), sticky tab bar, one panel grid per tab.
+   Palette: bone and slate, half-orc moss for the accent, raven violet for the Death Walker's Ward */
+:root{
+  --bg:#ecedea; --surface:#f7f8f5; --sunk:#e1e4de; --ink:#161a17; --muted:#59625b; --line:#cfd5cc;
+  --accent:#4d6b23; --accent-ink:#ffffff; --accent-soft:#e1ebcf;
+  --bad:#b3261e; --bad-soft:#f6dedb; --buff:#1f5f86; --buff-soft:#d8e9f3; --good:#2c7a4b;
+  --raven:#4a3f86; --raven-soft:#e4e0f3;
+  --f-display:"Marcellus SC","Trajan Pro",Georgia,serif;
+  --f-body:"Alegreya Sans","Segoe UI",system-ui,sans-serif;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1210; --surface:#171b18; --sunk:#121513; --ink:#e6ebe4; --muted:#9aa69c; --line:#2a312b;
+  --accent:#a8c66a; --accent-ink:#121a06; --accent-soft:#25301a;
+  --bad:#f2867c; --bad-soft:#3a1d1c; --buff:#7cc4e6; --buff-soft:#15303b; --good:#7fcf9b;
+  --raven:#b7a8f0; --raven-soft:#221d36; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0f1210; --surface:#171b18; --sunk:#121513; --ink:#e6ebe4; --muted:#9aa69c; --line:#2a312b;
+  --accent:#a8c66a; --accent-ink:#121a06; --accent-soft:#25301a;
+  --bad:#f2867c; --bad-soft:#3a1d1c; --buff:#7cc4e6; --buff-soft:#15303b; --good:#7fcf9b;
+  --raven:#b7a8f0; --raven-soft:#221d36; color-scheme:dark }
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font:16px/1.45 var(--f-body);font-variant-numeric:tabular-nums}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:20px 60px}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;margin:0;text-wrap:balance}
+h2{font-size:1.05rem;letter-spacing:.06em;color:var(--accent)}
+h3{font-size:.95rem;letter-spacing:.05em}
+.lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:500}
+.muted{color:var(--muted)}
+small{font-size:.82rem}
+button{font:inherit;color:inherit;cursor:pointer}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:3px 6px;min-width:0}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+input[type=number]{width:4.2em;text-align:center;-moz-appearance:textfield}
+input[type=number]::-webkit-inner-spin-button{opacity:.4}
+textarea{width:100%;resize:vertical;min-height:4.5em;line-height:1.4}
+
+/* header */
+.head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:start}
+.ident{display:grid;gap:6px;min-width:0}
+.namein{font-family:var(--f-display);font-size:clamp(2rem,6vw,3.2rem);line-height:1.05;border:0;background:transparent;padding:0;width:100%;letter-spacing:.03em}
+.namein:hover{background:var(--sunk)}
+.sub{font-size:1.05rem;color:var(--muted)}
+.sub b{color:var(--ink);font-weight:500}
+.chips{display:flex;flex-wrap:wrap;gap:6px;min-height:26px}
+.chip{border:1px solid var(--bad);color:var(--bad);background:var(--bad-soft);border-radius:999px;padding:1px 10px;font-size:.82rem}
+.chip.buff{border-color:var(--buff);color:var(--buff);background:var(--buff-soft)}
+.quick{display:flex;flex-wrap:wrap;gap:8px}
+.qt{display:inline-flex;align-items:center;gap:8px;border:1.5px solid var(--buff);color:var(--buff);background:transparent;border-radius:999px;padding:4px 14px 4px 10px;font-weight:700;font-size:.9rem}
+.qt::before{content:"";width:12px;height:12px;border-radius:50%;border:1.5px solid currentColor}
+.qt[aria-pressed=true]{background:var(--buff);color:var(--surface)}
+.qt[aria-pressed=true]::before{background:currentColor;border-color:var(--surface)}
+.qt.dim{border-color:var(--accent);color:var(--accent)}
+.qt.dim[aria-pressed=true]{background:var(--accent);color:var(--accent-ink)}
+.qt.rav{border-color:var(--raven);color:var(--raven)}
+.qt.rav[aria-pressed=true]{background:var(--raven);color:var(--surface)}
+details.more summary{cursor:pointer;color:var(--accent);font-size:.88rem}
+.ovr{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-top:4px;font-size:.82rem;color:var(--muted)}
+.ovr input[type=number]{width:3.6em}
+.ovr textarea{min-height:2.4em;font-size:.88rem}
+.weapon .wtop{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:6px 18px;align-items:center}
+.weapon .wname{display:grid;gap:2px;min-width:0}
+.weapon .wname input{font-weight:700;font-size:1.05rem;border-color:transparent;background:transparent;padding-left:0}
+.weapon .wname input:hover,.weapon .wname input:focus{border-color:var(--line);background:var(--surface);padding-left:6px}
+.weapon .wstat{display:grid;text-align:right}
+.weapon .wstat b{font-size:1.2rem}
+.weapon .wbtns{display:flex;gap:0}
+.btn:disabled{opacity:.3;cursor:default}
+@media (max-width:640px){.weapon .wtop{grid-template-columns:1fr 1fr}.weapon .wname{grid-column:1/-1}.weapon .wbtns{grid-column:1/-1}.weapon .wstat{text-align:left}}
+.critbox,.sneakbox{font-weight:700}
+.twf{border-color:var(--accent)}
+.twftbl td.tot{font-size:1.2rem}
+.twftbl tr.off td{background:var(--sunk)}
+.roundtot{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline;background:var(--accent-soft);border-radius:var(--r);padding:10px 14px}
+.rtot{font-size:1.6rem;color:var(--ink)}
+.backup{margin-top:24px;display:flex;flex-wrap:wrap;gap:10px 20px;align-items:center;justify-content:space-between;border:1px dashed var(--line);border-radius:var(--r);padding:12px 16px;font-size:.9rem}
+.pots td{vertical-align:middle}
+.pots td:first-child{min-width:16em}
+.nowrap{white-space:nowrap}
+.geartbl{table-layout:fixed;min-width:640px}
+.geartbl .c-item{width:36%}.geartbl .c-desc{width:40%}.geartbl .c-loc{width:14%}.geartbl .c-wt{width:5.5em}.geartbl .c-x{width:2.5em}
+.geartbl td input[type=text]{width:100%}
+.geartbl td:first-child input{font-weight:700}
+.geartbl tr.future td{color:var(--muted)}
+.roll{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font-size:.88rem;padding:4px 0}
+.roll select{font-size:.85rem}
+.rgrp{display:inline-flex;align-items:center;gap:4px;flex-wrap:wrap}
+.rf{display:inline-flex;align-items:center;gap:4px;color:var(--muted)}
+.rf input{width:3.6em}
+.rres b{font-size:1.15rem;color:var(--ink)}
+.crit{color:var(--good);font-style:normal;font-weight:700}
+.miss{color:var(--bad);font-style:normal;font-weight:700}
+.rollrow td{border-top:0;padding-top:0}
+.rolltools{margin-left:auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.hplog{display:grid;gap:2px;font-size:.86rem;border-top:1px solid var(--line);padding-top:6px}
+.hplog div{display:flex;justify-content:space-between;gap:10px;color:var(--muted)}
+.hplog b{color:var(--ink)}
+.hplog .btn{justify-self:start}
+.ord{display:inline-block;min-width:2.6em;padding:1px 6px;border-radius:4px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:.85rem}
+.lvlup{border-color:var(--accent)}
+.summary{background:var(--accent-soft);border-radius:var(--r);padding:10px 14px}
+.summary h3{font-size:1.05rem}
+.summary ul{margin:6px 0 0;padding-left:1.2em;display:grid;gap:3px}
+
+.art{width:170px;aspect-ratio:4/5;max-width:100%;border:1px solid var(--line);border-radius:var(--r);background:var(--sunk);position:relative;overflow:hidden;display:grid;place-items:center;text-align:center}
+.art img{width:100%;height:100%;object-fit:cover;object-position:50% 20%;display:block}
+.art .ph{padding:12px;color:var(--muted);font-size:.85rem;display:grid;gap:6px;justify-items:center}
+.art .ph svg{width:34px;height:34px;opacity:.6}
+.art .tools{position:absolute;inset:auto 0 0 0;display:flex;gap:4px;justify-content:center;padding:6px;background:linear-gradient(transparent,rgba(0,0,0,.6));opacity:0;transition:opacity .15s}
+.art:hover .tools,.art:focus-within .tools{opacity:1}
+.art .tools button{background:rgba(255,255,255,.9);color:#1c1a24;border:0;border-radius:4px;font-size:.78rem;padding:2px 8px}
+.art.drag{outline:2px dashed var(--accent);outline-offset:3px}
+.art .pick{position:absolute;inset:0;background:transparent;border:0}
+
+.strip{display:flex;flex-wrap:wrap;gap:0;margin-top:16px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden}
+.stat{padding:8px 14px;border-right:1px solid var(--line);display:grid;gap:0;min-width:70px;flex:1 0 auto}
+.stat:last-child{border-right:0}
+.stat .v{font-size:1.35rem;font-weight:500;line-height:1.2}
+.hpstat{flex:3 1 220px}
+.hpbar{height:6px;background:var(--sunk);border-radius:3px;overflow:hidden;margin-top:4px}
+.hpbar i{display:block;height:100%;background:var(--good);transition:width .2s}
+.hpbar i.low{background:var(--bad)}
+
+/* tabs */
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);margin-top:18px;border-bottom:1px solid var(--line);display:flex;gap:2px;overflow-x:auto;scrollbar-width:thin}
+.tab{border:0;background:transparent;padding:10px 14px;white-space:nowrap;color:var(--muted);border-bottom:2px solid transparent;font-weight:500}
+.tab[aria-selected=true]{color:var(--ink);border-bottom-color:var(--accent)}
+.tab .dot{display:inline-block;min-width:18px;padding:0 5px;margin-left:4px;border-radius:9px;background:var(--bad);color:var(--surface);font-size:.72rem;line-height:18px;text-align:center}
+.status{margin-left:auto;align-self:center;font-size:.78rem;color:var(--muted);white-space:nowrap;padding-inline:8px}
+
+.page{display:grid;gap:18px;margin-top:18px}
+.cols{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));align-items:start}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:grid;gap:10px;min-width:0}
+.panel>header{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.panel>header .muted{font-size:.85rem}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%}
+th{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:500;text-align:center;padding:4px 4px;white-space:nowrap}
+th.l,td.l{text-align:left}
+td{padding:4px;text-align:center;border-top:1px solid var(--line);vertical-align:middle}
+td.tot{font-weight:700;font-size:1.08rem;min-width:3em}
+.op{color:var(--muted);font-size:.8rem;padding:0 1px}
+[data-d=down]{color:var(--bad)!important}
+[data-d=up]{color:var(--buff)!important}
+.abtbl td:first-child{font-family:var(--f-display);font-size:1.05rem;text-align:left}
+.mod{display:inline-block;min-width:2.6em;padding:2px 6px;border-radius:4px;background:var(--accent-soft);font-weight:700}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:center}
+.kv label{font-size:.85rem;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:8px 14px}
+.field{display:grid;gap:2px;min-width:0}
+.field input,.field select{width:100%}
+.big3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.big3>div{background:var(--sunk);border-radius:var(--r);padding:8px 4px}
+.big3 .v{font-size:1.7rem;font-weight:500;line-height:1.1}
+.formula{font-size:.88rem;color:var(--muted);line-height:1.8}
+.formula b{color:var(--ink)}
+.note{font-size:.86rem;color:var(--muted);border-left:3px solid var(--line);padding-left:10px}
+.note.warn{border-color:var(--bad);color:var(--ink)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:4px;padding:3px 10px;font-size:.88rem}
+.btn:hover{border-color:var(--accent)}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.x{border:0;background:transparent;color:var(--muted);padding:2px 6px}
+.btn.x:hover{color:var(--bad)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.cs{width:16px;height:16px;accent-color:var(--accent)}
+.skilltbl td:nth-child(2){text-align:left;white-space:nowrap}
+.skilltbl input.sub{width:7.5em}
+.untr{color:var(--muted);font-weight:400!important}
+.counter{font-size:.9rem}
+.counter b.over{color:var(--bad)}
+.vers{font-size:.78rem;color:var(--accent);white-space:nowrap}
+
+/* abilities list */
+.ab-list{display:grid;gap:0}
+.ab{display:grid;grid-template-columns:3.6em minmax(0,1fr);gap:4px 12px;padding:10px 0;border-top:1px solid var(--line)}
+.ab:first-child{border-top:0}
+.ab .lv{font-family:var(--f-display);color:var(--accent);font-size:.95rem;padding-top:1px}
+.ab .nm{font-weight:700}
+.ab .ty{font-size:.78rem;color:var(--muted);margin-left:4px}
+.ab .ds{color:var(--ink);font-size:.93rem;margin-top:2px}
+.pips{display:inline-flex;gap:4px;flex-wrap:wrap;margin-left:8px;vertical-align:middle}
+.pip{width:15px;height:15px;border-radius:50%;border:1.5px solid var(--accent);background:transparent;padding:0}
+.pip[aria-pressed=true]{background:var(--accent)}
+.custom{display:grid;gap:6px;padding:10px 0;border-top:1px solid var(--line)}
+.custom .row input.nm{flex:1 1 200px;font-weight:700}
+
+/* conditions */
+.condgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));gap:8px}
+.cond{display:grid;gap:3px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:8px 10px;min-width:0}
+.cond .n{font-weight:700;display:flex;justify-content:space-between;gap:6px}
+.cond .e{font-size:.8rem;color:var(--muted);line-height:1.3}
+.cond:hover{border-color:var(--accent)}
+.cond[aria-pressed=true]{border-color:var(--bad);background:var(--bad-soft)}
+.cond[aria-pressed=true] .n::after{content:"ON";font-size:.68rem;letter-spacing:.08em;color:var(--bad);align-self:center}
+.cond.buffc[aria-pressed=true]{border-color:var(--buff);background:var(--buff-soft)}
+.cond.buffc[aria-pressed=true] .n::after{color:var(--buff)}
+.charge{display:inline-flex;align-items:center;gap:6px}
+.charge b{min-width:2.2em;text-align:center;font-size:1.1rem}
+.hpctl{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.hpctl input{width:5em}
+.stepper{display:inline-flex;align-items:center;gap:6px}
+.stepper button{border:1px solid var(--line);background:var(--surface);border-radius:4px;width:28px;height:26px;padding:0}
+.net{display:grid;gap:3px;font-size:.92rem}
+.net div{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:3px}
+.net .neg{color:var(--bad);font-weight:700}.net .pos{color:var(--buff);font-weight:700}
+.down{border:1px solid var(--line);border-radius:var(--r);padding:8px 10px;display:grid;gap:6px}
+.down.alert{border-color:var(--bad);background:var(--bad-soft)}
+
+/* Death Walker's Ward: jet-black leather, raven sheen */
+.ward{border-color:var(--raven);background:linear-gradient(160deg,var(--surface) 55%,var(--raven-soft))}
+.ward>header h2{color:var(--raven)}
+.ward .tag{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;border:1px solid var(--raven);color:var(--raven);border-radius:999px;padding:0 8px}
+.wpow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 14px;align-items:center;border-top:1px solid var(--line);padding:10px 0}
+.wpow .nm{font-family:var(--f-display);font-size:1.08rem;letter-spacing:.03em}
+.wpow .ds{grid-column:1/-1;font-size:.92rem}
+.resgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,108px),1fr));gap:6px;grid-column:1/-1}
+.resgrid button{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:6px 10px;font-weight:700}
+.resgrid button:hover{border-color:var(--raven)}
+.resgrid button[aria-pressed=true]{border-color:var(--raven);background:var(--raven);color:var(--surface)}
+.fx-feather{position:fixed;z-index:60;pointer-events:none;width:7px;height:22px;border-radius:50% 50% 45% 45%/85% 85% 15% 15%;background:linear-gradient(90deg,#120f17 44%,#4b4170 50%,#120f17 56%);transform:translate(-50%,-50%);animation:fxFeather 1.9s ease-in forwards}
+@keyframes fxFeather{0%{opacity:1;transform:translate(-50%,-50%) rotate(var(--r0))}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) rotate(var(--r1))}}
+@media (prefers-reduced-motion:reduce){.fx-feather{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <div class="ident">
+      <input class="namein" id="f-name" data-p="info.name" aria-label="Character name">
+      <div class="sub" id="subline"></div>
+      <div class="quick" id="quick" role="group" aria-label="Quick toggles"></div>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="art" id="art"></div>
+  </div>
+
+  <div class="strip" id="strip">
+    <div class="stat hpstat"><span class="lbl">Hit points</span><span class="v"><span data-o="hp.cur"></span> <span class="muted" style="font-size:1rem">/ <span data-o="hp.max"></span></span> <small class="muted" data-o="hp.extra"></small></span><div class="hpbar"><i id="hpfill"></i></div></div>
+    <div class="stat"><span class="lbl">AC</span><span class="v" data-o="ac.total"></span></div>
+    <div class="stat"><span class="lbl">Touch</span><span class="v" data-o="ac.touch"></span></div>
+    <div class="stat"><span class="lbl">Flat</span><span class="v" data-o="ac.ff"></span></div>
+    <div class="stat"><span class="lbl">Miss chance</span><span class="v" data-o="miss"></span></div>
+    <div class="stat"><span class="lbl">Init</span><span class="v" data-o="init"></span></div>
+    <div class="stat"><span class="lbl">Fort</span><span class="v" data-o="sv.fort"></span></div>
+    <div class="stat"><span class="lbl">Ref</span><span class="v" data-o="sv.ref"></span></div>
+    <div class="stat"><span class="lbl">Will</span><span class="v" data-o="sv.will"></span></div>
+    <div class="stat"><span class="lbl">CMB / CMD</span><span class="v"><span data-o="cmb"></span> / <span data-o="cmd"></span></span></div>
+    <div class="stat"><span class="lbl">Speed</span><span class="v" data-o="speed"></span></div>
+  </div>
+
+  <nav class="tabs" id="tabs" role="tablist"></nav>
+  <main class="page" id="page"></main>
+  <footer class="backup" id="backup" hidden>
+    <div><b>Saved in this browser.</b> <span class="muted">Clearing browser data erases it, and it won’t follow the file to another computer. Keep a backup.</span></div>
+    <div class="row"><button class="btn pri" data-act="exportSheet">Download backup</button><button class="btn" data-act="importSheet">Restore from backup</button></div>
+  </footer>
+</div>
+<input type="file" id="importfile" accept=".json,application/json" hidden>
+<input type="file" id="artfile" accept="image/*" hidden>
+
+<script src="js/firebase-config.js"></script>
+<script src="js/cloud.js"></script>
+<script>
+(() => {
+'use strict';
+/* ---------- rules data ---------- */
+const ABIL=['str','dex','con','int','wis','cha'];
+const ABN={str:'Strength',dex:'Dexterity',con:'Constitution',int:'Intelligence',wis:'Wisdom',cha:'Charisma'};
+const SIZES=['Fine','Diminutive','Tiny','Small','Medium','Large','Huge','Gargantuan','Colossal'];
+const SZ_ATK=[8,4,2,1,0,-1,-2,-4,-8], SZ_STL=[16,12,8,4,0,-4,-8,-12,-16], SZ_FLY=[8,6,4,2,0,-2,-4,-6,-8];
+const HEAVY=[0,10,20,30,40,50,60,70,80,90,100,115,130,150,175,200,230,260,300,350,400,460,520,600,700,800,920,1040,1200,1400];
+
+const K=(k,n,a,o={})=>Object.assign({k,n,a},o);
+const SKILLS=[
+ K('acrobatics','Acrobatics','dex',{acp:1}), K('appraise','Appraise','int'), K('bluff','Bluff','cha'),
+ K('climb','Climb','str',{acp:1}), K('craft1','Craft','int',{sub:1}), K('craft2','Craft','int',{sub:1}),
+ K('diplomacy','Diplomacy','cha'), K('disable','Disable Device','dex',{acp:1,tr:1}), K('disguise','Disguise','cha'),
+ K('escape','Escape Artist','dex',{acp:1}), K('fly','Fly','dex',{acp:1}), K('handle','Handle Animal','cha',{tr:1}),
+ K('heal','Heal','wis'), K('intimidate','Intimidate','cha'),
+ K('kArc','Knowledge (arcana)','int',{tr:1,kn:1}), K('kDun','Knowledge (dungeoneering)','int',{tr:1,kn:1}),
+ K('kEng','Knowledge (engineering)','int',{tr:1,kn:1}), K('kGeo','Knowledge (geography)','int',{tr:1,kn:1}),
+ K('kHis','Knowledge (history)','int',{tr:1,kn:1}), K('kLoc','Knowledge (local)','int',{tr:1,kn:1}),
+ K('kNat','Knowledge (nature)','int',{tr:1,kn:1}), K('kNob','Knowledge (nobility)','int',{tr:1,kn:1}),
+ K('kPla','Knowledge (planes)','int',{tr:1,kn:1}), K('kRel','Knowledge (religion)','int',{tr:1,kn:1}),
+ K('linguistics','Linguistics','int',{tr:1}), K('perception','Perception','wis'),
+ K('perform1','Perform','cha',{sub:1}), K('profession1','Profession','wis',{sub:1,tr:1}),
+ K('ride','Ride','dex',{acp:1}), K('sense','Sense Motive','wis'), K('sleight','Sleight of Hand','dex',{acp:1,tr:1}),
+ K('spellcraft','Spellcraft','int',{tr:1}), K('stealth','Stealth','dex',{acp:1}), K('survival','Survival','wis'),
+ K('swim','Swim','str',{acp:1}), K('umd','Use Magic Device','cha',{tr:1})
+];
+const PRESETS={
+ Rogue:{name:'Rogue',hd:8,bab:'3/4',fort:'poor',ref:'good',will:'poor',prestige:false,sp:8,
+  skills:'Acrobatics, Appraise, Bluff, Climb, Craft, Diplomacy, Disable Device, Disguise, Escape Artist, Intimidate, Knowledge (dungeoneering), Knowledge (local), Linguistics, Perception, Perform, Profession, Sense Motive, Sleight of Hand, Stealth, Swim, Use Magic Device'},
+ Barbarian:{name:'Barbarian',hd:12,bab:'full',fort:'good',ref:'poor',will:'poor',prestige:false,sp:4,
+  skills:'Acrobatics, Climb, Craft, Handle Animal, Intimidate, Knowledge (nature), Perception, Ride, Survival, Swim'},
+ Fighter:{name:'Fighter',hd:10,bab:'full',fort:'good',ref:'poor',will:'poor',prestige:false,sp:2,
+  skills:'Climb, Craft, Handle Animal, Intimidate, Knowledge (dungeoneering), Knowledge (engineering), Profession, Ride, Survival, Swim'},
+ Ranger:{name:'Ranger',hd:10,bab:'full',fort:'good',ref:'good',will:'poor',prestige:false,sp:6,
+  skills:'Climb, Craft, Handle Animal, Heal, Intimidate, Knowledge (dungeoneering), Knowledge (geography), Knowledge (nature), Perception, Profession, Ride, Spellcraft, Stealth, Survival, Swim'},
+ Shadowdancer:{name:'Shadowdancer',hd:8,bab:'3/4',fort:'poor',ref:'good',will:'poor',prestige:true,sp:6,
+  skills:'Acrobatics, Bluff, Craft, Diplomacy, Disguise, Escape Artist, Perception, Perform, Profession, Sleight of Hand, Stealth'},
+ Assassin:{name:'Assassin',hd:8,bab:'3/4',fort:'poor',ref:'good',will:'poor',prestige:true,sp:4,
+  skills:'Acrobatics, Bluff, Climb, Craft, Diplomacy, Disable Device, Disguise, Escape Artist, Intimidate, Linguistics, Perception, Sense Motive, Sleight of Hand, Stealth, Swim, Use Magic Device'},
+};
+const ORD=['1st','2nd','3rd','4th','5th','6th','7th','8th','9th'];
+
+/* ---------- conditions, buffs and situations: fx = [target, value, bonusType] ---------- */
+const CONDS=[
+ {id:'blinded',n:'Blinded',e:'−2 AC, loses Dex to AC, −4 on most Str/Dex skills. Foes have total concealment.',fx:[['ac',-2],['skillStrDex',-4]],fl:['loseDex']},
+ {id:'dazed',n:'Dazed',e:'Can take no actions. No AC penalty.'},
+ {id:'dazzled',n:'Dazzled',e:'−1 attack and sight-based Perception.',fx:[['atk',-1]]},
+ {id:'deafened',n:'Deafened',e:'−4 initiative, fails sound-based Perception.',fx:[['init',-4]]},
+ {id:'entangled',n:'Entangled',e:'Half speed, no run/charge, −2 attack, −4 Dex.',fx:[['atk',-2],['dex',-4,'entangle']],fl:['halfSpeed']},
+ {id:'flatfooted',n:'Flat-footed',e:'No attacks of opportunity. Uncanny dodge keeps his Dex bonus to AC, so his AC doesn’t drop.',fl:['flatFooted']},
+ {id:'grappled',n:'Grappled',e:'Can’t move, −4 Dex, −2 attack and most maneuvers.',fx:[['atk',-2],['dex',-4,'grapple']]},
+ {id:'helpless',n:'Helpless',e:'Dex treated as 0. Open to coup de grace.',fl:['dexZero','loseDex']},
+ {id:'pinned',n:'Pinned',e:'Loses Dex to AC and takes an extra −4 AC.',fx:[['ac',-4]],fl:['loseDex']},
+ {id:'prone',n:'Prone',e:'−4 melee attack. −4 AC vs melee, +4 AC vs ranged.',fx:[['atkMelee',-4]],fl:['prone']},
+ {id:'staggered',n:'Staggered',e:'Only one move or standard action per round.'},
+];
+const tsense=()=>Math.floor(levels().rogue/3);
+/* Smite Evil from the Blessing: Cha to attack and as deflection AC, character level to damage */
+const smiteCha=()=>Math.max(0,Math.floor((n(S.ab.cha.base)+n(S.ab.cha.temp)-10)/2));
+const BUFFS=[
+ {id:'smite',n:'Smiting evil',e:()=>`Blessing of the Raven Queen, against the chosen evil target only: ${sg(smiteCha())} attack, ${sg(smiteCha())} deflection AC, ${sg(levels().total)} damage (doubled on the first hit against undead, evil outsiders and evil dragons), and he bypasses its DR.`,fx:()=>[['atk',smiteCha(),'smite'],['dmg',levels().total,'smite'],['acDefl',smiteCha(),'deflection']]},
+ {id:'flanking',n:'Flanking',e:'+2 melee attack. The target is flanked, so his sneak attack applies.',fx:[['atkMelee',2,'flank']]},
+ {id:'haste',n:'Haste',e:'+1 attack, +1 dodge AC and Reflex, +30 ft. speed, extra attack on a full attack.',fx:[['atk',1,'haste'],['acDodge',1,'dodge'],['ref',1,'dodge'],['speed',30,'enh']]},
+ {id:'courage',n:'Inspire Courage +4 (Namfoodle)',e:'Namfoodle’s bardic performance: +4 competence on attack and weapon damage rolls, +4 morale on saves against charm and fear.',fx:[['atk',4,'competence'],['dmg',4,'competence']]},
+ {id:'wings',n:'Raven wings: fly 60 ft.',e:'Death Walker’s Ward, Raven’s Flight: large black raven wings give him a fly speed of 60 ft. for 1 hour.'},
+ {id:'trap',n:()=>`Against a trap (trap sense ${sg(tsense())})`,e:()=>`Trap sense: ${sg(tsense())} on Reflex saves and a ${sg(tsense())} dodge bonus to AC against traps.`,fx:()=>[['ref',tsense(),'trap'],['acDodge',tsense(),'dodge']]},
+ {id:'mobility',n:'Moving past a threat (Mobility)',e:'+4 dodge bonus to AC against attacks of opportunity from moving out of or within a threatened area.',fx:[['acDodge',4,'dodge']]},
+ {id:'invisible',n:'Invisible',e:'+2 attack vs sighted foes, and they lose their Dex bonus to AC against him, so his sneak attack applies.',fx:[['atk',2,'invis']]},
+ {id:'ethereal',n:'Ethereal',e:'Etherealness: he turns ghostly and slips onto the Ethereal Plane. Material creatures can’t see or touch him, and he moves through solid objects.'},
+ {id:'heroism',n:'Heroism',e:'+2 morale on attacks, saves, skill checks.',fx:[['atk',2,'morale'],['save',2,'morale'],['skill',2,'morale']]},
+ {id:'gheroism',n:'Greater Heroism',e:'+4 morale on attacks, saves, skill checks; immune to fear.',fx:[['atk',4,'morale'],['save',4,'morale'],['skill',4,'morale']]},
+ {id:'goodhope',n:'Good Hope',e:'+2 morale on attacks, saves, ability checks, skill checks, weapon damage.',fx:[['atk',2,'morale'],['save',2,'morale'],['skill',2,'morale'],['dmg',2,'morale'],['ability',2,'morale']]},
+ {id:'catsgrace',n:'Cat’s Grace',e:'+4 enhancement to Dex.',fx:[['dex',4,'enh']]},
+ {id:'bless',n:'Bless',e:'+1 morale on attacks (and saves vs fear).',fx:[['atk',1,'morale']]},
+ {id:'charging',n:'Charging',e:'+2 attack on the charge, −2 AC until the next turn.',fx:[['atkMelee',2,'charge'],['ac',-2]]},
+ {id:'fightdef',n:'Fighting defensively',e:'−4 attack; +3 dodge AC with 3+ Acrobatics ranks.',fx:(S)=>[['atk',-4],['acDodge',(+((S.skills.acrobatics||{}).ranks)||0)>=3?3:2,'dodge']]},
+];
+BUFFS.forEach(b=>b.buff=true);
+const ok=k=>k.replace(/\./g,'_');
+const cname=c=>typeof c.n==='function'?c.n():c.n, cdesc=c=>typeof c.e==='function'?c.e():c.e;
+const ALLC=[...CONDS,...BUFFS];
+
+/* ---------- Death Walker's Ward: resistance the wearer picks (changes on a short rest) ---------- */
+const RES=[['fire','Fire'],['acid','Acid'],['cold','Cold'],['lightning','Lightning'],['necrotic','Necrotic'],['poison','Poison']];
+const resName=()=>{const r=RES.find(x=>x[0]===(S.ward||{}).res);return r?r[1]:''};
+
+/* ---------- default state: Lork's paper sheet ---------- */
+const sk=(r,m=0,sub='')=>({ranks:r,misc:m,sub});
+const DEFAULT={
+ v:1, levelLog:[],
+ acItems:[{name:'Ring of Protection +2',slot:'Ring',type:'deflection',bonus:2,on:true}],
+ potions:[{name:'Cure Light Wounds',dice:'1d8',bonus:1,qty:2},{name:'Cure Moderate Wounds',dice:'2d8',bonus:2,qty:2},{name:'Cure Serious Wounds',dice:'3d8',bonus:3,qty:2}],
+ otherPotions:[
+  {name:'Potion of Invisibility',qty:1,effect:'Invisible for up to 5 minutes, or until he attacks. Drinking it turns on Invisible.',on:'invisible',verb:'Drink'},
+  {name:'Etherealness',qty:1,effect:'“Make me ghostly.” He turns ethereal. Drinking it turns on Ethereal.',on:'ethereal',verb:'Drink'},
+  {name:'Drow poison',qty:3,effect:'Coat a blade. Injury, Fortitude DC 13: unconscious for 1 minute, then another save or unconscious for 2d4 hours.',on:'',verb:'Apply'}],
+ info:{name:'Lork',nick:'',player:'',race:'Half-orc',alignment:'Chaotic Good',deity:'',size:'Medium',gender:'Male',age:'25',height:'6′0″',weight:'185 lb.',hair:'',eyes:'',speed:30,
+  languages:'Orc, Common, Elven, Goblin',xp:'',campaign:'Realm of Tal’Dorei · The Belhaim Saviors',homeland:''},
+ classes:[Object.assign({preset:'Rogue',level:16},PRESETS.Rogue)],
+ fcbHp:0, fcbSkill:0,
+ ab:{str:{base:11,temp:0},dex:{base:20,temp:0},con:{base:12,temp:0},int:{base:16,temp:0},wis:{base:18,temp:0},cha:{base:17,temp:0}},
+ hp:{mode:'manual',max:96,cur:81,temp:0,nl:0,misc:0,conAdj:0},
+ ac:{natural:0,deflection:0,dodge:1,misc:0},
+ miss:25,
+ armor:{name:'Death Walker’s Ward (+5 studded leather)',bonus:8,maxDex:5,acp:1,fail:15,wt:20,speed:0},
+ shield:{name:'',bonus:0,acp:0,fail:0,wt:0},
+ init:{misc:0}, speedMisc:0,
+ saves:{fort:{magic:0,misc:0,temp:0},ref:{magic:0,misc:0,temp:0},will:{magic:0,misc:0,temp:0}},
+ saveNotes:'Deathless (Blessing of the Raven Queen): immune to any harmful effect that needs a Fortitude save, except energy drain. He can still choose to roll Fortitude, e.g. to shed negative levels or accept a helpful effect.\nImmune to poison, disease, sleep, paralysis, stunning, fatigue, exhaustion and all mind-affecting effects (charms, compulsions, fear, phantasms, patterns).\nEvasion: no damage on a successful Reflex save against an effect that deals half damage on a save.\nTrap sense: bonus on Reflex saves against traps (turn on “Against a trap” on the Conditions tab).\nDisplacement cloak: 25% miss chance on attacks against him.',
+ resist:'Lightning: half damage (Ring of Lightning Resistance)', dr:'', sr:'',
+ cmbAbil:'str', cmbMisc:0, cmdMisc:0,
+ skills:{acrobatics:sk(13),appraise:sk(6),bluff:sk(6),climb:sk(13),diplomacy:sk(13),disable:sk(13),disguise:sk(8),escape:sk(7,2),fly:sk(4),intimidate:sk(0,2),
+  kLoc:sk(12),perception:sk(14),sense:sk(11),sleight:sk(14),stealth:sk(14,2),umd:sk(7)},
+ attacks:[
+  {id:'kiss',name:'Death’s Kiss',kind:'melee',abil:'dex',enh:2,misc:1,dice:'1d6',dmgAbil:'dex',dmgMisc:0,extra:'+1d8 necrotic',crit:'19–20/×2',range:'',type:'P',uses:0,
+   notes:'+2 short sword. Weapon Focus +1 to hit. An undead it hits makes a DC 15 Will save or is destroyed. Paper sheet: 20/15/10, d6+7 (+d8 necrotic).',desc:''},
+  {id:'tooth',name:'Dragontooth',kind:'melee',abil:'dex',enh:1,misc:0,dice:'1d4',dmgAbil:'dex',dmgMisc:0,extra:'+1d6 acid',crit:'19–20/×2',range:'10 ft. thrown',type:'P/S',uses:0,
+   notes:'+1 acid dagger, his off-hand blade. Paper sheet: 18/13/8, d4+6 (+d6 acid).',desc:''},
+  {id:'xbow',name:'+2 Frost Light Crossbow',kind:'ranged',abil:'dex',enh:2,misc:0,dice:'1d8',dmgAbil:'none',dmgMisc:0,extra:'+1d6 cold',crit:'19–20/×2',range:'80 ft.',type:'P',uses:0,
+   notes:'Sneak attack with it only within 30 ft. Ammunition is below the wand. Paper sheet: 19/14/9, d8+2 (+d6 cold).',desc:''},
+  {id:'rapier',name:'+2 Rapier',kind:'melee',abil:'dex',enh:2,misc:0,dice:'1d6',dmgAbil:'str',dmgMisc:0,extra:'',crit:'18–20/×2',range:'',type:'P',uses:0,
+   notes:'No numbers on the paper sheet. Damage uses Str here; switch it to Dex if his finesse covers rapiers.',desc:''},
+  {id:'dagger',name:'+2 Dagger',kind:'melee',abil:'dex',enh:2,misc:0,dice:'1d4',dmgAbil:'dex',dmgMisc:0,extra:'',crit:'19–20/×2',range:'10 ft. thrown',type:'P/S',uses:0,
+   notes:'No numbers on the paper sheet. Dex to damage, as with Dragontooth.',desc:''},
+ ],
+ twf:{main:'kiss',off:'tooth',twf:true,itwf:true,gtwf:false,light:true,offStr:'half'},
+ atkNotes:'Finesse Weapon: Dex on attack rolls with light weapons and rapiers, and (going by his paper sheet) Dex on damage with the short sword and daggers.\nPaper sheet: melee 12/7/2, ranged 17/12/7, CMB 12, CMD 29.\nNotes box on the paper sheet: A1 39, A2 34, A3 27, A4 30 · D1 25, D2 26, D3 24 · SA · “4 to A, 14 to D, 5 rounds”.',
+ feats:[
+  {name:'Stealthy',desc:'+2 on Escape Artist and Stealth (in skill Misc). Ref. p. 116.'},
+  {name:'Dodge',desc:'+1 dodge bonus to AC. Ref. p. 114.'},
+  {name:'Step Up',desc:'When an adjacent foe takes a 5-ft. step away, he can take a 5-ft. step as an immediate action to stay adjacent. Ref. p. 116.'},
+  {name:'Weapon Focus (short sword)',desc:'+1 on attack rolls with the short sword (in Death’s Kiss misc). Ref. p. 117.'},
+  {name:'Mobility',desc:'+4 dodge bonus to AC against attacks of opportunity from moving out of or within a threatened area. Toggle it on the Conditions tab.'},
+  {name:'Two-Weapon Fighting',desc:'Penalties for fighting with two weapons drop to −2 / −2 with a light off-hand weapon.'},
+  {name:'Improved Two-Weapon Fighting',desc:'A second off-hand attack at −5.'},
+ ],
+ profs:'Rogue: simple weapons, hand crossbow, rapier, sap, shortbow, short sword. Light armor. Half-orc: greataxes and falchions, and weapons with “orc” in the name count as martial.',
+ talents:[
+  {name:'Finesse Weapon',desc:'Weapon Finesse: Dex instead of Str on attack rolls with light weapons and rapiers. His paper sheet also adds Dex to damage with the short sword and daggers.',uses:0},
+  {name:'Bleeding Attack',desc:'A target he sneak attacks bleeds 1 HP per sneak attack die (8 at rogue 16) at the start of each of its turns, until a DC 15 Heal check or any magical healing. Bleeds don’t stack. (The talent list on the paper sheet says 7; the weapon line says 8.)',uses:0},
+  {name:'Surprise Attack',desc:'During the surprise round, opponents are always flat-footed against him, even if they have already acted. Ref. p. 69.',uses:0},
+  {name:'Combat Trick',desc:'A bonus combat feat.',uses:0},
+  {name:'Resiliency',desc:'Once per day, as an immediate action when he drops below 0 HP, he gains temp HP equal to his rogue level (16) for 1 minute. Use the button in the Hit Points panel.',uses:0},
+  {name:'Slow Reactions',desc:'A target he sneak attacks can’t make attacks of opportunity for 1 round.',uses:0},
+  {name:'Skill Mastery',desc:'He can take 10 on a set of chosen skills even when stress or distraction would stop him (3 + Int skills, so 6). The paper sheet doesn’t say which.',uses:0},
+  {name:'Befuddling Strike',desc:'A target he sneak attacks takes −2 on attack rolls against him for 1d4 rounds.',uses:0},
+  {name:'Minor Magic',desc:'Casts a 0-level sorcerer/wizard spell as a spell-like ability, 3 times a day (per his paper sheet). The spell isn’t written down.',uses:3},
+ ],
+ racial:[
+  {name:'Darkvision',desc:'Sees in the dark up to 60 ft.',uses:0},
+  {name:'Intimidating',desc:'+2 on Intimidate (in skill Misc).',uses:0},
+  {name:'Orc Ferocity',desc:'Once per day, when brought below 0 HP but not killed, he can fight on for one more round as if disabled. At the end of his next turn he falls unconscious and starts dying, unless he is already back above 0. Use the button in the Hit Points panel.',uses:0},
+  {name:'Orc Blood',desc:'Counts as both a human and an orc for any effect related to race.',uses:0},
+  {name:'Weapon Familiarity',desc:'Proficient with greataxes and falchions; weapons with “orc” in the name count as martial weapons.',uses:0},
+  {name:'Deathless',desc:'Subtype from the Blessing of the Raven Queen. Immunities, fast healing 1 and the rest are on the Blessing tab.',uses:0},
+ ],
+ ov:{},
+ ward:{res:''}, deck:'', bless:{returns:0},
+ mitems:[],
+ charged:[{name:'Wand of Fireball',ch:9,notes:'10d6 fire in a 20-ft. radius, 120 ft. range, Reflex half. Paper sheet: “x9”.'}],
+ ammo:[
+  {name:'Cataclysm bolts',max:22,left:20,notes:'Effect not written on the paper sheet. The first two boxes look crossed off.'},
+  {name:'Bolts',max:22,left:20,notes:'Plain bolts for the frost crossbow.'},
+  {name:'Sleep arrows',max:11,left:11,notes:'Will DC 11 or fall asleep (as sleep). They’re arrows, not bolts, so ask the DM whether the crossbow can fire them.'}],
+ used:{hero:0}, cond:{}, neg:0,
+ gear:[
+  {item:'Death Walker’s Ward',desc:'+5 studded leather, Vestige of Divergence. Ward tab.',loc:'Body',wt:20},
+  {item:'Displacement cloak',desc:'25% miss chance on attacks against him.',loc:'Shoulders',wt:1},
+  {item:'Ring of Protection +2',desc:'Deflection +2.',loc:'Ring',wt:0},
+  {item:'Ring of Lightning Resistance',desc:'Half damage from lightning.',loc:'Ring',wt:0},
+  {item:'Ring of Endure Elements',desc:'Comfortable from −50 °F to 140 °F.',loc:'Ring',wt:0},
+  {item:'Gloves of Arcane Hands',desc:'Mage hand to use his thieves’ tools from 30 ft. away.',loc:'Hands',wt:0},
+  {item:'Amulet of Planar Travel',desc:'',loc:'Neck',wt:0},
+  {item:'Earring of Whisper',desc:'Communication, as message.',loc:'Ear',wt:0},
+  {item:'Death’s Kiss',desc:'+2 short sword.',loc:'Hip',wt:2},
+  {item:'Dragontooth',desc:'+1 acid dagger.',loc:'Hip',wt:1},
+  {item:'+2 Frost Light Crossbow',desc:'',loc:'Back',wt:4},
+  {item:'+2 Rapier',desc:'',loc:'',wt:2},
+  {item:'+2 Dagger',desc:'',loc:'',wt:1},
+  {item:'Masterwork lock picks (+2)',desc:'Masterwork thieves’ tools: +2 on Disable Device.',loc:'Belt',wt:1},
+  {item:'Wand of Fireball',desc:'Attacks tab.',loc:'',wt:0},
+  {item:'Deck of Many Things',desc:'Ward tab.',loc:'',wt:0},
+  {item:'Magic carpet',desc:'5 × 10 ft. Flies 40 ft. carrying up to 400 lb., 30 ft. up to 500 lb.',loc:'Rolled up',wt:8},
+  {item:'Flippers',desc:'',loc:'',wt:0},
+  {item:'Winter clothes',desc:'',loc:'',wt:0},
+  {item:'Raven Queen / Vecna diary',desc:'',loc:'',wt:0},
+  {item:'Whispered One diary books',desc:'',loc:'',wt:0},
+ ],
+ coins:{pp:295,gp:1503,sp:0,cp:0}, bank:'',
+ notes:'',
+ traits:'',
+ history:'',
+ art:null
+};
+
+/* ---------- state + helpers ---------- */
+const clone=o=>JSON.parse(JSON.stringify(o));
+function merge(d,s){ if(Array.isArray(d)||typeof d!=='object'||d===null) return s===undefined?d:s;
+  const o={...d}; if(s&&typeof s==='object'&&!Array.isArray(s)) for(const k in s) o[k]=(k in d)?merge(d[k],s[k]):s[k]; return o; }
+let S=clone(DEFAULT);
+const n=v=>{const x=parseFloat(v);return isFinite(x)?x:0};
+const sg=v=>(v>=0?'+':'−')+Math.abs(v);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function getP(p){return p.split('.').reduce((o,k)=>o==null?o:o[k],S)}
+function setP(p,v){const ks=p.split('.');let o=S;for(let i=0;i<ks.length-1;i++){if(o[ks[i]]==null)o[ks[i]]={};o=o[ks[i]]}o[ks.at(-1)]=v}
+const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}}};
+const dice=(c,s)=>{let t=0;for(let i=0;i<c;i++)t+=1+Math.floor(Math.random()*s);return t};
+
+/* input builders */
+const num=(p,o={})=>`<input type="number" id="i-${p.replace(/\W/g,'_')}" data-p="${p}" value="${esc(getP(p))}" ${o.step?`step="${o.step}"`:''} ${o.w?`style="width:${o.w}"`:''} ${o.ph?`placeholder="${esc(o.ph)}"`:''} aria-label="${esc(o.label||p)}"${o.rr?' data-rr':''}>`;
+const txt=(p,o={})=>`<input type="text" id="i-${p.replace(/\W/g,'_')}" data-p="${p}" value="${esc(getP(p))}" placeholder="${esc(o.ph||'')}" ${o.cls?`class="${o.cls}"`:''} ${o.w?`style="width:${o.w}"`:''} aria-label="${esc(o.label||o.ph||p)}"${o.rr?' data-rr':''}>`;
+const area=(p,o={})=>`<textarea id="i-${p.replace(/\W/g,'_')}" data-p="${p}" rows="${o.rows||3}" placeholder="${esc(o.ph||'')}" aria-label="${esc(o.label||p)}">${esc(getP(p))}</textarea>`;
+const sel=(p,opts,o={})=>`<select id="i-${p.replace(/\W/g,'_')}" data-p="${p}"${o.rr?' data-rr':''} aria-label="${esc(o.label||p)}">${opts.map(x=>{const [v,l]=Array.isArray(x)?x:[x,x];return `<option value="${esc(v)}"${String(getP(p))===String(v)?' selected':''}>${esc(l)}</option>`}).join('')}</select>`;
+const out=(k,cls='')=>`<span data-o="${k}"${cls?` class="${cls}"`:''}></span>`;
+const field=(label,html)=>`<label class="field"><span class="lbl">${label}</span>${html}</label>`;
+
+/* ---------- rules engine ---------- */
+function agg(list){
+  const by={};list.forEach(e=>(by[e.t]=by[e.t]||[]).push(e));
+  const out={};
+  for(const t in by){let tot=0;const pos={},neg={};
+    for(const e of by[t]){const ty=e.ty||'untyped';
+      if(e.v>=0){ if(ty==='untyped'||ty==='dodge'||ty==='circumstance') tot+=e.v; else pos[ty]=Math.max(pos[ty]||0,e.v); }
+      else { if(ty==='untyped') tot+=e.v; else neg[ty]=Math.min(neg[ty]||0,e.v); } }
+    for(const k in pos) tot+=pos[k]; for(const k in neg) tot+=neg[k]; out[t]=tot;}
+  return out;
+}
+function gather(map,neg){
+  const list=[],flags={},active=[];
+  for(const c of ALLC){ if(!map||!map[c.id]) continue;
+    active.push(c); const fx=typeof c.fx==='function'?c.fx(S):(c.fx||[]);
+    fx.forEach(([t,v,ty])=>list.push({t,v,ty})); (c.fl||[]).forEach(f=>flags[f]=true); }
+  if(map)(S.mitems||[]).forEach(x=>{if(x.on&&n(x.bonus)&&x.target)list.push({t:x.target,v:n(x.bonus),ty:x.type||'untyped'})});
+  neg=Math.max(0,Math.floor(n(neg)));
+  if(neg) ['atk','save','skill','ability','cmd'].forEach(t=>list.push({t,v:-neg}));
+  const tot=agg(list);
+  return {g:t=>tot[t]||0,tot,flags,active,neg};
+}
+const babFor=(p,l)=>p==='full'?l:p==='1/2'?Math.floor(l/2):Math.floor(l*3/4);
+const saveFor=(t,l,pr)=>t==='good'?(pr?Math.floor((l+1)/2):2+Math.floor(l/2)):(pr?Math.floor((l+1)/3):Math.floor(l/3));
+function levels(){const by={};let total=0;for(const c of S.classes){const l=Math.max(0,Math.floor(n(c.level)));total+=l;by[c.preset]=(by[c.preset]||0)+l}return{total,by,rogue:by.Rogue||0}}
+function classSkillSet(){const s=new Set();S.classes.forEach(c=>String(c.skills||'').split(',').forEach(x=>{x=x.trim().toLowerCase();if(x)s.add(x)}));return s}
+const famOf=s=>s.n.toLowerCase();
+const isCS=(s,cs)=>cs.has(famOf(s))||(/^knowledge/i.test(s.n)&&cs.has('knowledge (all)'));
+function conMod(){return Math.floor((n(S.ab.con.base)+n(S.ab.con.temp)-10)/2)}
+const avgHD=hd=>hd/2+1;
+function hpBase(){
+  if(S.hp.mode!=='auto')return n(S.hp.max);
+  const con=conMod();let tot=0,first=true;
+  S.classes.forEach(c=>{const hd=Math.max(1,n(c.hd)||8),l=Math.max(0,Math.floor(n(c.level)));for(let i=0;i<l;i++){tot+=Math.max(1,(first?hd:avgHD(hd))+con);first=false}});
+  return tot+n(S.fcbHp)+n(S.hp.misc);
+}
+const AC_TYPES=[['natural','Natural armor'],['deflection','Deflection'],['armor','Armor'],['shield','Shield'],['dodge','Dodge'],['insight','Insight'],['luck','Luck'],['sacred','Sacred'],['profane','Profane']];
+const AC_SLOTS=['Neck','Ring','Wrists','Body','Shoulders','Head','Headband','Eyes','Belt','Hands','Feet','Slotless'];
+function acItemBonuses(){const o={};(S.acItems||[]).forEach(x=>{if(!x.on)return;const v=n(x.bonus),t=x.type;if(!t||!v)return;o[t]=t==='dodge'?(o[t]||0)+v:Math.max(o[t]||0,v)});return o}
+const hasFeat=re=>(S.feats||[]).some(x=>re.test(x.name||''));
+const sneakDice=()=>Math.ceil(levels().rogue/2);
+
+function compute(useC){
+  const O={};const put=(k,v,signed,t)=>{O[k]={n:v,t:t!=null?t:(signed?sg(v):String(v))}};
+  const M=useC?gather(S.cond,S.neg):gather(null,0);
+  const L=levels();
+  const ab={};
+  for(const a of ABIL){const s=S.ab[a]||{};let sc=n(s.base)+n(s.temp)+M.g(a);
+    if(a==='dex'&&M.flags.dexZero)sc=0; if(a==='str'&&M.flags.strZero)sc=0; sc=Math.max(0,sc);
+    const mod=Math.floor((sc-10)/2);ab[a]={sc,mod};put(`ab.${a}.sc`,sc);put(`ab.${a}.mod`,mod,true);}
+  let si=SIZES.indexOf(S.info.size);if(si<0)si=4;
+  const szA=SZ_ATK[si];put('size',szA,true);put('sizeName',si,false,SIZES[si]);
+  let bab=0;const base={fort:0,ref:0,will:0};
+  S.classes.forEach(c=>{const l=Math.max(0,Math.floor(n(c.level)));bab+=babFor(c.bab,l);
+    ['fort','ref','will'].forEach(s=>base[s]+=saveFor(c[s],l,!!c.prestige))});
+  put('bab',bab,true);
+  const iter=[];for(let b=bab,i=0;i<4&&(i===0||b>=1);i++,b-=5)iter.push(b);
+  put('bab.iter',bab,false,iter.map(sg).join('/'));
+  put('lvl',L.total);
+  // AC: uncanny dodge (rogue 4) keeps his Dex bonus when he's flat-footed
+  const uncanny=L.rogue>=4;
+  const IT=acItemBonuses();
+  const armorB=Math.max(n(S.armor.bonus),IT.armor||0), shieldB=Math.max(n(S.shield.bonus),IT.shield||0);
+  const natT=n(S.ac.natural)+(IT.natural||0)+M.g('acNat'),defT=Math.max(n(S.ac.deflection)+(IT.deflection||0),M.g('acDefl')),othT=(IT.insight||0)+(IT.luck||0)+(IT.sacred||0)+(IT.profane||0);
+  const md=String(S.armor.maxDex).trim()===''?99:n(S.armor.maxDex);
+  const dexAC=Math.min(ab.dex.mod,md);
+  const lose=M.flags.loseDex||(M.flags.flatFooted&&!uncanny);
+  const dexUse=lose?Math.min(0,dexAC):dexAC;
+  const dodge=lose?0:n(S.ac.dodge)+M.g('acDodge')+(IT.dodge||0);
+  const condAC=M.g('ac');
+  const common=szA+defT+othT+n(S.ac.misc)+condAC;
+  const ac=10+armorB+shieldB+dexUse+natT+dodge+common;
+  const touch=10+dexUse+dodge+common;
+  const ff=10+armorB+shieldB+Math.min(0,dexAC)+natT+common;
+  put('ac.total',ac);put('ac.touch',touch);put('ac.ff',ff);
+  put('ac.armor',armorB,true);put('ac.shield',shieldB,true);put('ac.dex',dexUse,true);put('ac.dodgeT',dodge,true);put('ac.nat',natT,true);put('ac.defl',defT,true);put('ac.oth',othT+n(S.ac.misc),true);put('ac.cond',condAC,true);
+  put('ac.vsMelee',ac-(M.flags.prone?4:0));put('ac.vsRanged',ac+(M.flags.prone?4:0));
+  put('miss',n(S.miss),false,n(S.miss)?n(S.miss)+'%':'—');
+  // init, speed (the Ward's raven wings add a fly speed)
+  put('init',ab.dex.mod+n(S.init.misc)+M.g('init'),true);
+  const armSpd=n(S.armor.speed);
+  let spd=(armSpd>0?Math.min(armSpd,n(S.info.speed)):n(S.info.speed))+n(S.speedMisc)+M.g('speed');if(M.flags.halfSpeed)spd=Math.floor(spd/2/5)*5;
+  const wings=!!(useC&&S.cond.wings);
+  put('speed',spd,false,spd+' ft.'+(wings?' · fly 60':''));put('speed.land',spd,false,spd+' ft.');
+  // saves
+  const svA={fort:'con',ref:'dex',will:'wis'};const sv={};
+  for(const s of ['fort','ref','will']){const x=S.saves[s];const cond=M.g('save')+M.g(s);
+    const t=base[s]+ab[svA[s]].mod+n(x.magic)+n(x.misc)+n(x.temp)+cond;sv[s]=t;
+    put(`sv.${s}`,t,true);put(`sv.${s}.base`,base[s],true);put(`sv.${s}.ab`,ab[svA[s]].mod,true);put(`sv.${s}.cond`,cond,true);}
+  // CMB/CMD
+  const cmbAb=ab[S.cmbAbil==='dex'?'dex':'str'].mod;
+  put('cmb',bab+cmbAb-szA+n(S.cmbMisc)+M.g('atk')+M.g('cmb'),true);
+  put('cmd',10+bab+ab.str.mod+dexUse+dodge-szA+defT+othT+n(S.cmdMisc)+M.g('cmd'));
+  // HP
+  const hpAdj=(ab.con.mod-conMod())*L.total; put('hp.adj',hpAdj,true);
+  const hpMax=hpBase()+hpAdj-5*M.neg; put('hp.max',hpMax); put('hp.cur',Math.min(n(S.hp.cur),hpMax));
+  put('hp.why',0,false,hpAdj||M.neg?`${hpBase()} base${hpAdj?` ${sg(hpAdj)} from Con`:''}${M.neg?` −${5*M.neg} negative levels`:''}`:'');
+  put('hp.extra',0,false,[n(S.hp.temp)?`+${n(S.hp.temp)} temp`:'',n(S.hp.nl)?`${n(S.hp.nl)} nonlethal`:''].filter(Boolean).join(' · '));
+  // skills
+  const cs=classSkillSet(); const acp=-Math.abs(n(S.armor.acp))-Math.abs(n(S.shield.acp));
+  let spent=0;
+  for(const s of SKILLS){const x=S.skills[s.k]||{};const r=n(x.ranks);spent+=r;
+    const isC=isCS(s,cs)||!!x.csx; const cb=isC&&r>0?3:0; const am=ab[s.a].mod;
+    let other=(s.acp?acp:0)+M.g('skill')+M.g('sk.'+s.k)+((s.a==='str'||s.a==='dex')?M.g('skillStrDex'):0)+(s.a==='cha'?M.g('skillCha'):0);
+    if(s.k==='stealth')other+=SZ_STL[si]; if(s.k==='fly')other+=SZ_FLY[si];
+    const t=r+cb+am+n(x.misc)+other;
+    const untr=s.tr&&r<=0;
+    put(`sk.${s.k}`,t,true,untr?'—':sg(t)); put(`sk.${s.k}.ab`,am,true); put(`sk.${s.k}.cb`,cb,false,cb?'+3':'—'); put(`sk.${s.k}.oth`,other,true);
+    O[`sk.${s.k}`].cs=isC;}
+  const tf=L.rogue?Math.max(1,Math.floor(L.rogue/2)):0;
+  for(const s of SKILLS)put(`sk.${s.k}.vp`,0,false,'');
+  if(tf){const dd=O['sk.disable'].n,pc=O['sk.perception'].n;
+    put('sk.disable.vp',dd,false,`${sg(dd+2)} with masterwork tools · ${sg(dd+2+tf)} on traps`);
+    put('sk.perception.vp',pc,false,`${sg(pc+tf)} to find traps`);}
+  const intMod=Math.floor((n(S.ab.int.base)+n(S.ab.int.temp)-10)/2);
+  const avail=S.classes.reduce((a,c)=>a+Math.max(1,n(c.sp)+intMod)*Math.max(0,Math.floor(n(c.level))),0)+n(S.fcbSkill);
+  put('sk.spent',spent);put('sk.avail',avail);
+  // attacks
+  const atkCalc=(a,offHalf)=>{const am=ab[a.abil==='str'?'str':'dex'].mod;
+    const hit=bab+am+szA+n(a.enh)+n(a.misc)+M.g('atk')+(a.kind==='melee'?M.g('atkMelee'):M.g('atkRanged'));
+    /* damage ability: Str or Dex at ×1, ×1½ or ×½; off-hand attacks get half (bonuses only, penalties apply in full) */
+    const dmA=String(a.dmgAbil||'str');let da=0;
+    if(dmA!=='none'){const sm=dmA.startsWith('dex')?ab.dex.mod:ab.str.mod;let mul=/15$/.test(dmA)?1.5:/05$/.test(dmA)?0.5:1;if(offHalf&&mul===1)mul=0.5;da=sm>0?Math.floor(sm*mul):sm;}
+    const db=n(a.enh)+n(a.dmgMisc)+da+M.g('dmg')+(a.kind==='melee'?M.g('dmgMelee'):M.g('dmgRanged'));
+    return {hit,db,dmg:`${a.dice||'—'}${db?sg(db):''}${a.extra?' '+String(a.extra).trim():''}`};};
+  S.attacks.forEach((a,i)=>{const r=atkCalc(a,false);
+    const its=[];for(let b=r.hit,k=0;k<4&&(k===0||bab-5*k>=1);k++,b-=5)its.push(b);
+    put(`atk.${i}.hit`,r.hit,true,its.map(sg).join('/')); put(`atk.${i}.dmg`,r.db,false,r.dmg);});
+  // two-weapon full attack: main-hand iteratives interleaved with off-hand attacks
+  const tw=S.twf||{};const mA=S.attacks.find(x=>x.id===tw.main),oA=S.attacks.find(x=>x.id===tw.off);const twf=[];
+  const pen=tw.twf?(tw.light?[2,2]:[4,4]):(tw.light?[4,8]:[6,10]);
+  if(mA&&oA){const m=atkCalc(mA,false),o=atkCalc(oA,tw.offStr==='half');
+    const mainN=Math.min(4,1+Math.max(0,Math.floor((bab-1)/5))), offN=1+(tw.itwf&&bab>=6?1:0)+(tw.gtwf&&bab>=11?1:0);
+    const haste=M.active.some(c=>c.id==='haste');
+    for(let i=0;i<Math.max(mainN,offN);i++){
+      if(i<mainN){twf.push({w:mA,hand:'Main hand',hit:m.hit-pen[0]-5*i,dmg:m.dmg,db:m.db});
+        if(i===0&&haste)twf.push({w:mA,hand:'Main hand (haste)',hit:m.hit-pen[0],dmg:m.dmg,db:m.db});}
+      if(i<offN)twf.push({w:oA,hand:'Off hand',hit:o.hit-pen[1]-5*i,dmg:o.dmg,db:o.db});}
+    twf.forEach((x,j)=>{put(`twf.${j}.hit`,x.hit,true);put(`twf.${j}.dmg`,x.db,false,x.dmg)});}
+  // class-ability numbers
+  put('sneak',Math.ceil(L.rogue/2),false,`+${Math.ceil(L.rogue/2)}d6`);
+  put('trapsense',Math.floor(L.rogue/3),true);put('trapfind',tf,true);
+  put('spatk.melee',bab+Math.max(ab.str.mod,ab.dex.mod)+szA+M.g('atk')+M.g('atkMelee'),true);
+  put('spatk.ranged',bab+ab.dex.mod+szA+M.g('atk')+M.g('atkRanged'),true);
+  return {O,M,L,ab,bab,uncanny,lose,acp,si,base,twf,pen};
+}
+
+/* ---------- class abilities (auto) ---------- */
+function autoAbilities(L){
+  const A=[];const add=(cls,lvl,name,ty,ds,o={})=>A.push(Object.assign({cls,lvl,name,ty,ds},o));
+  const r=L.rogue;
+  if(r>=1){add('Rogue',1,'Sneak Attack','Ex',`<b>${out('sneak')}</b> extra damage when the target is flanked or denied its Dex bonus to AC. Ranged sneak attacks only within 30 ft. Tick “Sneak attack” on the Attacks tab to add a box for the dice.`);
+    add('Rogue',1,'Trapfinding','Ex',`${out('trapfind')} on Perception checks to find traps and on Disable Device checks. Can disarm magic traps.`);}
+  if(r>=2){add('Rogue',2,'Evasion','Ex','On a successful Reflex save against an effect that deals half damage on a save, he takes no damage instead. Only in light armor or no armor.');
+    add('Rogue',2,'Rogue Talents','Ex',`${Math.floor(r/2)} talents at rogue ${r}, one every even level. His are listed under Rogue Talents below.`);}
+  if(r>=3)add('Rogue',3,'Trap Sense','Ex',`${out('trapsense')} on Reflex saves and a dodge bonus to AC against traps. Turn on “Against a trap” on the Conditions tab. His paper sheet says +4; the rules give +1 per three rogue levels.`);
+  if(r>=4)add('Rogue',4,'Uncanny Dodge','Ex','Can’t be caught flat-footed, and keeps his Dex bonus to AC against invisible attackers. The Flat-footed card on the Conditions tab leaves his AC alone.');
+  if(r>=8)add('Rogue',8,'Improved Uncanny Dodge','Ex',`Can’t be flanked, except by a rogue of at least level ${r+4}.`);
+  if(r>=10)add('Rogue',10,'Advanced Talents','Ex','Can choose advanced rogue talents, such as Skill Mastery, in place of normal ones.');
+  if(r>=20)add('Rogue',20,'Master Strike','Ex','A sneak attack can also put the target to sleep, paralyze it or slay it (Fort save negates), once per creature per day.');
+  A.forEach(a=>{a.key=a.key||('ab.'+a.name.replace(/\W+/g,''));a.base=a.uses;const o=(S.ov||{})[ok(a.key)];
+    if(a.uses&&o&&String(o.uses??'').trim()!=='')a.uses=Math.max(0,Math.floor(n(o.uses)));});
+  return A.sort((a,b)=>a.lvl-b.lvl);
+}
+
+/* ---------- rendering ---------- */
+const TABS=[['overview','Overview'],['skills','Skills'],['saves','Saving Throws'],['attacks','Attacks'],['ward','Death Walker’s Ward'],['blessing','Blessing'],['abilities','Class Abilities'],['conditions','Conditions'],['gear','Gear & Notes']];
+let tab=(()=>{const h=(location.hash||'').slice(1);if(TABS.some(t=>t[0]===h))return h;const s=ls.get('lork-tab');return TABS.some(t=>t[0]===s)?s:'overview'})();
+
+function renderTabs(){
+  const nc=Object.values(S.cond).filter(Boolean).length+(n(S.neg)>0?1:0);
+  document.getElementById('tabs').innerHTML=TABS.map(([k,l])=>`<button class="tab" role="tab" data-act="tab" data-t="${k}" aria-selected="${k===tab}">${l}${k==='conditions'&&nc?`<span class="dot">${nc}</span>`:''}</button>`).join('')+`<span class="status" id="status">${esc(statusText)}</span>`;
+}
+/* keep current HP in step with Con changes */
+function syncConHP(){const a=compute(true).O['hp.adj'].n,prev=n(S.hp.conAdj);if(a===prev)return;
+  S.hp.cur=n(S.hp.cur)+(a-prev);S.hp.conAdj=a;hpLog(a>prev?`Con up: +${a-prev} HP`:`Con back down: −${prev-a} HP`);}
+const hpMaxNow=()=>compute(true).O['hp.max'].n;
+function render(){
+  syncConHP();
+  document.getElementById('f-name').value=S.info.name||'';
+  renderTabs();
+  const P={overview:pOverview,skills:pSkills,saves:pSaves,attacks:pAttacks,ward:pWard,blessing:pBlessing,abilities:pAbilities,conditions:pConditions,gear:pGear}[tab];
+  const pg=document.getElementById('page');const openD=[...pg.querySelectorAll('details[id][open]')].map(d=>d.id);
+  pg.innerHTML=P();openD.forEach(id=>{const d=document.getElementById(id);if(d)d.open=true});
+  renderArt(); refresh();
+}
+
+/* the three things that keep him up when he drops */
+function downBox(){
+  const cur=n(S.hp.cur),r=levels().rogue,e=n(S.used.embrace)>=1,rs=n(S.used.resil)>=1,fe=n(S.used.ferocity)>=1;
+  return `<div class="down${cur<=0?' alert':''}"><span class="lbl">${cur<=0?`He’s at ${cur} HP`:'If he drops to 0 HP or below'}</span>
+   <div class="row"><button class="btn${cur<=0&&!e?' pri':''}" data-act="embrace"${e?' disabled':''}>${e?'Death’s Embrace used today':'Death’s Embrace: stand at 1 HP'}</button>
+    <button class="btn${cur<0&&!rs?' pri':''}" data-act="resil"${rs?' disabled':''}>${rs?'Resiliency used today':`Resiliency: +${r} temp HP`}</button>
+    <button class="btn" data-act="ferocity"${fe?' disabled':''}>${fe?'Orc Ferocity used today':'Orc Ferocity: fight on 1 round'}</button></div>
+   <small class="muted">Death’s Embrace (the Ward, once per day) leaves him at 1 HP; its exhaustion doesn’t touch him, since the Blessing makes him immune. Resiliency (rogue talent, once per day, immediate action below 0 HP) gives temp HP equal to his rogue level for 1 minute. Orc Ferocity (once per day) lets him act for one more round below 0 HP, as if disabled. If he dies anyway, Undying Servitude brings him back 8 hours later (Blessing tab).</small></div>`;
+}
+
+function pOverview(){
+  const cls=S.classes.map((c,i)=>`<tr>
+    <td class="l">${sel(`classes.${i}.preset`,[...Object.keys(PRESETS),'Custom'],{rr:1,label:'Class preset'})}</td>
+    <td class="l">${txt(`classes.${i}.name`,{w:'9em',label:'Class name'})}</td>
+    <td>${num(`classes.${i}.level`,{rr:1,label:'Level'})}</td>
+    <td>d${num(`classes.${i}.hd`,{w:'3.2em',label:'Hit die'})}</td>
+    <td>${sel(`classes.${i}.bab`,[['full','Full'],['3/4','¾'],['1/2','½']],{label:'BAB progression'})}</td>
+    <td>${sel(`classes.${i}.fort`,['good','poor'],{label:'Fort'})}</td><td>${sel(`classes.${i}.ref`,['good','poor'],{label:'Ref'})}</td><td>${sel(`classes.${i}.will`,['good','poor'],{label:'Will'})}</td>
+    <td><input type="checkbox" class="cs" data-p="classes.${i}.prestige" ${S.classes[i].prestige?'checked':''} aria-label="Prestige class"></td>
+    <td>${num(`classes.${i}.sp`,{w:'3.2em',label:'Skill points per level'})}</td>
+    <td><button class="btn x" data-act="delClass" data-i="${i}" aria-label="Remove class">✕</button></td></tr>
+    <tr><td colspan="11" class="l" style="border-top:0;padding-top:0">${txt(`classes.${i}.skills`,{w:'100%',label:'Class skills',ph:'Class skills, comma separated'})}</td></tr>`).join('');
+  const res=resName();
+  return `<div class="cols">
+   <section class="panel"><header><h2>Ability Scores</h2><span class="muted">Adj covers permanent changes; worn items are on the Gear tab</span></header>
+    <div class="scroll"><table class="abtbl"><thead><tr><th class="l">Ability</th><th>Base</th><th>Adj</th><th>Score</th><th>Mod</th></tr></thead><tbody>
+    ${ABIL.map(a=>`<tr><td title="${ABN[a]}">${a.toUpperCase()}</td><td>${num(`ab.${a}.base`,{label:ABN[a]+' base'})}</td><td>${num(`ab.${a}.temp`,{label:ABN[a]+' adjustment'})}</td><td class="tot">${out(`ab.${a}.sc`)}</td><td><span class="mod" data-o="ab.${a}.mod"></span></td></tr>`).join('')}
+    </tbody></table></div>
+    <p class="note">From the front page of his paper sheet: Str 11, Dex 20, Con 12, Int 16, Wis 18, Cha 17. The skills page still uses Dex +4, from before Dex reached 20.</p></section>
+   <section class="panel"><header><h2>Hit Points</h2></header>
+    ${field('Max HP comes from',sel('hp.mode',[['manual','The number I enter'],['auto','Classes (average HP per level)']],{label:'HP mode'}))}
+    ${S.hp.mode==='auto'?`<p class="note">1st level: max hit die. Later levels: average (d8 = 5). Plus Con ${sg(conMod())} per level and ${n(S.fcbHp)} favored-class HP.</p>`:''}
+    <div class="grid2"><div class="field"><span class="lbl">Max HP</span><b style="font-size:1.3rem" data-o="hp.max"></b><small class="muted" data-o="hp.why"></small></div>${S.hp.mode==='auto'?`<div class="field"><span class="lbl">Base max HP</span><b>${hpBase()}</b></div>${field('Bonus HP',num('hp.misc',{rr:1,label:'Bonus HP'}))}`:field('Base max HP',num('hp.max',{label:'Base max HP'}))}${field('Current HP',num('hp.cur',{label:'Current HP'}))}${field('Temp HP',num('hp.temp',{label:'Temp HP'}))}${field('Nonlethal',num('hp.nl',{label:'Nonlethal'}))}</div>
+    <div class="hpctl"><input type="number" id="hpamt" value="" placeholder="amt" aria-label="Amount"><button class="btn" data-act="dmg">Damage</button><button class="btn" data-act="dmgHalf" title="Half damage: the Ward’s ${esc(res||'chosen')} resistance, or lightning with his ring">Damage ½${res?` (${esc(res.toLowerCase())})`:''}</button><button class="btn" data-act="heal">Heal</button><button class="btn" data-act="full">Long rest (+${restHeal()} HP)</button></div>
+    ${downBox()}
+    ${(S.hpLog||[]).length?`<div class="hplog"><span class="lbl">Recent</span>${S.hpLog.slice(-6).reverse().map(e=>`<div><span>${esc(e.txt)}</span><b>${e.cur} HP</b></div>`).join('')}<button class="btn x" data-act="clearLog">Clear log</button></div>`:''}
+    <p class="note">Long rest heals level + Con modifier (${levels().total} + ${conMod()}), clears nonlethal damage and resets daily uses (Death’s Embrace, Raven’s Flight, Smite Evil, Resiliency, Orc Ferocity, Minor Magic). As a deathless, he needs only 4 hours of meditation for it. Damage uses temp HP first. Damage ½ halves the amount for the Ward’s resistance${res?` (now ${esc(res.toLowerCase())})`:''} or lightning (his ring). His paper sheet shows 81 of 96 HP.</p>
+    <div class="row"><span class="lbl">Hero points spent</span>${pips('hero',3)}<small class="muted">${3-Math.min(3,n(S.used.hero))} of 3 left</small></div>
+   </section>
+   <section class="panel"><header><h2>Armor Class</h2></header>
+    <div class="big3"><div><span class="lbl">AC</span><div class="v" data-o="ac.total"></div></div><div><span class="lbl">Touch</span><div class="v" data-o="ac.touch"></div></div><div><span class="lbl">Flat-footed</span><div class="v" data-o="ac.ff"></div></div></div>
+    <div class="formula">10 + armor <b data-o="ac.armor"></b> + shield <b data-o="ac.shield"></b> + Dex <b data-o="ac.dex"></b> + natural <b data-o="ac.nat"></b> + deflection <b data-o="ac.defl"></b> + dodge <b data-o="ac.dodgeT"></b> + size <b data-o="size"></b> + other <b data-o="ac.oth"></b> + conditions <b data-o="ac.cond"></b></div>
+    <div class="grid2">${field('Extra natural',num('ac.natural'))}${field('Extra deflection',num('ac.deflection'))}${field('Dodge',num('ac.dodge'))}${field('Misc',num('ac.misc'))}${field('Miss chance %',num('miss',{label:'Miss chance percent'}))}</div>
+    <p class="note">Paper sheet: AC 26, touch 18, flat-footed 20, plus a 25% miss chance from the displacement cloak. The +4 written beside it is trap sense, which only counts against traps (turn on “Against a trap” on the Conditions tab). Uncanny dodge keeps his Dex bonus when he’s caught flat-footed; the flat-footed number is for anything that ignores that. ${S.cond.prone?`Prone: AC <b data-o="ac.vsMelee"></b> vs melee, <b data-o="ac.vsRanged"></b> vs ranged.`:''}</p>
+   </section>
+   <section class="panel"><header><h2>Combat</h2></header>
+    <div class="kv">
+     <label>Base attack</label><b data-o="bab.iter"></b>
+     <label>Initiative</label><span><b data-o="init"></b> &nbsp;<span class="muted">misc</span> ${num('init.misc',{label:'Initiative misc'})}</span>
+     <label>CMB</label><span><b data-o="cmb"></b> &nbsp;${sel('cmbAbil',[['str','uses Str'],['dex','uses Dex (Agile Maneuvers)']],{label:'CMB ability'})} ${num('cmbMisc',{label:'CMB misc'})}</span>
+     <label>CMD</label><span><b data-o="cmd"></b> &nbsp;<span class="muted">misc</span> ${num('cmdMisc',{label:'CMD misc'})}</span>
+     <label>Land speed</label><span><b data-o="speed.land"></b> &nbsp;<span class="muted">base</span> ${num('info.speed',{label:'Base speed'})} <span class="muted">bonus</span> ${num('speedMisc',{label:'Speed bonus'})}</span>
+     <label>Fly</label><span>${S.cond.wings?'<b>60 ft.</b> raven wings are out':'60 ft. with Raven’s Flight (the Ward, 1 hour, once per long rest)'}</span>
+     <label>Sneak attack</label><b data-o="sneak"></b>
+     <label>Size</label><span>${sel('info.size',SIZES,{label:'Size'})}</span>
+    </div>
+    <p class="note">The paper sheet lists CMB 12 and CMD 29. By the rules, CMD is 10 + BAB + Str + Dex + dodge + deflection = <b data-o="cmd"></b>; the paper sheet counts the ring as +1.</p></section>
+  </div>
+  <section class="panel"><header><h2>Identity</h2></header>
+   <div class="grid2">
+    ${field('Nickname',txt('info.nick'))}${field('Race',txt('info.race'))}${field('Alignment',txt('info.alignment'))}${field('Deity',txt('info.deity'))}${field('Gender',txt('info.gender'))}
+    ${field('Age',txt('info.age'))}${field('Height',txt('info.height'))}${field('Weight',txt('info.weight'))}${field('Hair',txt('info.hair'))}${field('Eyes',txt('info.eyes'))}
+    ${field('Homeland',txt('info.homeland'))}${field('Campaign',txt('info.campaign'))}${field('Player',txt('info.player'))}${field('Experience',txt('info.xp'))}
+   </div>
+   ${field('Languages',area('info.languages',{rows:2}))}
+   ${field('Personality',area('traits',{rows:2}))}
+  </section>
+  <section class="panel lvlup" id="levelup"><header><h2>Level Up</h2><span class="muted">Character level ${out('lvl')} · adds one level and recalculates BAB, saves, HP, skill ranks and sneak attack</span></header>
+   <div class="row" style="align-items:end">
+    ${field('Class for the new level',`<select id="lu-cls">${S.classes.map((c,i)=>`<option value="row:${i}">${esc(c.name)} ${Math.floor(n(c.level))} → ${Math.floor(n(c.level))+1}</option>`).join('')}<optgroup label="Start a new class">${Object.keys(PRESETS).filter(p=>!S.classes.some(c=>c.preset===p)).map(p=>`<option value="preset:${p}">${p} 1</option>`).join('')}<option value="custom">Custom class 1</option></optgroup></select>`)}
+    ${S.hp.mode==='auto'?'':field('Hit points',`<select id="lu-hp"><option value="avg">Average</option><option value="roll">I rolled…</option><option value="max">Max</option></select>`)}
+    ${S.hp.mode==='auto'?'':field('Roll',`<input type="number" id="lu-roll" min="1" aria-label="Hit die roll" style="width:4.5em">`)}
+    ${field('Favored class bonus',`<select id="lu-fcb"><option value="">None</option><option value="hp">+1 HP</option><option value="skill">+1 skill rank</option></select>`)}
+    <button class="btn pri" data-act="levelUp">Add level ${levels().total+1}</button>
+    ${(S.levelLog||[]).length?`<button class="btn" data-act="undoLevel">Undo last level</button>`:''}
+   </div>
+   ${lastSummary}
+  </section>
+  <section class="panel"><header><h2>Classes &amp; Levels</h2><span class="muted">Pick a preset to fill in hit die, BAB, saves, skill points and class skills</span></header>
+   <div class="scroll"><table><thead><tr><th class="l">Preset</th><th class="l">Name</th><th>Level</th><th>HD</th><th>BAB</th><th>Fort</th><th>Ref</th><th>Will</th><th>Prestige</th><th>Skills/lvl</th><th></th></tr></thead><tbody>${cls}</tbody></table></div>
+   <div class="row"><button class="btn" data-act="addClass">Add class</button><span class="muted"><small>Favored class bonus:</small></span><label class="row"><small>HP</small>${num('fcbHp',{label:'Favored class HP'})}</label><label class="row"><small>Skill ranks</small>${num('fcbSkill',{label:'Favored class skill ranks'})}</label></div>
+  </section>`;
+}
+
+function pSkills(){
+  const C=compute(true);
+  const rows=SKILLS.map(s=>{const x=S.skills[s.k]||{};const csOn=C.O[`sk.${s.k}`].cs;
+    return `<tr><td><input type="checkbox" class="cs" ${csOn?'checked':''} data-p="skills.${s.k}.csx" data-rr ${isCS(s,classSkillSet())?'disabled title="Class skill"':'title="Mark as an extra class skill (e.g. from a trait)"'} aria-label="Class skill"></td>
+     <td>${esc(s.n)}${s.tr?'<span class="muted">*</span>':''}${s.sub?` ${txt(`skills.${s.k}.sub`,{cls:'sub',ph:'type',label:s.n+' type',rr:1})}`:''} <span class="vers" data-o="sk.${s.k}.vp"></span></td>
+     <td class="muted">${s.a.toUpperCase()}</td>
+     <td class="tot${s.tr&&!(n(x.ranks)>0)?' untr':''}" data-o="sk.${s.k}"></td><td class="op">=</td>
+     <td data-o="sk.${s.k}.ab"></td><td class="op">+</td>
+     <td>${num(`skills.${s.k}.ranks`,{w:'3.6em',label:s.n+' ranks',rr:1})}</td><td class="op">+</td>
+     <td data-o="sk.${s.k}.cb"></td><td class="op">+</td>
+     <td>${num(`skills.${s.k}.misc`,{w:'3.6em',label:s.n+' misc'})}</td><td class="op">+</td>
+     <td data-o="sk.${s.k}.oth"></td></tr>`}).join('');
+  return `<section class="panel"><header><h2>Skills</h2>
+    <span class="counter">Ranks spent <b id="spent" data-o="sk.spent"></b> of <b data-o="sk.avail"></b> · max ${out('lvl')} per skill</span></header>
+   <div class="scroll"><table class="skilltbl"><thead><tr><th>Class</th><th class="l">Skill</th><th>Key</th><th>Total</th><th></th><th>Ability</th><th></th><th>Ranks</th><th></th><th>Class</th><th></th><th>Misc</th><th></th><th title="Armor check penalty, size and conditions">Other</th></tr></thead><tbody>${rows}</tbody></table></div>
+   <p class="note">Misc holds Stealthy (+2 Stealth and Escape Artist) and Intimidating (+2 Intimidate). “Other” holds the Ward’s −1 armor check penalty and conditions. Disable Device and Perception show trapfinding (${sg(C.O.trapfind.n)} on traps) and the masterwork lock picks (+2) beside them.</p>
+   <p class="note">From the paper sheet: its skills page uses Dex +4, so his Dex skills run 1 higher here, and the Ward’s −1 check penalty wasn’t taken off. Climb’s 13 ranks and +3 were written in each other’s columns. Knowledge (local) and Use Magic Device are rogue class skills, so they get the +3 here (the paper has 15 and 10). It lists Disable Device as 20 / 22, the second number with his lock picks.</p>
+  </section>`;
+}
+
+function pSaves(){
+  const nm={fort:['Fortitude','CON'],ref:['Reflex','DEX'],will:['Will','WIS']};
+  const breakdown=S.classes.map(c=>{const l=Math.floor(n(c.level));return `<tr><td class="l">${esc(c.name)} ${l}</td>${['fort','ref','will'].map(s=>`<td>${sg(saveFor(c[s],l,!!c.prestige))}</td>`).join('')}</tr>`}).join('');
+  const res=resName();
+  return `<section class="panel"><header><h2>Saving Throws</h2></header>
+   <div class="scroll"><table><thead><tr><th class="l">Save</th><th>Total</th><th></th><th>Base</th><th></th><th>Ability</th><th></th><th>Magic</th><th></th><th>Misc</th><th></th><th>Temp</th><th></th><th>Conditions</th></tr></thead><tbody>
+   ${['fort','ref','will'].map(s=>`<tr><td class="l"><b>${nm[s][0]}</b> <span class="muted">(${nm[s][1]})</span></td><td class="tot" data-o="sv.${s}"></td><td class="op">=</td><td data-o="sv.${s}.base"></td><td class="op">+</td><td data-o="sv.${s}.ab"></td><td class="op">+</td><td>${num(`saves.${s}.magic`,{label:nm[s][0]+' magic'})}</td><td class="op">+</td><td>${num(`saves.${s}.misc`,{label:nm[s][0]+' misc'})}</td><td class="op">+</td><td>${num(`saves.${s}.temp`,{label:nm[s][0]+' temp'})}</td><td class="op">+</td><td data-o="sv.${s}.cond"></td></tr>`).join('')}
+   </tbody></table></div>
+   <p class="note">Paper sheet: Fort +6, Ref +14, Will +9. Reflex is +15 here because Dex 20 gives +5; the paper sheet adds +4. Trap sense adds ${sg(tsense())} against traps (the paper says +4). Conditions update these automatically.</p></section>
+  <div class="cols">
+   <section class="panel"><header><h2>Base Save by Class</h2></header>
+    <div class="scroll"><table><thead><tr><th class="l">Class</th><th>Fort</th><th>Ref</th><th>Will</th></tr></thead><tbody>${breakdown}</tbody></table></div>
+    <p class="note">Evasion: a successful Reflex save against a half-damage effect means no damage at all.</p>
+   </section>
+   <section class="panel"><header><h2>Defenses</h2></header>
+    <div class="drbox" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--raven-soft);border-radius:var(--r);padding:8px 10px;font-size:.9rem"><b>Death Walker’s Ward:</b> ${res?`half damage from <b>${esc(res.toLowerCase())}</b>`:'no resistance picked yet'} <button class="btn" data-act="tab" data-t="ward">Change</button></div>
+    ${field('Other resistances',txt('resist'))}<div class="grid2">${field('DR',txt('dr'))}${field('SR',txt('sr'))}</div>
+    ${field('Conditional modifiers',area('saveNotes',{rows:5}))}
+   </section></div>`;
+}
+
+function pAttacks(){
+  const C=compute(true);
+  const rows=S.attacks.map((a,i)=>`<div class="custom weapon">
+    <div class="wtop">
+     <div class="wname">${txt(`attacks.${i}.name`,{cls:'nm',ph:'Weapon',label:'Weapon name'})}<small class="muted">${esc([a.kind==='melee'?'Melee':'Ranged / thrown',a.range,a.type,a.crit?'crit '+a.crit:''].filter(Boolean).join(' · '))}</small></div>
+     <div class="wstat"><span class="lbl">Attack</span><b data-o="atk.${i}.hit"></b></div>
+     <div class="wstat"><span class="lbl">Damage</span><b data-o="atk.${i}.dmg"></b></div>
+     <div class="wbtns"><button class="btn x" data-act="mvAtk" data-i="${i}" data-d="-1" aria-label="Move ${esc(a.name)} up"${i===0?' disabled':''}>↑</button><button class="btn x" data-act="mvAtk" data-i="${i}" data-d="1" aria-label="Move ${esc(a.name)} down"${i===S.attacks.length-1?' disabled':''}>↓</button><button class="btn x" data-act="delAtk" data-i="${i}" aria-label="Remove ${esc(a.name)}">✕</button></div>
+    </div>
+    ${rollBox('w'+i,String((C.O[`atk.${i}.hit`]||{}).t||'').split('/'))}
+    ${n(a.uses)?`<div class="row"><span class="lbl">Daily use</span>${pips('atk.'+(a.id||i),n(a.uses))}</div>`:''}
+    ${a.notes?`<p class="muted" style="margin:0;font-size:.9rem">${esc(a.notes)}</p>`:''}
+    <details class="more" id="det-${a.id||i}"><summary>Edit stats &amp; description</summary>
+    <div class="row" style="margin-top:6px">
+     ${field('Kind',sel(`attacks.${i}.kind`,[['melee','Melee'],['ranged','Ranged / thrown']],{rr:1}))}
+     ${field('Attack uses',sel(`attacks.${i}.abil`,[['dex','Dex'],['str','Str']]))}
+     ${field('Enh.',num(`attacks.${i}.enh`))}${field('Misc atk',num(`attacks.${i}.misc`))}
+     ${field('Dice',txt(`attacks.${i}.dice`,{w:'5em'}))}
+     ${field('Damage ability',sel(`attacks.${i}.dmgAbil`,[['dex','Dex ×1'],['dex05','Dex ×½'],['str','Str ×1'],['str15','Str ×1½'],['str05','Str ×½'],['none','none']]))}
+     ${field('Misc dmg',num(`attacks.${i}.dmgMisc`))}
+     ${field('Extra damage',txt(`attacks.${i}.extra`,{w:'8em',ph:'+1d6 acid'}))}
+     ${field('Critical',txt(`attacks.${i}.crit`,{w:'9em',rr:1}))}${field('Range',txt(`attacks.${i}.range`,{w:'7em',rr:1}))}${field('Type',txt(`attacks.${i}.type`,{w:'3.5em',rr:1}))}
+     ${field('Uses/day',num(`attacks.${i}.uses`,{w:'3.4em',rr:1}))}
+    </div>
+    ${field('Notes',txt(`attacks.${i}.notes`,{w:'100%',label:'Attack notes',rr:1}))}
+    ${field('Description',area(`attacks.${i}.desc`,{rows:3,label:'Weapon description'}))}</details></div>`).join('');
+  const act=C.M.active.filter(c=>c.fx&&(typeof c.fx==='function'||c.fx.some(f=>/atk|dmg|str|dex/.test(f[0]))));
+  return `${act.length?`<p class="note warn">Active effects: ${act.map(c=>esc(cname(c))).join(', ')}. All totals on this tab include them.</p>`:''}
+  ${twfPanel(C)}
+  <section class="panel"><header><h2>Weapons</h2><span class="muted">Pick which iterative attack, then type your d20 and damage dice.</span>${rollTools()}</header>
+   <div>${rows}</div><div class="row"><button class="btn" data-act="addAtk">Add weapon</button></div></section>
+  ${wandsPanel(C)}
+  ${ammoPanel()}
+  <div class="cols">
+   <section class="panel"><header><h2>Attack Bonuses</h2></header>
+    <div class="kv"><label>Base attack</label><b data-o="bab.iter"></b><label>Size modifier</label><b data-o="size"></b><label>Melee touch</label><b data-o="spatk.melee"></b><label>Ranged touch</label><b data-o="spatk.ranged"></b><label>CMB / CMD</label><b><span data-o="cmb"></span> / <span data-o="cmd"></span></b><label>Sneak attack</label><b data-o="sneak"></b></div>
+    <p class="note">Sneak attack applies when the target is flanked or denied its Dex bonus to AC (ranged: within 30 ft.). Each sneak attack also triggers Bleeding Attack (8 bleed), Slow Reactions (no attacks of opportunity for 1 round) and Befuddling Strike (−2 to hit him for 1d4 rounds).</p>
+   </section>
+   <section class="panel"><header><h2>Attack Notes</h2></header>${area('atkNotes',{rows:5})}${field('Proficiencies',area('profs',{rows:2}))}</section>
+  </div>`;
+}
+function rollTools(){const sn=sneakDice();return `<span class="rolltools"><label class="rf">Target AC <input type="number" data-roll="ac" value="${rolls.ac??''}" style="width:4em" aria-label="Target armor class"></label>${sn?`<label class="row" style="gap:6px"><input type="checkbox" class="cs" data-roll="sneak" ${rolls.sneak?'checked':''}> Sneak attack (+${sn}d6)</label>`:''}<button class="btn" data-act="clearRolls">Clear rolls</button></span>`}
+function twfPanel(C){
+  const tw=S.twf||{};const opts=S.attacks.map(a=>[a.id,a.name||'Unnamed']);const L=C.twf||[];
+  const penTxt=`${sg(-C.pen[0])} main hand / ${sg(-C.pen[1])} off hand`;
+  const chk=(k,l)=>`<label class="row" style="gap:6px"><input type="checkbox" class="cs" data-p="twf.${k}" ${tw[k]?'checked':''}>${l}</label>`;
+  return `<section class="panel twf"><header><h2>Two-Weapon Fighting</h2><span class="muted">Full attack, in order. Type each d20 and the damage dice you rolled.</span>${rollTools()}</header>
+   <div class="row" style="align-items:end">${field('Main hand',sel('twf.main',opts,{label:'Main-hand weapon'}))}${field('Off hand',sel('twf.off',opts,{label:'Off-hand weapon'}))}
+    ${field('Off-hand damage bonus',sel('twf.offStr',[['half','½ ability bonus'],['full','Full ability bonus']],{label:'Off-hand damage bonus'}))}</div>
+   <div class="row">${chk('twf','Two-Weapon Fighting')}${chk('itwf','Improved TWF')}${chk('gtwf','Greater TWF')}${chk('light','Off-hand weapon is light')}</div>
+   ${L.length?`<div class="scroll"><table class="twftbl"><thead><tr><th>Order</th><th class="l">Weapon</th><th class="l">Hand</th><th>Attack</th><th class="l">Damage</th></tr></thead><tbody>
+   ${L.map((x,j)=>`<tr${x.hand.startsWith('Off')?' class="off"':''}><td><span class="ord">${ORD[j]}</span></td><td class="l"><b>${esc(x.w.name)}</b></td><td class="l muted">${x.hand}</td><td class="tot" data-o="twf.${j}.hit"></td><td class="l" data-o="twf.${j}.dmg"></td></tr><tr class="rollrow${x.hand.startsWith('Off')?' off':''}"><td></td><td colspan="4" class="l">${rollBox('t'+j)}</td></tr>`).join('')}
+   </tbody></table></div><div class="roundtot" id="rt-t"></div>
+   <p class="note">Penalty ${penTxt}. Each later attack with the same hand is −5. Off-hand attacks: ${tw.gtwf?'three':tw.itwf?'two':'one'}. His paper sheet lists 18 / 17 / 13 / 7 (sword / dagger / sword / dagger). By the rules it runs ${L.map(x=>sg(x.hit)).join(' / ')}, with BAB +12 giving the sword a third attack. The off hand adds half his Dex to damage; pick Full ability bonus if the DM lets him add all of it.</p>`:'<p class="muted">Pick a main-hand and off-hand weapon.</p>'}
+  </section>`;
+}
+function wandsPanel(C){
+  const ch=S.charged||[],umd=C.O['sk.umd'].n;
+  return `<section class="panel"><header><h2>Wands</h2><span class="muted">Use Magic Device ${sg(umd)} vs DC 20 to activate${umd+1>=20?': only a natural 1 fails':`: needs ${20-umd}+ on the d20`}</span></header>
+   <div class="scroll"><table class="geartbl"><colgroup><col class="c-item"><col style="width:10em"><col class="c-desc"><col style="width:5em"><col class="c-x"></colgroup>
+   <thead><tr><th class="l">Wand</th><th>Charges</th><th class="l">Effect</th><th></th><th></th></tr></thead><tbody>
+   ${ch.map((x,i)=>`<tr><td class="l">${txt(`charged.${i}.name`,{label:'Wand'})}</td>
+     <td><span class="charge"><button class="btn x" data-act="chg" data-i="${i}" data-d="-1" aria-label="Spend a charge">−</button>${num(`charged.${i}.ch`,{w:'3.6em',rr:1,label:'Charges'})}<button class="btn x" data-act="chg" data-i="${i}" data-d="1" aria-label="Add a charge">+</button></span></td>
+     <td class="l">${txt(`charged.${i}.notes`,{label:'Effect'})}</td>
+     <td><button class="btn pri" data-act="chg" data-i="${i}" data-d="-1"${String(x.ch).trim()!==''&&n(x.ch)<1?' disabled':''}>Use</button></td>
+     <td><button class="btn x" data-act="chDel" data-i="${i}" aria-label="Remove">✕</button></td></tr>`).join('')||'<tr><td colspan="5" class="muted">None.</td></tr>'}
+   </tbody></table></div>
+   ${S.fbLast?`<p class="note">${S.fbLast}</p>`:''}
+   <div class="row"><button class="btn" data-act="fireball"${ch.some(x=>/fireball/i.test(x.name)&&n(x.ch)>0)?'':' disabled'}>Fireball: spend a charge &amp; roll 10d6</button><button class="btn" data-act="chAdd">Add wand or staff</button></div>
+   <p class="note">Use Magic Device isn’t ticked as a class skill on his paper sheet, but it is one for rogues, so it gets the +3 here. A wand of fireball at caster level 10 has a Reflex DC of 14 unless the DM says otherwise. The potions line on the paper sheet ends with “4/9 Red S…”, which is hard to read.</p>
+  </section>`;
+}
+function ammoPanel(){
+  const A=S.ammo||[];
+  return `<section class="panel"><header><h2>Ammunition</h2><span class="muted">Counted from the boxes on his paper sheet</span></header>
+   <div class="scroll"><table class="geartbl"><colgroup><col style="width:24%"><col style="width:12em"><col style="width:5.5em"><col><col class="c-x"></colgroup>
+   <thead><tr><th class="l">Type</th><th>Left</th><th>Of</th><th class="l">Notes</th><th></th></tr></thead><tbody>
+   ${A.map((x,i)=>`<tr class="${n(x.left)<1?'future':''}"><td class="l">${txt(`ammo.${i}.name`,{label:'Ammunition'})}</td>
+     <td><span class="charge"><button class="btn x" data-act="ammo" data-i="${i}" data-d="-1" aria-label="Fire one">−</button>${num(`ammo.${i}.left`,{w:'3.6em',rr:1,label:'Left'})}<button class="btn x" data-act="ammo" data-i="${i}" data-d="1" aria-label="Pick one up">+</button></span></td>
+     <td>${num(`ammo.${i}.max`,{w:'3.6em',rr:1,label:'Full count'})}</td>
+     <td class="l">${txt(`ammo.${i}.notes`,{label:'Notes'})}</td>
+     <td><button class="btn x" data-act="ammoDel" data-i="${i}" aria-label="Remove">✕</button></td></tr>`).join('')||'<tr><td colspan="5" class="muted">None.</td></tr>'}
+   </tbody></table></div>
+   <div class="row"><button class="btn" data-act="ammoAdd">Add ammunition</button><button class="btn" data-act="ammoRefill">Refill all to full</button></div>
+  </section>`;
+}
+
+/* ---------- Death Walker's Ward and other treasures ---------- */
+function pWard(){
+  const C=compute(true),res=(S.ward||{}).res||'',emb=n(S.used.embrace)>=1,fl=n(S.used.flight)>=1,wings=!!S.cond.wings,r=levels().rogue;
+  const ward=`<section class="panel ward"><header><h2>Death Walker’s Ward</h2><span class="muted">Studded leather · Vestige of Divergence</span><span class="tag">Exalted</span></header>
+   <p class="muted" style="margin:0;font-style:italic">A set of jet-black studded leather covered in scrollwork, rune engravings and carvings over almost every inch. The edge of its mantle is trimmed with the black feathers of the Matron of Ravens.</p>
+   <div class="kv"><label>Armor</label><b>+5 studded leather: armor +8, max Dex +5, check −1</b><label>AC now</label><b><span data-o="ac.total"></span> · touch <span data-o="ac.touch"></span> · flat-footed <span data-o="ac.ff"></span></b></div>
+   <div class="wpow"><div><span class="nm">Resistance</span> <small class="muted">changes on a short rest</small></div><b>${res?esc(resName()):'Not picked'}</b>
+    <div class="ds">He imbues the armor with resistance to one type of damage: he takes half damage from it. Pick the type here; the Damage ½ button on the Overview tab uses it.</div>
+    <div class="resgrid" role="group" aria-label="Ward resistance">${RES.map(([k,l])=>`<button data-act="wres" data-v="${k}" aria-pressed="${res===k}">${l}</button>`).join('')}</div></div>
+   <div class="wpow"><div><span class="nm">Death’s Embrace</span> <small class="muted">once per day</small> ${pips('embrace',1)}</div>
+    <button class="btn${n(S.hp.cur)<=0&&!emb?' pri':''}" data-act="embrace"${emb?' disabled':''}>${emb?'Used today':'Stand at 1 HP'}</button>
+    <div class="ds">When he reaches 0 HP, he stabilizes at 1 HP instead, but suffers exhaustion. The Blessing makes him immune to exhaustion, so only the 1 HP matters. Pressing the button sets his HP to 1.</div></div>
+   <div class="wpow"><div><span class="nm">Raven’s Flight</span> <small class="muted">1 action · once per long rest</small> ${pips('flight',1)}</div>
+    <span class="row">${wings?`<button class="btn" data-act="wingsOff">Fold the wings</button>`:`<button class="btn pri" data-act="wings"${fl?' disabled':''}>${fl?'Used: back after a long rest':'Spread the wings'}</button>`}</span>
+    <div class="ds">He grows large black raven wings: fly speed 60 ft. for 1 hour. The Blessing adds <i>haste</i> for the first minute.${wings?' <b>The wings are out.</b>':''}</div></div>
+   <p class="note">Only the Exalted state is on his item card. The Blessing of the Raven Queen adds <i>haste</i> for 1 minute when he takes flight, so Spread the wings also turns on Haste.</p>
+  </section>`;
+  const row=(k,nm,mx,lab,ds,ctl)=>`<tr><td class="l"><b>${nm}</b></td><td class="nowrap">${lab}${mx?`<br>${pips(k,mx)}`:''}</td><td class="l"><small>${ds}</small></td><td>${ctl||''}</td></tr>`;
+  const tbl=(head,rows)=>`<div class="scroll"><table class="geartbl" style="min-width:520px"><colgroup><col style="width:28%"><col style="width:6.5em"><col><col style="width:9em"></colgroup>
+   <thead><tr><th class="l">${head}</th><th>Uses</th><th class="l">Effect</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  const items=`<section class="panel"><header><h2>Magic Items</h2><span class="muted">Filled pips are spent</span></header>
+   ${tbl('Item',[
+    row('','Displacement cloak',0,'Always',`Attacks against him have a ${n(S.miss)||25}% miss chance (as written on his paper sheet).`),
+    row('','Gloves of Arcane Hands',0,'At will','He can cast mage hand to work his thieves’ tools from up to 30 ft. away.'),
+    row('','Magic carpet',0,'—','5 × 10 ft. Flies 40 ft. carrying up to 400 lb., or 30 ft. carrying up to 500 lb. Weighs 8 lb. rolled up.'),
+    row('','Amulet of Planar Travel',0,'—','The paper sheet doesn’t say how it works.'),
+    row('','Earring of Whisper',0,'At will','Communication, as the message cantrip.'),
+    row('','Ring of Lightning Resistance',0,'Always','Half damage from lightning. Use Damage ½ on the Overview tab.'),
+    row('','Ring of Endure Elements',0,'Always','Comfortable from −50 °F to 140 °F.'),
+    row('','Masterwork lock picks',0,'Always','+2 on Disable Device.'),
+    row('','Flippers',0,'—','Swimming aid.'),
+   ].join(''))}</section>`;
+  const deck=`<section class="panel"><header><h2>Deck of Many Things</h2><span class="muted">Each card drawn could be something really good, or really bad</span></header>
+   <p class="note" style="margin:0">The DM runs the draws. Write down each card he pulls and what it did.</p>
+   ${field('Cards drawn',area('deck',{rows:3,ph:'e.g. Session 12: the Key (a magic weapon)'}))}
+  </section>`;
+  return ward+`<div class="cols">${items}${deck}</div>${dmPanel()}`;
+}
+
+/* ---------- Blessing of the Raven Queen: divine boon from the Matron of Ravens ---------- */
+function pBlessing(){
+  const C=compute(true),lvl=levels().total,cha=smiteCha(),sm=n(S.used.smite)>=1,smOn=!!S.cond.smite,hp=n(S.hp.cur),mx=hpMaxNow(),B=S.bless||{};
+  const li=a=>`<ul style="margin:0;padding-left:1.2em;display:grid;gap:4px">${a.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+  return `<section class="panel ward"><header><h2>Blessing of the Raven Queen</h2><span class="muted">Divine boon · Champion of the Matron of Ravens</span><span class="tag">Bearer: Lork</span></header>
+   <p class="muted" style="margin:0;font-style:italic">Blessed by the Matron of Ravens, Goddess of Death, Winter and Fate. He follows her tenets, wields her celestial power to condemn the false god, and once his quest is done he will shepherd the souls of the dead onto the next plane. A great sacrifice was made for this blessing.</p>
+  </section>
+  <div class="cols">
+   <section class="panel ward"><header><h2>Deathless</h2><span class="muted">Subtype · passive</span></header>
+    ${li(['Darkvision 60 ft.',
+      'Immune to poison, sleep effects, paralysis, stunning, disease, and all mind-affecting effects: charms, compulsions, fear, phantasms and patterns.',
+      'Immune to fatigue and exhaustion. Unlike undead, he can still be energy drained. Negative energy harms him and positive energy heals him, like a living creature.',
+      'Immune to any harmful effect that needs a Fortitude save, except energy drain. He may still choose to roll Fortitude, to shed negative levels or accept a helpful effect.',
+      'Doesn’t need to breathe or eat. A long rest takes only 4 hours of meditation.',
+      '<b>Fast healing 1:</b> regains 1 HP every round.'])}
+    <div class="wpow"><div><span class="nm">Fast healing</span> <small class="muted">${hp} / ${mx} HP</small></div>
+     <span class="row"><button class="btn" data-act="fastheal" data-r="1"${hp>=mx?' disabled':''}>+1 (a round)</button></span>
+     <div class="ds row"><label class="rf">Rounds passed <input type="number" id="fh-rounds" min="1" placeholder="10" style="width:4.5em" aria-label="Rounds of fast healing"></label><button class="btn pri" data-act="fastheal"${hp>=mx?' disabled':''}>Heal</button><small class="muted">1 minute = 10 rounds. ${hp>=mx?'He’s at full HP.':`${mx-hp} rounds to full.`}</small></div></div>
+    <p class="note">The condition cards he’s immune to (fatigued, exhausted, shaken, frightened, panicked, cowering, confused, paralyzed, stunned, sickened, nauseated) are gone from the Conditions tab. Sickened and nauseated almost always come from a Fortitude save, poison or disease.</p>
+   </section>
+   <section class="panel ward"><header><h2>Gifts of the Matron</h2><span class="muted">He can now cast</span></header>
+    <div class="wpow" style="border-top:0;padding-top:0"><div><span class="nm">Detect Evil</span> <small class="muted">at will</small></div><span></span>
+     <div class="ds">As the spell: senses evil creatures, spells and objects in a 60-ft. cone, learning more each round he concentrates.</div></div>
+    <div class="wpow"><div><span class="nm">Smite Evil</span> <small class="muted">1/day</small> ${pips('smite',1)}</div>
+     <span class="row">${smOn?`<button class="btn" data-act="smiteEnd">Target is dead</button>`:`<button class="btn pri" data-act="smite"${sm?' disabled':''}>${sm?'Used today':'Smite!'}</button>`}</span>
+     <div class="ds">As the paladin ability at paladin level ${lvl} (his character level). Against the chosen evil target, until it dies: <b>${sg(cha)}</b> on attack rolls (Cha), <b>${sg(cha)}</b> deflection bonus to AC (it replaces the ring’s +2, so AC goes up by ${Math.max(0,cha-2)}), <b>${sg(lvl)}</b> damage on every hit (<b>${sg(2*lvl)}</b> on the first hit against undead, evil outsiders and evil dragons), and he bypasses its damage reduction.${smOn?' <b>Smiting now:</b> the bonuses are in every attack and AC on the sheet, so remember they only count against that target.':''}</div></div>
+    <div class="wpow"><div><span class="nm">Haste</span> <small class="muted">1/day, with Raven’s Flight</small></div><span class="muted">${S.cond.haste?'<b>Hasted</b>':n(S.used.flight)>=1?'Used today':'Ready'}</span>
+     <div class="ds">When he takes flight with the Death Walker’s Ward, he also gets <i>haste</i> for 1 minute (10 rounds): +1 attack, +1 dodge AC and Reflex, +30 ft. speed, an extra attack on a full attack. Spreading the wings turns it on.</div></div>
+    <div class="wpow"><div><span class="nm">Detect Quarry (Vecna)</span> <small class="muted">1 round of concentration</small></div><button class="btn" data-act="quarry">Concentrate</button>
+     <div class="ds">He learns the approximate distance and direction of Vecna.</div></div>
+   </section>
+  </div>
+  <section class="panel ward"><header><h2>Undying Servitude</h2><span class="muted">Until the quest is done</span></header>
+   <p style="margin:0">Until The Whispered One is defeated, he returns from death 8 hours after dying. If his body is destroyed or lost, he returns at the nearest shrine or holy site of the Raven Queen. He comes back at full HP and free of all conditions; his possessions stay where he fell.</p>
+   <div class="row"><button class="btn pri" data-act="undying">He returned from death</button><span class="muted">Restores full HP and clears every condition and negative level. Returned ${n(B.returns)} time${n(B.returns)===1?'':'s'} so far.</span></div>
+   <p class="note">Once The Whispered One falls, the Matron calls her champion: he leaves the Prime Material Plane with all his earthly possessions and attachments, to shepherd those who have passed beyond the veil.</p>
+  </section>`;
+}
+
+function acItemsPanel(){
+  const L=S.acItems||[],IT=acItemBonuses();
+  const applied=AC_TYPES.filter(([k])=>IT[k]).map(([k,l])=>`${l} ${sg(IT[k])}`);
+  return `<section class="panel"><header><h2>Rings, Amulets &amp; Other AC Items</h2><span class="muted">Tick Worn to add the bonus to AC</span></header>
+   <div class="scroll"><table class="geartbl acitems"><colgroup><col style="width:4.5em"><col class="c-item"><col style="width:9em"><col style="width:11em"><col style="width:5.5em"><col class="c-x"></colgroup>
+   <thead><tr><th>Worn</th><th class="l">Item</th><th class="l">Slot</th><th class="l">Bonus type</th><th>Bonus</th><th></th></tr></thead><tbody>
+   ${L.map((x,i)=>`<tr class="${x.on?'':'future'}"><td><input type="checkbox" class="cs" data-p="acItems.${i}.on" ${x.on?'checked':''} aria-label="Worn"></td>
+     <td class="l">${txt(`acItems.${i}.name`,{label:'Item name'})}</td>
+     <td class="l">${sel(`acItems.${i}.slot`,AC_SLOTS,{label:'Slot'})}</td>
+     <td class="l">${sel(`acItems.${i}.type`,AC_TYPES,{label:'Bonus type'})}</td>
+     <td>${num(`acItems.${i}.bonus`,{w:'3.6em',rr:1,label:'Bonus'})}</td>
+     <td><button class="btn x" data-act="acDel" data-i="${i}" aria-label="Remove item">✕</button></td></tr>`).join('')||'<tr><td colspan="6" class="muted">No AC items.</td></tr>'}
+   </tbody></table></div>
+   <div class="row"><button class="btn" data-act="acAdd">Add item</button></div>
+   <p class="note"><b>Applied to AC:</b> ${applied.length?applied.join(', '):'nothing'}. He has three rings (protection, lightning resistance, endure elements) for two ring slots; check with the DM.</p>
+  </section>`;
+}
+const MI_T=[['str','Strength'],['dex','Dexterity'],['con','Constitution'],['int','Intelligence'],['wis','Wisdom'],['cha','Charisma'],['save','All saves'],['fort','Fortitude'],['ref','Reflex'],['will','Will'],['atk','Attack rolls'],['dmg','Weapon damage'],['acNat','Natural armor'],['init','Initiative'],['speed','Speed (ft.)'],['cmb','CMB'],['cmd','CMD'],['skill','All skills'],['skillCha','Cha-based skills'],...SKILLS.map(s=>['sk.'+s.k,s.n])];
+const MI_TY=[['enh','Enhancement'],['inherent','Inherent (tomes, wishes)'],['resistance','Resistance'],['competence','Competence'],['luck','Luck'],['insight','Insight'],['morale','Morale'],['sacred','Sacred'],['profane','Profane'],['circumstance','Circumstance'],['untyped','Untyped']];
+const MI_SLOTS=['Belt','Headband','Neck','Shoulders','Body','Chest','Eyes','Head','Hands','Wrists','Ring','Feet','Slotless'];
+const miLabel=k=>(MI_T.find(x=>x[0]===k)||[k,k])[1];
+function miPanel(C){
+  const L=S.mitems=S.mitems||[];
+  const sum=L.filter(x=>x.on&&n(x.bonus)).map(x=>`${esc(x.name||'Unnamed')}: ${miLabel(x.target)} ${sg(n(x.bonus))} ${((MI_TY.find(t=>t[0]===x.type)||[,''])[1]).toLowerCase()}`);
+  return `<section class="panel"><header><h2>Stat-Boosting Magic Items</h2><span class="muted">Tick Worn and the bonus flows into every tab</span></header>
+   <div class="scroll"><table class="geartbl"><colgroup><col style="width:4.5em"><col class="c-item"><col style="width:8.5em"><col style="width:11em"><col style="width:5.5em"><col style="width:12em"><col class="c-x"></colgroup>
+   <thead><tr><th>Worn</th><th class="l">Item</th><th class="l">Slot</th><th class="l">Raises</th><th>Bonus</th><th class="l">Bonus type</th><th></th></tr></thead><tbody>
+   ${L.map((x,i)=>`<tr class="${x.on?'':'future'}"><td><input type="checkbox" class="cs" data-p="mitems.${i}.on" ${x.on?'checked':''} aria-label="Worn"></td>
+     <td class="l">${txt(`mitems.${i}.name`,{label:'Item name'})}</td>
+     <td class="l">${sel(`mitems.${i}.slot`,MI_SLOTS,{label:'Slot'})}</td>
+     <td class="l">${sel(`mitems.${i}.target`,MI_T,{label:'What it raises'})}</td>
+     <td>${num(`mitems.${i}.bonus`,{w:'3.6em',rr:1,label:'Bonus'})}</td>
+     <td class="l">${sel(`mitems.${i}.type`,MI_TY,{label:'Bonus type'})}</td>
+     <td><button class="btn x" data-act="miDel" data-i="${i}" aria-label="Remove item">✕</button></td></tr>`).join('')||'<tr><td colspan="7" class="muted">None on his paper sheet. Add a belt, headband or cloak here when he gets one.</td></tr>'}
+   </tbody></table></div>
+   <div class="row"><button class="btn" data-act="miAdd">Add item</button></div>
+   <p class="note"><b>Now applied:</b> ${sum.length?sum.join(' · '):'nothing'}. Dexterity is <b>${C.ab.dex.sc}</b> (${sg(C.ab.dex.mod)}). Same-type bonuses don’t stack.</p>
+  </section>`;
+}
+function customList(key,title,hint){
+  return `<section class="panel"><header><h2>${title}</h2>${hint?`<span class="muted">${hint}</span>`:''}</header><div>
+   ${S[key].map((a,i)=>`<div class="custom"><div class="row">${txt(`${key}.${i}.name`,{cls:'nm',ph:'Name',label:'Name'})}
+     ${key!=='feats'?`<label class="row"><small class="muted">Uses/day</small>${num(`${key}.${i}.uses`,{w:'3.4em',rr:1,label:'Uses per day'})}</label>${pips(`${key}.${i}`,n(a.uses))}`:''}
+     <button class="btn x" data-act="delItem" data-k="${key}" data-i="${i}" aria-label="Remove">✕</button></div>${area(`${key}.${i}.desc`,{rows:2,label:'Description'})}</div>`).join('')||'<p class="muted">None yet.</p>'}
+   </div><div class="row"><button class="btn" data-act="addItem" data-k="${key}">Add</button></div></section>`;
+}
+function pips(k,max){if(!max)return '';const used=n(S.used[k]);let h='<span class="pips" role="group" aria-label="Uses">';for(let i=0;i<Math.min(max,40);i++)h+=`<button class="pip" data-act="use" data-k="${k}" data-i="${i}" aria-pressed="${i<used}" aria-label="Use ${i+1}"></button>`;return h+'</span>';}
+function pAbilities(){
+  const L=levels();const A=autoAbilities(L);
+  return `<section class="panel"><header><h2>Class Abilities</h2><span class="muted">Built from his Rogue levels. Filled pips are spent uses.</span><button class="btn" data-act="rest" style="margin-left:auto">Rest: reset daily uses</button></header>
+   <div class="ab-list">${A.map(a=>{const k='ov.'+ok(a.key);const hasNote=String(getP(k+'.note')||'').trim();return `<div class="ab"><div class="lv">Rogue ${a.lvl}</div><div><span class="nm">${a.name}</span>${a.ty?`<span class="ty">(${a.ty})</span>`:''}${a.uses?pips(a.key,a.uses):''}${a.uses?` <small class="muted">${a.uses}/day</small>`:''}<div class="ds">${a.ds}</div>
+    ${a.base?`<div class="ovr"><label class="row">Uses/day ${num(k+'.uses',{rr:1,label:a.name+' uses override'})}</label><span>rules say ${a.base}; leave blank to use that</span></div>`:''}
+    ${hasNote?`<div class="ovr" style="display:block">${area(k+'.note',{rows:2,label:a.name+' notes'})}</div>`:`<div class="ovr"><button class="btn x" data-act="addNote" data-k="${k}.note">+ Add note or DM ruling</button></div>`}</div></div>`}).join('')||'<p class="muted">Set a Rogue level on the Overview tab to see abilities here.</p>'}</div></section>
+  ${customList('talents','Rogue Talents',`${Math.floor(L.rogue/2)} at rogue ${L.rogue}; his paper sheet lists ${S.talents.length}`)}
+  <div class="cols">${customList('racial','Racial Traits','Half-orc')}${customList('feats','Feats','8 feats at character level 16, plus Combat Trick')}</div>`;
+}
+
+function condCards(list,map){
+  return list.map(c=>`<button class="cond${c.buff?' buffc':''}" data-act="cond" data-id="${c.id}" aria-pressed="${!!map[c.id]}"><span class="n">${cname(c)}</span><span class="e">${cdesc(c)}</span></button>`).join('');
+}
+function netSummary(){
+  const M=gather(S.cond,S.neg);
+  const lab={atk:'Attack rolls',atkMelee:'Melee attacks',atkRanged:'Ranged attacks',dmg:'Weapon damage',dmgRanged:'Ranged damage',ac:'AC',acDodge:'Dodge AC',acDefl:'Deflection AC (replaces the ring)',acNat:'Natural armor',save:'All saves',fort:'Fortitude',ref:'Reflex',will:'Will',skill:'Skill checks',skillStrDex:'Str/Dex skills',ability:'Ability checks',init:'Initiative',cmd:'CMD',str:'Strength',dex:'Dexterity',con:'Constitution',wis:'Wisdom',cha:'Charisma',speed:'Speed (ft.)'};
+  const rows=Object.entries(M.tot).filter(([,v])=>v).map(([k,v])=>`<div><span>${lab[k]||miLabel(k)}</span><span class="${v<0?'neg':'pos'}">${sg(v)}</span></div>`);
+  const fl={loseDex:'Loses Dex bonus to AC',flatFooted:'Flat-footed: no attacks of opportunity (uncanny dodge keeps his Dex)',dexZero:'Dex treated as 0',strZero:'Str treated as 0',halfSpeed:'Half speed',prone:'+4 AC vs ranged, −4 AC vs melee'};
+  Object.keys(M.flags).forEach(f=>rows.push(`<div><span>${fl[f]||f}</span><span></span></div>`));
+  if(S.cond.wings)rows.push(`<div><span>Fly speed</span><span class="pos">60 ft.</span></div>`);
+  if(M.neg)rows.push(`<div><span>Max HP</span><span class="neg">−${5*M.neg}</span></div>`);
+  return rows.join('')||'<p class="muted">No active effects. Every value is at its base.</p>';
+}
+function pConditions(){
+  return `<section class="panel"><header><h2>Conditions</h2><button class="btn" data-act="clearCond" style="margin-left:auto">Clear all</button></header>
+   <p class="muted" style="margin:0">Tap a card to toggle it. Scores, AC, saves, skills and attacks on every tab update right away. Changed values turn red (worse) or blue (better).</p></section>
+  <div class="cols" style="grid-template-columns:minmax(0,2.2fr) minmax(min(100%,260px),1fr)">
+   <div class="page" style="margin:0">
+    <section class="panel"><header><h2>Conditions</h2></header><div class="condgrid">${condCards(CONDS,S.cond)}</div></section>
+    <section class="panel"><header><h2>Buffs, Spells &amp; Situations</h2></header><div class="condgrid">${condCards(BUFFS,S.cond)}</div></section>
+   </div>
+   <section class="panel" style="position:sticky;top:60px"><header><h2>Net Effect</h2></header>
+    <div class="row"><span class="lbl">Negative levels</span><span class="stepper"><button data-act="neg" data-d="-1" aria-label="Remove negative level">−</button><b>${n(S.neg)}</b><button data-act="neg" data-d="1" aria-label="Add negative level">+</button></span></div>
+    <div class="net">${netSummary()}</div>
+    <p class="note">Same-type bonuses don’t stack: Inspire Courage and Heroism are different types, so both count, but Heroism and Good Hope are both morale. Improved uncanny dodge means foes can’t flank him unless they’re rogues of level ${levels().rogue+4} or higher.</p>
+   </section></div>`;
+}
+
+function pGear(){
+  const C=compute(true);
+  const str=C.ab.str.sc;const heavy=str<=0?0:str<30?HEAVY[str]:(k=>HEAVY[str-10*k]*Math.pow(4,k))(Math.floor((str-20)/10));
+  const sizeMul=[.125,.25,.5,.75,1,2,4,8,16][C.si];const H=heavy*sizeMul,Lt=Math.floor(H/3),Md=Math.floor(H*2/3);
+  const coinWt=(n(S.coins.pp)+n(S.coins.gp)+n(S.coins.sp)+n(S.coins.cp))/50;
+  const wt=S.gear.reduce((a,g)=>a+n(g.wt),0)+n(S.shield.wt)+(S.coinsCarried?coinWt:0);
+  const load=wt<=Lt?'Light':wt<=Md?'Medium':wt<=H?'Heavy':'Overloaded';
+  const arm=k=>`<div class="grid2">${field('Name',txt(`${k}.name`))}${field('AC bonus',num(`${k}.bonus`))}${k==='armor'?field('Max Dex',num(`${k}.maxDex`,{label:'Max Dex (blank = none)'})):''}${field('Check penalty',num(`${k}.acp`))}${k==='armor'?field('Speed in armor',num(`${k}.speed`,{rr:1,label:'Speed in armor (0 = normal)'})):''}</div>`;
+  const pots=S.potions||[];const mxHp=hpMaxNow();
+  return `<section class="panel"><header><h2>Healing Potions</h2><span class="muted">HP ${n(S.hp.cur)} / ${mxHp} · roll the dice, type the total, press Drink</span></header>
+   <div class="scroll"><table class="pots"><thead><tr><th class="l">Potion</th><th>Heals</th><th>Qty</th><th>Dice total</th><th></th><th></th></tr></thead><tbody>
+   ${pots.map((p,i)=>{const dl=diceIn(p.dice),lo=dl.reduce((a,[c])=>a+c,0),hi=dl.reduce((a,[c,s])=>a+c*s,0);
+     return `<tr><td class="l">${txt(`potions.${i}.name`,{w:'100%',label:'Potion name'})}</td>
+      <td class="nowrap">${txt(`potions.${i}.dice`,{w:'3.6em',rr:1,label:'Healing dice'})} + ${num(`potions.${i}.bonus`,{w:'3.2em',rr:1,label:'Healing bonus'})}</td>
+      <td>${num(`potions.${i}.qty`,{w:'3.4em',rr:1,label:'Quantity'})}</td>
+      <td><input type="number" id="pot-roll-${i}" data-cap="${hi}" min="${lo}" max="${hi}" placeholder="${lo}–${hi}" style="width:5em" aria-label="${esc(p.name)} dice total"></td>
+      <td><button class="btn pri" data-act="potDrink" data-i="${i}"${n(p.qty)<1?' disabled':''}>Drink</button></td>
+      <td><button class="btn x" data-act="potDel" data-i="${i}" aria-label="Remove potion">✕</button></td></tr>`}).join('')||'<tr><td colspan="6" class="muted">No potions.</td></tr>'}
+   </tbody></table></div>
+   <div class="row"><button class="btn" data-act="potAdd">Add potion</button></div>
+   <p class="note">Healing as written on his paper sheet (1d8+1, 2d8+2, 3d8+3).</p>
+  </section>
+  <section class="panel"><header><h2>Other Potions &amp; Poisons</h2><span class="muted">Each press takes one off the count</span></header>
+   <div class="scroll"><table class="geartbl" style="min-width:560px"><colgroup><col style="width:28%"><col style="width:5.5em"><col><col style="width:5.5em"><col class="c-x"></colgroup>
+   <thead><tr><th class="l">Item</th><th>Qty</th><th class="l">Effect</th><th></th><th></th></tr></thead><tbody>
+   ${(S.otherPotions||[]).map((p,i)=>`<tr class="${n(p.qty)<1?'future':''}"><td class="l">${txt(`otherPotions.${i}.name`,{label:'Item name'})}</td>
+     <td>${num(`otherPotions.${i}.qty`,{w:'3.4em',rr:1,label:'Quantity'})}</td>
+     <td class="l">${txt(`otherPotions.${i}.effect`,{label:'Effect'})}</td>
+     <td><button class="btn pri" data-act="opDrink" data-i="${i}"${n(p.qty)<1?' disabled':''}>${esc(p.verb||'Drink')}</button></td>
+     <td><button class="btn x" data-act="opDel" data-i="${i}" aria-label="Remove item">✕</button></td></tr>`).join('')||'<tr><td colspan="5" class="muted">None.</td></tr>'}
+   </tbody></table></div>
+   <div class="row"><button class="btn" data-act="opAdd">Add item</button></div>
+  </section>
+  <div class="cols">
+   <section class="panel"><header><h2>Armor</h2></header>${arm('armor')}<p class="note">Death Walker’s Ward: +5 studded leather (armor +3, enhancement +5). Its powers are on the Ward tab.</p></section>
+   <section class="panel"><header><h2>Shield</h2></header>${arm('shield')}</section>
+  </div>
+  ${acItemsPanel()}
+  ${miPanel(C)}
+  <section class="panel"><header><h2>Equipment</h2><span class="muted">${wt.toFixed(1)} lb. carried · ${load} load</span></header>
+    <div class="scroll"><table class="geartbl"><colgroup><col class="c-item"><col class="c-desc"><col class="c-loc"><col class="c-wt"><col class="c-x"></colgroup>
+    <thead><tr><th class="l">Item</th><th class="l">Description</th><th class="l">Location</th><th>Wt</th><th></th></tr></thead><tbody>
+    ${S.gear.map((g,i)=>`<tr><td class="l">${txt(`gear.${i}.item`,{w:'100%',label:'Item'})}</td><td class="l">${txt(`gear.${i}.desc`,{w:'100%',label:'Description'})}</td><td class="l">${txt(`gear.${i}.loc`,{w:'100%',label:'Location'})}</td><td>${num(`gear.${i}.wt`,{step:'0.25',rr:1,label:'Weight'})}</td><td><button class="btn x" data-act="delGear" data-i="${i}" aria-label="Remove item">✕</button></td></tr>`).join('')}
+    </tbody></table></div><div class="row"><button class="btn" data-act="addGear">Add item</button></div></section>
+  <div class="cols">
+   <section class="panel"><header><h2>Carrying &amp; Coin</h2></header>
+    <div class="kv"><label>Light</label><b>up to ${Lt} lb.</b><label>Medium</label><b>${Lt+1}–${Md} lb.</b><label>Heavy</label><b>${Md+1}–${H} lb.</b><label>Lift / drag</label><b>${H*2} / ${H*5} lb.</b></div>
+    ${load!=='Light'?`<p class="note warn">${load} load: max Dex and speed drop, and armor check penalties get worse.</p>`:''}
+    <div class="grid2">${field('Platinum',num('coins.pp',{rr:1}))}${field('Gold',num('coins.gp',{rr:1}))}${field('Silver',num('coins.sp',{rr:1}))}${field('Copper',num('coins.cp',{rr:1}))}</div>
+    <label class="row"><input type="checkbox" class="cs" data-p="coinsCarried" ${S.coinsCarried?'checked':''}> <small>He carries the coins himself (${coinWt.toFixed(1)} lb. at 50 coins to the pound)</small></label>
+    ${field('In the bank',txt('bank'))}
+   </section>
+   <section class="panel"><header><h2>Character History</h2></header>${area('history',{rows:9,ph:'His paper sheet leaves this blank.'})}</section>
+  </div>
+  <section class="panel"><header><h2>Session Notes</h2></header>${area('notes',{rows:6})}</section>`;
+}
+
+/* ---------- refresh computed outputs ---------- */
+function refresh(){
+  const A=compute(true),B=compute(false);
+  document.querySelectorAll('[data-o]').forEach(el=>{const k=el.dataset.o,a=A.O[k];if(!a)return;el.textContent=a.t;
+    const b=B.O[k];if(b&&typeof a.n==='number'&&a.n!==b.n&&k!=='hp.cur'&&!k.startsWith('sk.spent')&&!k.endsWith('.vp')&&k!=='sizeName'&&k!=='speed')el.dataset.d=a.n<b.n?'down':'up';else delete el.dataset.d;});
+  const sp=document.getElementById('spent');if(sp)sp.classList.toggle('over',A.O['sk.spent'].n>A.O['sk.avail'].n);
+  updRolls(A);
+  const cls=S.classes.filter(c=>n(c.level)>0).map(c=>`${esc(c.name)} ${Math.floor(n(c.level))}`).join(' / ');
+  document.getElementById('subline').innerHTML=`${S.info.nick?`“${esc(S.info.nick)}” · `:''}<b>${esc(S.info.race||'')}</b> ${cls}${S.info.alignment?` · ${esc(S.info.alignment)}`:''}`;
+  const res=resName(),wings=!!S.cond.wings,fl=n(S.used.flight)>=1;
+  document.getElementById('quick').innerHTML=
+    `<button class="qt dim" data-act="sneakQuick" aria-pressed="${!!rolls.sneak}" title="Add sneak attack dice to the attack rolls">Sneak attack ${A.O.sneak.t}</button>`+
+    `<button class="qt" data-act="quick" data-id="flanking" aria-pressed="${!!S.cond.flanking}" title="+2 melee attack; sneak attack applies">Flanking</button>`+
+    `<button class="qt" data-act="quick" data-id="haste" aria-pressed="${!!S.cond.haste}" title="+1 attack, +1 dodge AC and Reflex, +30 ft. speed">Haste</button>`+
+    `<button class="qt" data-act="quick" data-id="courage" aria-pressed="${!!S.cond.courage}" title="Namfoodle’s Inspire Courage: +4 attack and damage">Inspire Courage +4</button>`+
+    `<button class="qt rav" data-act="${wings?'wingsOff':'wings'}" aria-pressed="${wings}" title="Raven’s Flight: fly 60 ft. for 1 hour, once per long rest"${!wings&&fl?' disabled':''}>${wings?'Wings out · fly 60':fl?'Raven’s Flight used':'Raven’s Flight'}</button>`+
+    `<button class="qt rav" data-act="tab" data-t="ward" aria-pressed="${!!res}" title="The Ward’s resistance: change it on the Ward tab">${res?`Ward: ½ ${esc(res.toLowerCase())}`:'Ward: pick a resistance'}</button>`+
+    `<button class="qt rav" data-act="${S.cond.smite?'smiteEnd':'smite'}" aria-pressed="${!!S.cond.smite}" title="Blessing: Smite Evil, once per day"${!S.cond.smite&&n(S.used.smite)>=1?' disabled':''}>${S.cond.smite?`Smiting · ${sg(levels().total)} dmg`:n(S.used.smite)>=1?'Smite used':'Smite Evil'}</button>`;
+  const chips=A.M.active.filter(c=>!['flanking','haste','courage','wings','smite'].includes(c.id)).map(c=>`<button class="chip${c.buff?' buff':''}" data-act="tab" data-t="conditions">${cname(c)}</button>`);
+  if(A.M.neg)chips.push(`<button class="chip" data-act="tab" data-t="conditions">${A.M.neg} negative level${A.M.neg>1?'s':''}</button>`);
+  document.getElementById('chips').innerHTML=chips.join('');
+  const mx=A.O['hp.max'].n,cu=A.O['hp.cur'].n;const f=document.getElementById('hpfill');f.style.width=Math.max(0,Math.min(100,cu/Math.max(1,mx)*100))+'%';f.classList.toggle('low',cu<=mx/4);
+}
+
+/* ---------- art ---------- */
+let assets=null;
+const DEFAULT_ART='img/lork.webp';
+function artSrc(){if(S.art===false)return null;if(!S.art)return DEFAULT_ART;if(S.art.url)return S.art.url;if(S.art.id)return '/_blob/'+S.art.id;return S.art.data||null}
+function renderArt(){
+  const el=document.getElementById('art');const src=artSrc();
+  el.innerHTML=src?`<img src="${esc(src)}" alt="Portrait of ${esc(S.info.name||'Lork')}"><div class="tools"><button data-act="artPick">Change</button><button data-act="artRemove">Remove</button></div>`
+   :`<button class="pick" data-act="artPick" aria-label="Add character art"></button><div class="ph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-9 8"/></svg><span>Add character art</span><small>Click or drop an image</small></div>`;
+}
+function shrink(file,max,q){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',q))};im.onerror=rej;im.src=r.result};r.onerror=rej;r.readAsDataURL(file)})}
+const OK_TYPES=['image/png','image/jpeg','image/gif','image/webp'];
+async function setArt(file){
+  if(!file||!/^image\//.test(file.type)){setStatus('Choose an image file (PNG, JPG, GIF or WebP).');return}
+  setStatus('Adding art…');
+  try{
+    if(assets){let blob=file;
+      if(!OK_TYPES.includes(file.type)||file.size>19e6){const d=await shrink(file,1600,.88);blob=await (await fetch(d)).blob();}
+      const r=await assets.upload(blob,{type:blob.type||'image/jpeg'});const old=S.art&&S.art.id;S.art={id:r.id};
+      if(old&&old!==r.id)assets.delete(old).catch(()=>{});
+    } else { let d=await shrink(file,700,.82); if(d.length>180000)d=await shrink(file,480,.75); S.art={data:d}; }
+    renderArt();scheduleSave(true);
+  }catch(e){setStatus(e&&e.code==='too_large'?'That image is too large. Choose one under 20 MB.':'Couldn’t add that image. Try a PNG or JPG.')}
+}
+
+/* ---------- link to the DM's party sheet: HP, daily uses and a short log ---------- */
+function dayLog(txt){(S.sdLog=S.sdLog||[]).push({t:new Date().toISOString(),txt});if(S.sdLog.length>60)S.sdLog=S.sdLog.slice(-60)}
+function dmReport(){
+  const mm=S.talents.findIndex(t=>/minor magic/i.test(t.name||'')),mmMax=mm>=0?n(S.talents[mm].uses):0;
+  const powers=[['embrace','Death’s Embrace',Math.min(1,n(S.used.embrace)),1,''],['flight','Raven’s Flight',Math.min(1,n(S.used.flight)),1,''],
+    ['smite','Smite Evil',Math.min(1,n(S.used.smite)),1,''],['resil','Resiliency',Math.min(1,n(S.used.resil)),1,''],['ferocity','Orc Ferocity',Math.min(1,n(S.used.ferocity)),1,'']];
+  if(mmMax)powers.push(['talents.'+mm,'Minor Magic',Math.min(mmMax,n(S.used['talents.'+mm])),mmMax,'']);
+  const fb=(S.charged||[]).find(x=>/fireball/i.test(x.name||''));
+  const res=resName();
+  return {t:'saviors-hero',v:1,id:'lork',name:S.info.name||'Lork',at:new Date().toISOString(),
+    hp:{cur:n(S.hp.cur),max:hpMaxNow(),temp:n(S.hp.temp),nl:n(S.hp.nl),neg:Math.max(0,n(S.neg))},
+    powers,powersTitle:'rogue powers',
+    note:[res?`Ward resists ${res.toLowerCase()}`:'Ward resistance not picked',S.cond.wings?'raven wings out (fly 60)':'',S.cond.smite?'smiting evil':'',fb?`wand of fireball ${n(fb.ch)} charges`:''].filter(Boolean).join(' · '),
+    log:(S.sdLog||[]).slice(-25)};
+}
+/* everything the DM's party sheet shows live: defenses, saves, speed and active conditions */
+function liveStats(){
+  const A=compute(true),o=k=>A.O[k]?A.O[k].n:null,t=k=>A.O[k]?A.O[k].t:'';
+  return {ac:o('ac.total'),touch:o('ac.touch'),ff:o('ac.ff'),fort:o('sv.fort'),ref:o('sv.ref'),will:o('sv.will'),
+    rv:3,init:t('init'),speed:t('speed'),cmb:t('cmb'),cmd:t('cmd'),perception:t('sk.perception'),neg:A.M.neg||0,
+    level:A.L.total,classes:S.classes.filter(c=>n(c.level)>0).map(c=>`${c.name} ${Math.floor(n(c.level))}`).join(' / '),
+    conds:A.M.active.map(c=>({n:String(cname(c)),buff:!!c.buff}))};
+}
+/* a long rest called from the DM's party sheet: applied once per call, same as pressing Long rest here */
+function watchPartyRest(db){
+  db.doc('party/rest').onSnapshot(s=>{
+    if(!s.exists)return;const at=String((s.data()||{}).at||'');
+    if(!at||at<=(S.lastPartyRest||'2026-10-09'))return;
+    S.lastPartyRest=at;const h=longRest(true);hpLog(`Long rest (called by the DM), healed ${h}`);
+    render();setStatus(`Long rest from the DM: healed ${h} HP, daily uses reset`);scheduleSave(true);
+  },()=>{});
+}
+function pushLink(){const rep=Object.assign(dmReport(),{live:liveStats(),restAt:S.lastPartyRest||''});try{localStorage.setItem('saviors-link-lork',JSON.stringify(rep))}catch(e){}if(window.sheetsReport)window.sheetsReport('lork',rep)}
+function dmPanel(){
+  const L=(S.sdLog||[]).slice(-12).reverse();
+  return `<section class="panel" id="dmlink"><header><h2>Daily Log &amp; DM Link</h2><span class="muted">HP, daily powers and wand charges, for the DM’s party sheet</span></header>
+   <p class="note" style="margin:0">Live: HP, AC, saves, conditions and daily uses reach the DM’s party sheet a few seconds after each change. When the DM calls a long rest from the party sheet, it’s applied here too.</p>
+   ${L.length?`<div class="hplog">${L.map(e=>`<div><span>${esc(e.txt)}</span><b>${esc(new Date(e.t).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}))}</b></div>`).join('')}<button class="btn x" data-act="sdLogClear">Clear log</button></div>`:'<p class="muted" style="margin:0">Ward powers, wand charges and other daily uses show up here.</p>'}
+  </section>`;
+}
+/* ---------- persistence ---------- */
+let dbRef=null,statusText='',saveTimer=null,saving=false,dirty=false,readOnly=false;
+function setStatus(t){statusText=t;const el=document.getElementById('status');if(el)el.textContent=t}
+function scheduleSave(now){if(readOnly)return;dirty=true;setStatus('Unsaved changes');clearTimeout(saveTimer);saveTimer=setTimeout(flush,now?50:700)}
+async function flush(){
+  if(saving||!dirty)return;saving=true;dirty=false;setStatus('Saving…');
+  const data=clone(S);pushLink();
+  try{
+    if(dbRef){await dbRef.set(data);setStatus('Saved');}
+    else{setStatus(ls.set('lork-sheet',JSON.stringify(data))?'Saved in this browser':'Not saved: storage is blocked here');}
+  }catch(e){
+    if(e&&e.code==='invalid_argument'){readOnly=true;setStatus('View only: changes aren’t saved');}
+    else if(e&&e.code==='unavailable'){dirty=true;setStatus('Connection hiccup, retrying…');setTimeout(flush,1500+Math.random()*1000);}
+    else{dirty=true;setStatus('Not saved. Edit any field to try again.');}
+  }
+  saving=false;if(dirty&&!readOnly)flush();
+}
+const newId=()=>'w'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+function load(d){
+  const s=merge(DEFAULT,d||{});
+  s.attacks.forEach(a=>{if(!a.id)a.id=newId()});
+  return s;
+}
+async function boot(){
+  const local=ls.get('lork-sheet');if(local){try{S=load(JSON.parse(local))}catch(e){}}
+  render();setStatus('Loading…');
+  const cl=window.claude;
+  if(!cl||!cl.use){document.getElementById('backup').hidden=false;setStatus(local?'Saved in this browser':'Edits save in this browser');return}
+  try{
+    const [db,as]=await Promise.all([cl.use('db'),cl.use('assets').catch(()=>null)]);assets=as;
+    if(db){dbRef=db.doc('sheets/lork');const snap=await dbRef.get();
+      if(snap.exists&&!dirty){S=load(clone(snap.data()));render();}
+      setStatus(dirty?'Unsaved changes':'Saved');if(dirty)flush();watchPartyRest(db);pushLink();}
+    else{document.getElementById('backup').hidden=false;setStatus('Edits save in this browser');}
+  }catch(e){setStatus('Couldn’t load saved sheet; showing local copy')}
+}
+
+/* level up: snapshot before/after so the summary lists exactly what changed */
+let lastSummary='';
+function snap(){const C=compute(false);return{lvl:C.L.total,bab:C.bab,base:{...C.base},avail:C.O['sk.avail'].n,hp:hpBase(),sneak:sneakDice(),
+  ab:autoAbilities(C.L).map(a=>a.name+(a.uses?` (${a.uses}/day)`:'')),L:C.L}}
+function levelUp(){
+  const $=id=>document.getElementById(id);const v=$('lu-cls').value,how=($('lu-hp')||{}).value||'avg',roll=n(($('lu-roll')||{}).value),fcb=$('lu-fcb').value;
+  if(how==='roll'&&!(roll>=1)){setStatus('Enter the hit die roll first.');$('lu-roll').focus();return}
+  const before=snap();let idx,added=false;
+  if(v.startsWith('row:'))idx=+v.slice(4);
+  else{added=true;S.classes.push(v.startsWith('preset:')?Object.assign({preset:v.slice(7),level:0},clone(PRESETS[v.slice(7)])):{preset:'Custom',level:0,name:'New class',hd:8,bab:'3/4',fort:'poor',ref:'poor',will:'good',prestige:false,sp:2,skills:''});idx=S.classes.length-1}
+  const c=S.classes[idx];c.level=Math.floor(n(c.level))+1;
+  const hd=Math.max(1,n(c.hd)||8);const die=how==='max'?hd:how==='roll'?Math.min(hd,Math.floor(roll)):avgHD(hd);
+  if(fcb==='hp')S.fcbHp=n(S.fcbHp)+1; if(fcb==='skill')S.fcbSkill=n(S.fcbSkill)+1;
+  let gain=0;
+  if(S.hp.mode!=='auto'){gain=Math.max(1,die+conMod())+(fcb==='hp'?1:0);S.hp.max=n(S.hp.max)+gain;}
+  const after=snap();const delta=after.hp-before.hp;S.hp.cur=n(S.hp.cur)+delta;
+  (S.levelLog=S.levelLog||[]).push({row:idx,added,gain,delta,fcb});
+  const li=[];const ch=(a,b)=>a===b?`${sg(b)} (no change)`:`${sg(a)} → <b>${sg(b)}</b>`;
+  li.push(`Hit points ${before.hp} → <b>${after.hp}</b> (+${delta}${S.hp.mode!=='auto'?`: ${how==='avg'?'average':how==='max'?'max':'rolled'} ${die} + Con ${sg(conMod())}${fcb==='hp'?' + 1 favored class':''}`:''})`);
+  li.push(`Base attack ${ch(before.bab,after.bab)}`);
+  li.push(`Base saves: Fort ${ch(before.base.fort,after.base.fort)}, Ref ${ch(before.base.ref,after.base.ref)}, Will ${ch(before.base.will,after.base.will)}`);
+  li.push(`Skill ranks to spend: <b>+${after.avail-before.avail}</b> (max ranks per skill is now ${after.lvl})`);
+  if(after.sneak!==before.sneak)li.push(`Sneak attack +${before.sneak}d6 → <b>+${after.sneak}d6</b> (Bleeding Attack goes up with it)`);
+  if(after.L.rogue>before.L.rogue&&after.L.rogue%2===0)li.push('<b>Choose a rogue talent</b> (every even rogue level)');
+  const gained=after.ab.filter(x=>!before.ab.includes(x));if(gained.length)li.push(`New or improved: <b>${gained.map(esc).join(', ')}</b>`);
+  if(after.lvl%2===1)li.push(`<b>Choose a feat</b> (character level ${after.lvl})`);
+  if(after.lvl%4===0)li.push('<b>+1 to an ability score</b> (every 4th character level)');
+  lastSummary=`<div class="summary"><h3>Level ${after.lvl}: ${esc(c.name)} ${c.level}</h3><ul>${li.map(x=>`<li>${x}</li>`).join('')}</ul></div>`;
+}
+function undoLevel(){
+  const e=(S.levelLog||[]).pop();if(!e)return;const c=S.classes[e.row];if(!c)return;
+  c.level=Math.max(0,Math.floor(n(c.level))-1);
+  if(S.hp.mode!=='auto')S.hp.max=n(S.hp.max)-e.gain;
+  S.hp.cur=n(S.hp.cur)-e.delta;
+  if(e.fcb==='hp')S.fcbHp=Math.max(0,n(S.fcbHp)-1); if(e.fcb==='skill')S.fcbSkill=Math.max(0,n(S.fcbSkill)-1);
+  if(e.added&&c.level<=0)S.classes.splice(e.row,1);
+  lastSummary=`<div class="summary"><h3>Removed the last level</h3><p class="muted">Back to character level ${levels().total}.</p></div>`;
+}
+
+function hpLog(txt){(S.hpLog=S.hpLog||[]).push({txt,cur:n(S.hp.cur)});if(S.hpLog.length>12)S.hpLog=S.hpLog.slice(-12)}
+
+/* attack & damage roll helper: rolls live only in this view (not saved) */
+const rolls={};
+function threatFrom(crit){const m=String(crit||'').match(/(\d+)\s*[–-]\s*20/);return m?+m[1]:20}
+function diceIn(str){return [...String(str||'').matchAll(/(\d*)d(\d+)/g)].map(m=>[+(m[1]||1),+m[2]])}
+function rollBox(key,its){const r=rolls[key]||{};
+  return `<div class="roll" data-rk="${key}">
+   ${its&&its.length>1?`<select data-roll="${key}.it" aria-label="Which attack">${its.map((l,k)=>`<option value="${k}"${n(r.it)===k?' selected':''}>${ORD[k]} attack ${l}</option>`).join('')}</select>`:''}
+   <span class="rgrp"><label class="rf">d20 <input type="number" min="1" max="20" data-roll="${key}.d20" value="${r.d20??''}" aria-label="d20 roll"></label><span class="rres" id="ra-${key}"></span></span>
+   <label class="rf critbox"><input type="checkbox" class="cs" data-roll="${key}.crit" ${r.crit?'checked':''}> Crit</label>
+   <span class="rgrp"><label class="rf">Damage dice <input type="number" min="0" data-roll="${key}.dmg" value="${r.dmg??''}" aria-label="Total of weapon damage dice rolled"></label>${rolls.sneak?`<label class="rf sneakbox">Sneak <span class="snn"></span> <input type="number" min="0" data-roll="${key}.sn" value="${r.sn??''}" aria-label="Sneak attack dice total"></label>`:''}<span class="rres" id="rd-${key}"></span></span>
+  </div>`}
+function rollInfo(key,C){
+  if(key[0]==='t'){const x=(C.twf||[])[+key.slice(1)];return x?{hit:x.hit,db:x.db,dmgT:x.dmg,crit:x.w.crit}:null}
+  const i=+key.slice(1),a=S.attacks[i];if(!a||!C.O[`atk.${i}.hit`])return null;const it=n((rolls[key]||{}).it);
+  return{hit:C.O[`atk.${i}.hit`].n-5*it,db:C.O[`atk.${i}.dmg`].n,dmgT:C.O[`atk.${i}.dmg`].t,crit:a.crit};
+}
+function updRolls(C){
+  const sn=rolls.sneak?sneakDice():0;const roundDmg={};
+  document.querySelectorAll('[data-rk]').forEach(el=>{const k=el.dataset.rk,info=rollInfo(k,C);if(!info)return;const r=rolls[k]||{};
+    const A=document.getElementById('ra-'+k),D=document.getElementById('rd-'+k);
+    if(n(r.d20)>=1){const d=Math.floor(n(r.d20)),th=threatFrom(info.crit),h=rowHit(k,C);
+      A.innerHTML=`= <b>${d+info.hit}</b> to hit${h===true?' <em class="crit">HIT</em>':h===false?' <em class="miss">MISS</em>':''}${d===20?' <em class="crit">natural 20, threat: roll to confirm</em>':d===1?' <em class="miss">natural 1</em>':d>=th?' <em class="crit">threat: roll to confirm</em>':''}`;}
+    else A.innerHTML=`<span class="muted">${sg(info.hit)}</span>`;
+    const mult=r.crit?critMult(info.crit):1,rg=diceRange(info);
+    const di=el.querySelector(`[data-roll="${k}.dmg"]`);if(di){di.max=rg.max;di.min=rg.min;di.title=`${rg.txt}: ${rg.min}–${rg.max}`}
+    const sb=el.querySelector('.sneakbox');let snRoll=0;
+    if(sb){sb.querySelector('.snn').textContent=`+${sn}d6`;const si=sb.querySelector('input');si.max=sn*6;si.min=sn;
+      snRoll=r.sn!==''&&r.sn!=null?Math.min(sn*6,Math.floor(n(r.sn))):0;}
+    if(r.dmg!==''&&r.dmg!=null){const dice=Math.floor(n(r.dmg));roundDmg[k]=Math.max(1,dice*mult+info.db+snRoll);
+      D.innerHTML=`= <b>${roundDmg[k]}</b> damage${r.crit?' <em class="crit">critical</em>':''} <small class="muted">(dice ${dice}${mult>1?` ×${mult}`:''} ${sg(info.db)}${snRoll?` + sneak ${snRoll}`:''})</small>${r.capped?` <small class="miss">${esc(r.capped)}</small>`:''}`;}
+    else D.innerHTML=`<span class="muted">${esc(info.dmgT)}${sn?` +${sn}d6 sneak`:''}${r.crit?` · crit: weapon dice ×${critMult(info.crit)}`:''}</span>`;});
+  roundTotals(C,roundDmg);
+}
+/* round total: adds the damage of every attack in the sequence that has damage entered and isn't marked MISS */
+function roundTotals(C,roundDmg){
+  ['t'].forEach(p=>{const box=document.getElementById('rt-'+p);if(!box)return;const parts=[];let sum=0,miss=0;
+    document.querySelectorAll(`[data-rk^="${p}"]`).forEach(el=>{const k=el.dataset.rk;if(rowHit(k,C)===false){miss++;return}if(roundDmg[k]==null)return;
+      parts.push(`${ORD[+k.slice(1)]} ${roundDmg[k]}`);sum+=roundDmg[k];});
+    box.innerHTML=`<span class="lbl">Round total</span>`+(parts.length
+      ?` <b class="rtot">${sum}</b> damage from ${parts.length} hit${parts.length>1?'s':''} <small class="muted">(${parts.join(' + ')})${miss?` · ${miss} miss${miss>1?'es':''} not counted`:''}</small>`
+      :` <span class="muted">Type the damage for each attack that hits and the total adds up here. Attacks marked MISS are left out.</span>`);});
+}
+/* true = hit, false = miss, null = unknown (no d20 yet, or no target AC entered) */
+function rowHit(k,C){const info=rollInfo(k,C),r=rolls[k]||{};if(!info||!(n(r.d20)>=1))return null;const d=Math.floor(n(r.d20));
+  if(d===1)return false;if(d===20)return true;if(rolls.ac===''||rolls.ac==null)return null;return d+info.hit>=n(rolls.ac)}
+function critMult(c){const m=String(c||'').match(/[×x]\s*(\d)/i);return m?+m[1]:2}
+/* lowest and highest the weapon's damage dice can roll (sneak attack has its own box) */
+function diceRange(info){const list=diceIn(info.dmgT);return{min:list.reduce((a,[c])=>a+c,0),max:list.reduce((a,[c,s])=>a+c*s,0),txt:list.map(([c,s])=>`${c}d${s}`).join(' + ')}}
+
+/* black feathers for Raven's Flight */
+function feathers(x,y,count){if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  for(let i=0;i<(count||18);i++){const p=document.createElement('div');p.className='fx-feather';const a=Math.random()*Math.PI*2,r=30+Math.random()*90;
+    p.style.left=x+'px';p.style.top=y+'px';p.style.setProperty('--dx',Math.cos(a)*r+'px');p.style.setProperty('--dy',(Math.abs(Math.sin(a))*r*.6+40+Math.random()*80)+'px');
+    p.style.setProperty('--r0',(Math.random()*360).toFixed(0)+'deg');p.style.setProperty('--r1',(Math.random()*720-360).toFixed(0)+'deg');
+    p.style.animationDelay=(Math.random()*.2)+'s';document.body.appendChild(p);setTimeout(()=>p.remove(),2300)}}
+function spreadWings(btn){
+  if(n(S.used.flight)>=1)return;S.used.flight=1;S.cond.wings=true;S.cond.haste=true;dayLog('Raven’s Flight: black raven wings, fly 60 ft. for 1 hour, and haste for 1 minute (Blessing)');
+  if(btn){const rc=btn.getBoundingClientRect();feathers(rc.left+rc.width/2,rc.top+rc.height/2,16);}
+  const ar=document.getElementById('art').getBoundingClientRect();setTimeout(()=>feathers(ar.left+ar.width/2,Math.max(40,ar.top+ar.height*.35),22),250);
+}
+
+/* long rest: heals character level + Con mod, clears nonlethal, resets daily uses (hero points and weekly items kept) */
+function restHeal(){return Math.max(1,levels().total+conMod())}
+function longRest(heal){
+  let h=0;
+  if(heal){const mx=hpMaxNow();const before=n(S.hp.cur);S.hp.cur=Math.min(mx,before+restHeal());h=S.hp.cur-before;S.hp.nl=0;}
+  const keep={};Object.keys(S.used).forEach(k=>{if(k==='hero'||/^w\./.test(k))keep[k]=S.used[k]});S.used=keep;
+  S.cond.wings=false;S.cond.smite=false;
+  dayLog('Rested: Death’s Embrace, Raven’s Flight, Smite Evil, Resiliency, Orc Ferocity and Minor Magic reset');
+  return h;
+}
+
+/* ---------- events ---------- */
+document.addEventListener('input',e=>{const t=e.target;
+  if(t.dataset&&t.dataset.cap){const v=Math.floor(n(t.value)),c=n(t.dataset.cap);if(t.value!==''&&v>c)t.value=c;return;}
+  if(t.dataset&&t.dataset.roll){const [k,f]=t.dataset.roll.split('.');
+    if(!f){rolls[k]=t.type==='checkbox'?t.checked:(t.value===''?'':n(t.value));document.querySelectorAll(`[data-roll="${k}"]`).forEach(x=>{if(x!==t){if(x.type==='checkbox')x.checked=t.checked;else x.value=t.value}});
+      if(k==='sneak'){render();return}
+      updRolls(compute(true));return;}
+    const r=rolls[k]=rolls[k]||{};
+    if(t.type==='checkbox')r[f]=t.checked;
+    else{let v=t.value===''?'':Math.floor(n(t.value));
+      if(v!==''){const info=rollInfo(k,compute(true));let lo=1,hi=Infinity,lab='';
+        if(f==='d20'){hi=20}
+        else if(f==='sn'){lo=sneakDice();hi=sneakDice()*6;lab=`${sneakDice()}d6`}
+        else if(f==='dmg'&&info){const rg=diceRange(info);lo=rg.min;hi=rg.max;lab=rg.txt}
+        if(hi!==Infinity&&v>hi){if(f!=='d20')r.capped=`${lab} can only roll ${lo}–${hi}`;v=hi;t.value=hi;}
+        else if(f!=='d20')r.capped=v<lo?`${lab} rolls at least ${lo}`:'';}
+      r[f]=v;}
+    updRolls(compute(true));return;}
+  const p=t.dataset&&t.dataset.p;if(!p)return;
+  let v=t.type==='checkbox'?t.checked:t.type==='number'?(t.value===''?'':n(t.value)):t.value;setP(p,v);
+  if(t.tagName==='SELECT'&&/classes\.\d+\.preset/.test(p)&&PRESETS[v]){const i=+p.split('.')[1];Object.assign(S.classes[i],clone(PRESETS[v]),{preset:v,level:S.classes[i].level});}
+  if(t.type==='checkbox'||t.tagName==='SELECT'){render()}else refresh();
+  scheduleSave();});
+document.addEventListener('change',e=>{const t=e.target;
+  if(t.dataset&&t.dataset.p&&t.hasAttribute('data-rr')&&t.tagName==='INPUT'&&t.type!=='checkbox'){const f=t.id;render();const el=document.getElementById(f);if(el)el.focus({preventScroll:true});}});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,i=+b.dataset.i;
+  const amt=id=>Math.max(0,Math.floor(n((document.getElementById(id)||{}).value)));
+  const takeDmg=d=>{const tmp=n(S.hp.temp),use=Math.min(tmp,d);S.hp.temp=tmp-use;S.hp.cur=n(S.hp.cur)-(d-use);return use};
+  const afterHit=()=>{if(n(S.hp.cur)<=0)setTimeout(()=>setStatus(`Down to ${n(S.hp.cur)} HP: Death’s Embrace, Resiliency or Orc Ferocity can keep him up (Overview tab)`),700)};
+  switch(a){
+   case 'tab':tab=b.dataset.t;ls.set('lork-tab',tab);render();window.scrollTo({top:Math.min(window.scrollY,document.getElementById('tabs').offsetTop),behavior:'instant'});return;
+   case 'addClass':S.classes.push(Object.assign({preset:'Custom',level:1},{name:'New class',hd:8,bab:'3/4',fort:'poor',ref:'poor',will:'good',prestige:false,sp:2,skills:''}));render();break;
+   case 'delClass':S.classes.splice(i,1);render();break;
+   case 'addAtk':S.attacks.push({id:newId(),name:'',kind:'melee',abil:'dex',enh:0,misc:0,dice:'1d4',dmgAbil:'str',dmgMisc:0,extra:'',crit:'×2',range:'',type:'',uses:0,notes:'',desc:''});render();break;
+   case 'delAtk':S.attacks.splice(i,1);render();break;
+   case 'mvAtk':{const j=i+n(b.dataset.d);if(j<0||j>=S.attacks.length)return;const t=S.attacks[i];S.attacks[i]=S.attacks[j];S.attacks[j]=t;render();break;}
+   case 'addItem':S[b.dataset.k].push({name:'',desc:'',uses:0});render();break;
+   case 'delItem':S[b.dataset.k].splice(i,1);render();break;
+   case 'addGear':S.gear.push({item:'',desc:'',loc:'',wt:0});render();break;
+   case 'delGear':S.gear.splice(i,1);render();break;
+   case 'use':{const k=b.dataset.k,u=n(S.used[k]);S.used[k]=(i===u-1)?u-1:i+1;
+     const mm=S.talents.findIndex(t=>/minor magic/i.test(t.name||''));
+     const nm={embrace:'Death’s Embrace',flight:'Raven’s Flight',smite:'Smite Evil',resil:'Resiliency',ferocity:'Orc Ferocity',['talents.'+mm]:'Minor Magic'}[k];
+     if(nm)dayLog(S.used[k]>u?`Used ${nm}`:`Undid ${nm}`);
+     if(k==='flight'&&!S.used[k])S.cond.wings=false;
+     if(k==='smite'&&!S.used[k])S.cond.smite=false;
+     render();break;}
+   /* Death Walker's Ward */
+   case 'wres':S.ward=S.ward||{};S.ward.res=S.ward.res===b.dataset.v?'':b.dataset.v;dayLog(S.ward.res?`Death Walker’s Ward now resists ${resName().toLowerCase()}`:'Cleared the Ward’s resistance');render();break;
+   case 'embrace':{if(n(S.used.embrace)>=1)return;if(n(S.hp.cur)>0){setStatus('Death’s Embrace triggers when he reaches 0 HP. Take the damage first.');return}
+     S.used.embrace=1;S.hp.cur=1;
+     hpLog(`Death’s Embrace: stabilized at ${S.hp.cur} HP`);dayLog('Death’s Embrace: stabilized at 1 HP (immune to its exhaustion)');
+     const rc=b.getBoundingClientRect();feathers(rc.left+rc.width/2,rc.top+rc.height/2,12);render();break;}
+   case 'wings':spreadWings(b);render();break;
+   case 'wingsOff':S.cond.wings=false;dayLog('Raven’s Flight: folded the wings');render();break;
+   case 'resil':{if(n(S.used.resil)>=1)return;const r=levels().rogue;S.used.resil=1;S.hp.temp=Math.max(n(S.hp.temp),r);hpLog(`Resiliency: ${r} temp HP for 1 minute`);dayLog(`Resiliency: ${r} temp HP`);render();break;}
+   case 'ferocity':{if(n(S.used.ferocity)>=1)return;S.used.ferocity=1;dayLog('Orc Ferocity: fights on for one more round');setStatus('Orc Ferocity: he can act for one more round, as if disabled.');render();break;}
+   case 'sneakQuick':rolls.sneak=!rolls.sneak;render();return;
+   /* Blessing of the Raven Queen */
+   case 'smite':{if(n(S.used.smite)>=1)return;S.used.smite=1;S.cond.smite=true;dayLog(`Smite Evil: ${sg(smiteCha())} attack and deflection AC, ${sg(levels().total)} damage against the target`);render();break;}
+   case 'smiteEnd':S.cond.smite=false;dayLog('Smite Evil ended: the target is dead');render();break;
+   case 'quarry':dayLog('Detect Quarry: concentrated to sense Vecna’s distance and direction');setStatus('Detect Quarry: ask the DM how far, and which way, Vecna is.');render();break;
+   case 'fastheal':{const r=b.dataset.r?1:amt('fh-rounds');if(!r)return;const mx=hpMaxNow(),bf=n(S.hp.cur);S.hp.cur=Math.min(mx,bf+r);hpLog(`Fast healing, ${r} round${r>1?'s':''}: +${S.hp.cur-bf}`);render();break;}
+   case 'undying':{const mx=hpMaxNow();S.hp.cur=mx;S.hp.nl=0;S.hp.temp=0;S.cond={};S.neg=0;S.bless=S.bless||{};S.bless.returns=n(S.bless.returns)+1;
+     hpLog('Returned from death (Undying Servitude): full HP, no conditions');dayLog('Undying Servitude: returned from death, 8 hours later');render();break;}
+   /* wands and ammunition */
+   case 'chg':{const x=S.charged[i];if(!x)return;x.ch=Math.max(0,n(x.ch)+n(b.dataset.d));if(n(b.dataset.d)<0)dayLog(`${x.name}: 1 charge (${x.ch} left)`);render();break;}
+   case 'fireball':{const x=(S.charged||[]).find(w=>/fireball/i.test(w.name||'')&&n(w.ch)>0);if(!x)return;x.ch=n(x.ch)-1;const r=dice(10,6);
+     S.fbLast=`Fireball: <b>${r}</b> fire to everything in the 20-ft. radius (Reflex half, ${Math.floor(r/2)}). ${x.ch} charge${x.ch===1?'':'s'} left.`;dayLog(`Wand of Fireball: ${r} fire (${x.ch} charges left)`);render();break;}
+   case 'chAdd':(S.charged=S.charged||[]).push({name:'',ch:0,notes:''});render();break;
+   case 'chDel':S.charged.splice(i,1);render();break;
+   case 'ammo':{const x=S.ammo[i];if(!x)return;x.left=Math.max(0,n(x.left)+n(b.dataset.d));render();break;}
+   case 'ammoAdd':(S.ammo=S.ammo||[]).push({name:'',max:20,left:20,notes:''});render();break;
+   case 'ammoDel':S.ammo.splice(i,1);render();break;
+   case 'ammoRefill':(S.ammo||[]).forEach(x=>x.left=n(x.max));render();break;
+   case 'sdLogClear':S.sdLog=[];render();break;
+   case 'rest':longRest(false);render();break;
+   case 'addNote':setP(b.dataset.k,' ');render();{const el=document.getElementById('i-'+b.dataset.k.replace(/\W/g,'_'));if(el){el.value='';el.focus()}}break;
+   case 'levelUp':levelUp();render();break;
+   case 'undoLevel':undoLevel();render();break;
+   case 'quick':{const id=b.dataset.id;S.cond[id]=!S.cond[id];render();break;}
+   case 'dmg':{const d=amt('hpamt');if(!d)return;const use=takeDmg(d);hpLog(`Took ${d} damage`+(use?` (${use} from temp HP)`:''));afterHit();render();break;}
+   case 'dmgHalf':{const d=amt('hpamt');if(!d)return;const h=Math.floor(d/2),use=takeDmg(h);hpLog(`Took ${h} (half of ${d}${resName()?`, ${resName().toLowerCase()} or lightning`:''})`+(use?` (${use} from temp HP)`:''));afterHit();render();break;}
+   case 'clearLog':S.hpLog=[];render();break;
+   case 'exportSheet':{const blob=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});const u=URL.createObjectURL(blob);const x=document.createElement('a');
+     x.href=u;x.download=`${(S.info.name||'character').replace(/\W+/g,'-')}-backup-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(x);x.click();x.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);setStatus('Backup downloaded');return;}
+   case 'importSheet':document.getElementById('importfile').click();return;
+   case 'miAdd':(S.mitems=S.mitems||[]).push({name:'',slot:'Slotless',target:'dex',bonus:2,type:'enh',on:true});render();break;
+   case 'miDel':S.mitems.splice(i,1);render();break;
+   case 'acAdd':(S.acItems=S.acItems||[]).push({name:'',slot:'Ring',type:'deflection',bonus:1,on:true});render();break;
+   case 'acDel':S.acItems.splice(i,1);render();break;
+   case 'potDrink':{const p=(S.potions||[])[i];if(!p||n(p.qty)<1)return;const dl=diceIn(p.dice),lo=dl.reduce((a,[c])=>a+c,0),hi=dl.reduce((a,[c,s])=>a+c*s,0);
+     const el=document.getElementById('pot-roll-'+i);const x=Math.floor(n((el||{}).value));
+     if(!(x>=lo&&x<=hi)){setStatus(`Type the ${p.dice} total (${lo}–${hi}).`);if(el)el.focus();return}
+     const am=x+n(p.bonus),mx=hpMaxNow(),bf=n(S.hp.cur);S.hp.cur=Math.min(mx,bf+am);const h=S.hp.cur-bf;
+     p.qty=n(p.qty)-1;hpLog(`Drank ${p.name}: ${x}+${n(p.bonus)} = ${am}, healed ${h}`);setTimeout(()=>setStatus(`${p.name}: healed ${h} HP`),800);render();break;}
+   case 'potAdd':(S.potions=S.potions||[]).push({name:'Cure Light Wounds',dice:'1d8',bonus:1,qty:1});render();break;
+   case 'potDel':S.potions.splice(i,1);render();break;
+   case 'opDrink':{const p=(S.otherPotions||[])[i];if(!p||n(p.qty)<1)return;p.qty=n(p.qty)-1;if(p.on)S.cond[p.on]=true;
+     dayLog(`${p.verb==='Apply'?'Applied':'Drank'} ${p.name}`);setStatus(`${p.verb==='Apply'?'Applied':'Drank'} ${p.name}: ${p.qty} left`);render();break;}
+   case 'opAdd':(S.otherPotions=S.otherPotions||[]).push({name:'',qty:1,effect:'',on:'',verb:'Drink'});render();break;
+   case 'opDel':S.otherPotions.splice(i,1);render();break;
+   case 'clearRolls':Object.keys(rolls).forEach(k=>{if(k!=='ac'&&k!=='sneak')delete rolls[k]});render();return;
+   case 'heal':{const mx=hpMaxNow();if(!amt('hpamt'))return;const bf=n(S.hp.cur);S.hp.cur=Math.min(mx,n(S.hp.cur)+amt('hpamt'));hpLog(`Healed ${S.hp.cur-bf}`);S.hp.nl=Math.max(0,n(S.hp.nl)-amt('hpamt'));render();break;}
+   case 'full':{const h=longRest(true);hpLog(`Long rest, healed ${h}`);setTimeout(()=>setStatus(`Long rest: healed ${h} HP, daily uses reset`),800);render();break;}
+   case 'cond':{const id=b.dataset.id;S.cond[id]=!S.cond[id];render();break;}
+   case 'neg':S.neg=Math.max(0,n(S.neg)+n(b.dataset.d));render();break;
+   case 'clearCond':S.cond={};S.neg=0;render();break;
+   case 'artPick':document.getElementById('artfile').click();return;
+   case 'artRemove':{const old=S.art&&S.art.id;S.art=false;if(old&&assets)assets.delete(old).catch(()=>{});renderArt();break;}
+   default:return;
+  }
+  scheduleSave();});
+document.getElementById('artfile').addEventListener('change',e=>{const f=e.target.files[0];e.target.value='';if(f)setArt(f)});
+document.getElementById('importfile').addEventListener('change',e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+  const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d||!d.info||!d.classes)throw 0;S=load(d);render();scheduleSave(true);setStatus('Backup restored')}
+    catch(err){setStatus('That file isn’t a character sheet backup.')}};r.readAsText(f)});
+const artEl=document.getElementById('art');
+artEl.addEventListener('dragover',e=>{e.preventDefault();artEl.classList.add('drag')});
+artEl.addEventListener('dragleave',()=>artEl.classList.remove('drag'));
+artEl.addEventListener('drop',e=>{e.preventDefault();artEl.classList.remove('drag');const f=e.dataTransfer.files[0];if(f)setArt(f)});
+
+boot();
+})();
+</script>
+
+<script src="js/intro.js" data-intro="lork"></script>
+</body>
+</html>

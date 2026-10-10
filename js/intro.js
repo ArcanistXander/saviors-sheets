@@ -1,5 +1,5 @@
 /* Opening flourish for each character sheet: a ~5 s canvas overlay played once per page load.
-   <script src="js/intro.js" data-intro="drax|ensley|sinafey|namfoodle"></script>
+   <script src="js/intro.js" data-intro="drax|ensley|sinafey|namfoodle|lork"></script>
    The canvas ignores the pointer, so the sheet stays usable underneath; any click or key fades it out early. */
 (function(){
   'use strict';
@@ -284,6 +284,78 @@
     }};
   }
 
+  /* =====================================================================
+     LORK — Death Walker's Ward: raven wings unfurl, a flock crosses, feathers fall
+     ===================================================================== */
+  function lork(){
+    var flock=[],wingsAt=120,flash=0;
+    /* one long flight feather: dark vane, violet sheen along the quill */
+    var feather=sprite(40,160,function(g){
+      g.translate(20,0);
+      g.beginPath();g.moveTo(0,4);g.bezierCurveTo(15,30,14,110,2,156);g.lineTo(-2,156);g.bezierCurveTo(-13,110,-15,30,0,4);g.closePath();
+      var gr=g.createLinearGradient(-14,0,14,0);gr.addColorStop(0,'#0b0910');gr.addColorStop(.45,'#1d1828');gr.addColorStop(.5,'#5a4d86');gr.addColorStop(.55,'#1d1828');gr.addColorStop(1,'#0b0910');
+      g.fillStyle=gr;g.fill();
+      g.strokeStyle='rgba(150,135,210,.45)';g.lineWidth=1.2;g.beginPath();g.moveTo(0,6);g.lineTo(0,154);g.stroke();
+    });
+    function raven(x,y,s,ph,a){
+      var flap=Math.sin(ph),span=60*s;
+      cx.save();cx.globalAlpha=a;cx.translate(x,y);cx.fillStyle='#07060a';
+      /* wings: two swept curves whose tips rise and fall */
+      [-1,1].forEach(function(d){
+        cx.beginPath();cx.moveTo(0,-2*s);
+        cx.quadraticCurveTo(d*span*.45,-flap*span*.55-10*s,d*span,-flap*span*.35);
+        cx.quadraticCurveTo(d*span*.55,-flap*span*.1+6*s,0,6*s);cx.closePath();cx.fill();
+      });
+      cx.beginPath();cx.ellipse(0,0,18*s,7*s,0,0,7);cx.fill();                       // body
+      cx.beginPath();cx.arc(-17*s,-3*s,6*s,0,7);cx.fill();                           // head
+      cx.beginPath();cx.moveTo(-22*s,-4*s);cx.lineTo(-31*s,-1*s);cx.lineTo(-22*s,0);cx.fill();   // beak
+      cx.beginPath();cx.moveTo(16*s,-3*s);cx.lineTo(30*s,-7*s);cx.lineTo(31*s,5*s);cx.lineTo(16*s,4*s);cx.fill();   // tail
+      cx.restore();
+    }
+    function launch(t,big){
+      var n=big?9:5,y0=rnd(.15,.7)*H,dir=Math.random()<.5?-1:1;
+      for(var i=0;i<n;i++)flock.push({born:t+i*rnd(40,110),x:dir<0?W+60+rnd(0,160)*S:-60-rnd(0,160)*S,y:y0+rnd(-.12,.12)*H,vx:-dir*rnd(380,560)*S,vy:rnd(-40,25)*S,s:rnd(.6,1.15)*S*(big?1.1:.9),ph:rnd(0,6),rate:rnd(11,15),dir:dir});
+      shake(big?4:2,160,t);
+    }
+    function drop(t){
+      emit({x:rnd(.03,.97)*W,y:-40,vx:rnd(-20,20),vy:rnd(50,110)*S,age:0,life:rnd(2400,3400),sz:rnd(.16,.3)*S,ph:rnd(0,6),sw:rnd(.8,1.6),
+        draw:function(p,k){var a=k<.08?k/.08:k>.8?(1-k)/.2:1;
+          cx.save();cx.globalAlpha=a*.95;cx.translate(p.x+Math.sin(p.age/420*p.sw+p.ph)*40*S,p.y);cx.rotate(Math.sin(p.age/520*p.sw+p.ph)*.9+.3);
+          cx.drawImage(feather,-20*p.sz,-80*p.sz,40*p.sz,160*p.sz);cx.restore()}});
+    }
+    var plan=[{at:wingsAt,fn:function(t){flash=.35;shake(7,320,t)}}];
+    [700,1500,2300,3000].forEach(function(at,i){plan.push({at:at,fn:function(t){launch(t,i===0||i===2)}})});
+    for(var f=200;f<3700;f+=70)plan.push({at:f,fn:drop});
+
+    return {plan:plan,dim:'rgba(6,5,12,0.5)',draw:function(t,dt){
+      /* the Ward's wings spread from the middle of the screen, then fade as the flock takes over */
+      var age=t-wingsAt;
+      if(age>0&&age<2600){
+        var p=easeOut(age/900),a=age<1800?1:1-(age-1800)/800,cxm=W/2,cym=H*.48,N=13;
+        cx.save();cx.globalAlpha=a;
+        [-1,1].forEach(function(d){
+          for(var i=N-1;i>=0;i--){
+            var k=i/(N-1),ang=d*(.15+p*(.25+k*1.25)),len=(150+(1-Math.abs(k-.55))*120)*S*(.4+.6*p);
+            cx.save();cx.translate(cxm+d*18*S,cym-20*S);cx.rotate(Math.PI+ang+Math.sin(age/260+i)*.03*p);
+            cx.drawImage(feather,-14*S,-6*S,28*S,len);cx.restore();
+          }
+        });
+        var g=cx.createRadialGradient(cxm,cym,0,cxm,cym,260*S*p+1);g.addColorStop(0,'rgba(120,100,200,'+(.28*a)+')');g.addColorStop(1,'rgba(120,100,200,0)');
+        cx.fillStyle=g;cx.fillRect(0,0,W,H);
+        cx.restore();
+      }
+      /* ravens */
+      flock.forEach(function(r){
+        var ra=(t-r.born)/1000;if(ra<0)return;
+        var x=r.x+r.vx*ra,y=r.y+r.vy*ra+Math.sin(ra*3+r.ph)*8*S;
+        cx.save();if(r.dir>0){cx.translate(x,y);cx.scale(-1,1);cx.translate(-x,-y)}
+        raven(x,y,r.s,r.ph+ra*r.rate,1);cx.restore();
+      });
+      flock=flock.filter(function(r){var ra=(t-r.born)/1000;return ra<0||(r.x+r.vx*ra>-200&&r.x+r.vx*ra<W+200)});
+      if(flash>.005){cx.fillStyle='rgba(60,45,110,'+flash+')';cx.fillRect(0,0,W,H);flash*=Math.pow(.88,dt/16)}
+    }};
+  }
+
   /* shared: expanding shockwave rings */
   function drawRings(rings,t){
     for(var i=rings.length-1;i>=0;i--){var r=rings[i],age=t-r.born;if(age<0)continue;if(age>r.life){rings.splice(i,1);continue}
@@ -291,7 +363,7 @@
   }
 
   /* ---------- run ---------- */
-  var scenes={drax:drax,ensley:ensley,sinafey:sinafey,namfoodle:namfoodle};
+  var scenes={drax:drax,ensley:ensley,sinafey:sinafey,namfoodle:namfoodle,lork:lork};
   if(!scenes[theme])return;
   function start(){
     size();document.body.appendChild(cv);
