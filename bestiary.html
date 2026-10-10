@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Saviors Bestiary</title>
+<script>document.documentElement.classList.add('dm-locked')</script>
+<style>.dm-locked #root{visibility:hidden}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@500;700&family=Alegreya+Sans:wght@400;500;700&display=swap">
+<style>
+/* Layout: the DM's monster library. A searchable list on the left, the chosen stat block (or its edit form) on the right,
+   and a "Next fight" tray that the Party Sheet's initiative tracker adds in one click. Same palette family as the Party Sheet. */
+[hidden]{display:none!important}
+:root{
+  --bg:#eef0eb; --panel:#f8f9f6; --ink:#1c2226; --muted:#5d676b; --rule:#cfd5cf;
+  --accent:#1f6f62; --accent-soft:#d8ebe6; --weak:#a3322a; --weak-soft:#f6dcd8; --fly:#8a5a12; --fly-soft:#f2e6cf;
+  --display:"Alegreya SC",Georgia,serif; --body:"Alegreya Sans",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#14191b; --panel:#1c2326; --ink:#e3e8e5; --muted:#97a3a4; --rule:#2f393c;
+  --accent:#5fbfae; --accent-soft:#1f3a36; --weak:#f08a7f; --weak-soft:#43211e; --fly:#e0b267; --fly-soft:#3a2f1d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#14191b; --panel:#1c2326; --ink:#e3e8e5; --muted:#97a3a4; --rule:#2f393c;
+  --accent:#5fbfae; --accent-soft:#1f3a36; --weak:#f08a7f; --weak-soft:#43211e; --fly:#e0b267; --fly-soft:#3a2f1d; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.4}
+main{max-width:1320px;margin:0 auto;padding:20px 16px 48px;display:grid;gap:16px}
+header{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px}
+h1{font-family:var(--display);font-weight:700;font-size:2rem;margin:0;line-height:1.05}
+.sub{color:var(--muted);margin:4px 0 0}
+.sub a{color:var(--accent)}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.status{color:var(--muted);font-size:.9rem}
+button{font:inherit;font-weight:500;border:1px solid var(--rule);background:var(--panel);color:var(--ink);border-radius:6px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+button.ghost{border-color:transparent;background:transparent;color:var(--muted);padding:4px 8px}
+button.danger{color:var(--weak)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input,textarea,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--rule);border-radius:4px;padding:4px 7px;width:100%;min-width:0}
+textarea{resize:vertical;line-height:1.35}
+.lay{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:820px){.lay{grid-template-columns:minmax(0,1fr)}}
+.side{display:grid;gap:12px;position:sticky;top:12px}
+@media (max-width:820px){.side{position:static}}
+.box{background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:12px}
+.box h2{font-family:var(--display);font-size:1.15rem;margin:0 0 8px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.box h2 .minor{font-family:var(--body)}
+.minor{color:var(--muted);font-size:.84rem}
+.search{display:flex;gap:6px}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.chip{font-size:.78rem;padding:1px 9px;border-radius:999px;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);border-color:var(--accent);font-weight:700}
+.mlist{list-style:none;margin:8px 0 0;padding:0;max-height:min(60vh,640px);overflow:auto;display:grid;gap:2px}
+@media (max-width:820px){.mlist{max-height:40vh}}
+.mlist button{width:100%;text-align:left;border-color:transparent;background:transparent;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 8px;padding:6px 8px}
+.mlist button:hover{background:var(--bg)}
+.mlist button[aria-current="true"]{background:var(--accent-soft);border-color:var(--accent)}
+.mlist .nm{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mlist .cr{color:var(--weak);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.mlist .ln{grid-column:1/-1;font-size:.8rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ready{display:grid;gap:6px}
+.rrow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px;align-items:center}
+.rrow input{width:3.4em;text-align:center}
+.rrow .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty{color:var(--muted);font-size:.9rem;margin:0}
+.view{display:grid;gap:12px}
+.vbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.vbar .grp{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.vbar input.n{width:3.4em;text-align:center}
+.paste textarea{min-height:240px;font-family:ui-monospace,Consolas,monospace;font-size:.82rem}
+.form{display:grid;gap:12px}
+fieldset{border:1px solid var(--rule);border-radius:8px;padding:10px 12px;margin:0;display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(min(100%,150px),1fr))}
+legend{font-family:var(--display);font-size:1.05rem;padding:0 4px;color:var(--weak)}
+.f{display:grid;gap:2px}
+.f>span{font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.f.w2{grid-column:span 2}.f.wall{grid-column:1/-1}
+@media (max-width:420px){.f.w2{grid-column:1/-1}}
+.f input.num{font-variant-numeric:tabular-nums}
+.raw summary{cursor:pointer;color:var(--muted)}
+.raw pre{white-space:pre-wrap;font-size:.82rem;background:var(--bg);border-radius:6px;padding:8px;max-height:50vh;overflow:auto}
+footer{color:var(--muted);font-size:.85rem}
+kbd{font:inherit;font-size:.8em;border:1px solid var(--rule);border-bottom-width:2px;border-radius:4px;padding:0 4px}
+</style>
+</head>
+<body>
+<main id="root"><p class="minor">Loading the bestiary…</p></main>
+<script src="js/firebase-config.js"></script>
+<script src="js/cloud.js"></script>
+<script src="js/statblock.js"></script>
+<script>
+/* The whole bestiary is one online document, party/bestiary: {monsters:[…], ready:[{id,count}]}.
+   A copy also stays in this browser (saviors-bestiary), which the Party Sheet falls back on offline. */
+(function(){
+  'use strict';
+  var S=window.SavStat, esc=S.esc, STORE='saviors-bestiary', UIKEY='saviors-bestiary-ui';
+  var data={monsters:[],ready:[]};
+  try{var ls=JSON.parse(localStorage.getItem(STORE)||'null');if(ls&&Array.isArray(ls.monsters))data=ls}catch(e){}
+  if(!Array.isArray(data.ready))data.ready=[];
+  var ui={sel:'',q:'',tag:'',sort:'name'};
+  try{Object.assign(ui,JSON.parse(localStorage.getItem(UIKEY)||'{}'))}catch(e){}
+  var mode='view', draft=null, pasteText='', statusMsg='', confirmDel=false, cloudOk=false;
+
+  function save(){
+    try{localStorage.setItem(STORE,JSON.stringify(data))}catch(e){}
+    push();
+  }
+  function saveUi(){try{localStorage.setItem(UIKEY,JSON.stringify({sel:ui.sel,q:ui.q,tag:ui.tag,sort:ui.sort}))}catch(e){}}
+  function mon(id){return data.monsters.find(function(m){return m.id===id})||null}
+  function tagsOf(m){return String(m.tags||'').split(',').map(function(t){return t.trim()}).filter(Boolean)}
+  function allTags(){var t=[];data.monsters.forEach(function(m){tagsOf(m).forEach(function(x){if(t.indexOf(x)<0)t.push(x)})});return t.sort(function(a,b){return a.localeCompare(b)})}
+  function shown(){
+    var q=ui.q.trim().toLowerCase();
+    return data.monsters.filter(function(m){
+      if(ui.tag&&tagsOf(m).indexOf(ui.tag)<0)return false;
+      if(!q)return true;
+      return (m.name+' '+m.type+' '+m.tags+' cr'+m.cr).toLowerCase().indexOf(q)>=0;
+    }).sort(function(a,b){
+      if(ui.sort==='cr')return S.crNum(b.cr)-S.crNum(a.cr)||String(a.name).localeCompare(b.name);
+      return String(a.name).localeCompare(b.name);
+    });
+  }
+  function readyCount(id){var r=data.ready.find(function(x){return x.id===id});return r?r.count:0}
+
+  /* ---- drawing ---- */
+  function render(){
+    var root=document.getElementById('root'), list=shown(), cur=mon(ui.sel), tags=allTags();
+    var ready=data.ready.filter(function(r){return mon(r.id)});
+    var side='<div class="side">'+
+      '<section class="box" aria-labelledby="lib-h"><h2 id="lib-h">Monsters <span class="minor">'+data.monsters.length+'</span></h2>'+
+        '<div class="search"><input id="q" type="search" value="'+esc(ui.q)+'" placeholder="Search name, type, tag, cr12" aria-label="Search monsters" autocomplete="off">'+
+        '<select id="sort" aria-label="Sort" style="width:auto"><option value="name"'+(ui.sort==='name'?' selected':'')+'>A–Z</option><option value="cr"'+(ui.sort==='cr'?' selected':'')+'>CR</option></select></div>'+
+        (tags.length?'<div class="chips" role="group" aria-label="Filter by tag"><button class="chip" data-tag="" aria-pressed="'+!ui.tag+'">All</button>'+tags.map(function(t){return '<button class="chip" data-tag="'+esc(t)+'" aria-pressed="'+(ui.tag===t)+'">'+esc(t)+'</button>'}).join('')+'</div>':'')+
+        (list.length?'<ul class="mlist" id="mlist">'+list.map(function(m){
+          return '<li><button data-sel="'+m.id+'"'+(m.id===ui.sel?' aria-current="true"':'')+'><span class="nm">'+esc(m.name||'Unnamed')+'</span><span class="cr">'+(m.cr?'CR '+esc(m.cr):'')+'</span>'+
+            '<span class="ln">AC '+esc(m.ac||'—')+' · HP '+esc(m.hp||'—')+(tagsOf(m).length?' · '+esc(tagsOf(m).join(', ')):'')+'</span></button></li>'}).join('')+'</ul>'
+        :'<p class="empty" style="margin-top:8px">'+(data.monsters.length?'Nothing matches.':'No monsters yet. Paste a stat block or start a new one.')+'</p>')+
+      '</section>'+
+      '<section class="box" aria-labelledby="rdy-h"><h2 id="rdy-h">Next fight <span class="minor">'+ready.reduce(function(a,r){return a+r.count},0)+' total</span></h2>'+
+        (ready.length?'<div class="ready">'+ready.map(function(r){var m=mon(r.id);
+          return '<div class="rrow"><span class="nm">'+esc(m.name)+'</span><input class="n" data-rcount="'+r.id+'" inputmode="numeric" value="'+r.count+'" aria-label="How many '+esc(m.name)+'"><button class="ghost" data-runready="'+r.id+'" aria-label="Take '+esc(m.name)+' out of the next fight">✕</button></div>'}).join('')+
+          '<button class="ghost" id="ready-clear" style="justify-self:start">Clear list</button></div>'
+        :'<p class="empty">Add monsters here, then use <b>Add from bestiary → Add next fight</b> on the Party Sheet’s Initiative tab.</p>')+
+      '</section></div>';
+    var body;
+    if(mode==='paste')body=pasteView();
+    else if(mode==='edit')body=editView();
+    else if(cur)body=viewView(cur);
+    else body='<section class="box"><p class="empty">Pick a monster on the left, or add one with <b>Paste stat block</b> or <b>New monster</b>.</p>'+
+      '<p class="minor">Paste works with stat blocks copied from Archives of Nethys, d20pfsrd or a module PDF. Several at once is fine. Anything it can’t place is kept in the full text.</p></section>';
+    root.innerHTML='<header><div><h1>Bestiary</h1><p class="sub">Monsters and NPCs for the Saviors’ fights · <a href="party.html">Party Sheet</a> · <a href="index.html">All sheets</a></p></div>'+
+      '<div class="tools">'+(statusMsg?'<span class="status" role="status">'+esc(statusMsg)+'</span>':'')+
+      '<button id="b-paste">Paste stat block</button><button id="b-new">New monster</button><button id="b-export">Export file</button><button id="b-import">Import file</button>'+
+      '<input type="file" id="b-file" accept=".json,.txt,application/json,text/plain" hidden></div></header>'+
+      '<div class="lay">'+side+'<div class="view">'+body+'</div></div>'+
+      '<footer>'+(cloudOk?'Saved online, so the Party Sheet on any device can add these monsters to a fight.':'Saved in this browser only for now.')+' Press <kbd>/</kbd> to search, <kbd>↑</kbd> <kbd>↓</kbd> to move through the list.</footer>';
+  }
+  function viewView(m){
+    var rc=readyCount(m.id);
+    return '<section class="box"><div class="vbar"><div class="grp">'+
+      '<button class="primary" id="v-ready">'+(rc?'Add another to next fight ('+rc+')':'Add to next fight')+'</button>'+
+      '<button id="v-edit">Edit</button><button id="v-dup">Duplicate</button></div><div class="grp">'+
+      (confirmDel?'<span class="minor">Delete '+esc(m.name)+'?</span><button class="danger" id="v-del-yes">Yes, delete</button><button id="v-del-no">Keep</button>':'<button class="ghost danger" id="v-del">Delete</button>')+
+      '</div></div></section><section class="box">'+S.render(m)+
+      (m.raw?'<details class="raw" style="margin-top:12px"><summary>Full stat block as pasted</summary><pre>'+esc(m.raw)+'</pre></details>':'')+'</section>';
+  }
+  function pasteView(){
+    return '<section class="box paste"><h2>Paste stat blocks</h2><p class="minor" style="margin:0 0 8px">Copy from Archives of Nethys, d20pfsrd or a PDF, starting at the name line (“Balor CR 20”). Paste several in a row to add them all.</p>'+
+      '<textarea id="p-text" aria-label="Stat block text" placeholder="Balor CR 20&#10;XP 307,200&#10;CE Large outsider (chaotic, demon, evil, extraplanar)&#10;Init +11; Senses darkvision 60 ft., true seeing; Perception +31&#10;DEFENSE&#10;AC 36, touch 17, flat-footed 28 …">'+esc(pasteText)+'</textarea>'+
+      '<div class="vbar" style="margin-top:8px"><div class="grp"><label class="minor" style="display:flex;gap:6px;align-items:center;white-space:nowrap">Tag <input id="p-tag" placeholder="e.g. Session 14" style="width:12em"></label></div>'+
+      '<div class="grp"><button id="p-cancel">Cancel</button><button class="primary" id="p-go">Add to bestiary</button></div></div></section>';
+  }
+  var GROUPS=[
+    ['Basics',[['name','Name','w2'],['cr','CR'],['xp','XP'],['type','Alignment, size, type','wall'],['tags','Tags (comma separated)','w2'],['init','Init'],['perception','Perception'],['senses','Senses','w2'],['aura','Aura','w2']]],
+    ['Defense',[['ac','AC'],['touch','Touch'],['ff','Flat-footed'],['acNote','AC breakdown','w2'],['hp','HP'],['hpDice','Hit dice'],['hpNote','Regeneration, fast healing…','w2'],
+      ['fort','Fort'],['ref','Ref'],['will','Will'],['saveNote','Save notes','w2'],['da','Defensive abilities','w2'],['dr','DR'],['sr','SR'],['immune','Immune','w2'],['resist','Resist','w2'],['weak','Weaknesses','w2']]],
+    ['Offense',[['speed','Speed','wall'],['melee','Melee','wall',3],['ranged','Ranged','wall',2],['space','Space / reach','w2'],['specAtk','Special attacks','w2'],['spells','Spells and spell-like abilities','wall',6]]],
+    ['Statistics',[['abilities','Ability scores','wall'],['bab','Base attack'],['cmb','CMB'],['cmd','CMD'],['feats','Feats','wall',2],['skills','Skills','wall',2],['languages','Languages','w2'],['sq','SQ','w2'],['gear','Gear','wall',2]]],
+    ['Special abilities',[['special','','wall',8]]],
+    ['Tactics and notes',[['tactics','Tactics','wall',3],['notes','DM notes','wall',3]]]
+  ];
+  function editView(){
+    var m=draft;
+    return '<section class="box"><div class="vbar"><h2 style="margin:0">'+(mon(m.id)?'Edit '+esc(m.name||'monster'):'New monster')+'</h2><div class="grp"><button id="e-cancel">Cancel</button><button class="primary" id="e-save">Save</button></div></div></section>'+
+      '<form class="form box" id="e-form" autocomplete="off">'+GROUPS.map(function(g){
+        return '<fieldset><legend>'+g[0]+'</legend>'+g[1].map(function(f){
+          var k=f[0], lab=f[1], cls=f[2]||'', rows=f[3], v=esc(m[k]||'');
+          var ctl=rows?'<textarea data-f="'+k+'" rows="'+rows+'"'+(lab?'':' aria-label="'+g[0]+'"')+'>'+v+'</textarea>':'<input data-f="'+k+'" value="'+v+'"'+(/^(cr|init|perception|ac|touch|ff|hp|fort|ref|will|sr|cmd|cmb|bab)$/.test(k)?' class="num"':'')+'>';
+          return '<label class="f '+cls+'">'+(lab?'<span>'+lab+'</span>':'')+ctl+'</label>';
+        }).join('')+'</fieldset>';
+      }).join('')+'<div class="vbar"><span class="minor">'+(m.raw?'The pasted text stays attached under “Full stat block”.':'')+'</span><div class="grp"><button type="button" id="e-cancel2">Cancel</button><button class="primary" type="submit">Save</button></div></div></form>';
+  }
+
+  /* ---- actions ---- */
+  function select(id){ui.sel=id;mode='view';confirmDel=false;saveUi();render();
+    var b=document.querySelector('[data-sel="'+id+'"]');if(b){b.scrollIntoView({block:'nearest'});}}
+  function addReady(id,k){var r=data.ready.find(function(x){return x.id===id});if(r)r.count=Math.min(30,r.count+(k||1));else data.ready.push({id:id,count:k||1});save()}
+  function saveDraft(){
+    var f=document.getElementById('e-form');
+    if(f)[].forEach.call(f.querySelectorAll('[data-f]'),function(el){draft[el.dataset.f]=el.value.trim()});
+    if(!draft.name){statusMsg='Give it a name first.';render();var n=document.querySelector('[data-f="name"]');if(n)n.focus();return}
+    var i=data.monsters.findIndex(function(m){return m.id===draft.id});
+    if(i>=0)data.monsters[i]=draft;else data.monsters.push(draft);
+    statusMsg='Saved '+draft.name;ui.sel=draft.id;draft=null;mode='view';save();saveUi();render();
+  }
+  function addParsed(list,tag){
+    list.forEach(function(m){if(tag)m.tags=[m.tags,tag].filter(Boolean).join(', ');data.monsters.push(m)});
+    save();
+    if(list.length){ui.sel=list[0].id;saveUi()}
+    statusMsg=list.length===1?'Added '+list[0].name+'. Check the numbers, then Edit if anything landed in the wrong place.':'Added '+list.length+' monsters.';
+  }
+  document.addEventListener('click',function(ev){
+    var t=ev.target.closest('button');if(!t)return;var d=t.dataset;
+    if(d.sel){select(d.sel);var b=document.querySelector('[data-sel="'+d.sel+'"]');if(b)b.focus();return}
+    if(d.tag!=null&&t.classList.contains('chip')){ui.tag=d.tag;saveUi();render();return}
+    if(d.runready){data.ready=data.ready.filter(function(r){return r.id!==d.runready});save();render();return}
+    switch(t.id){
+      case 'b-paste':mode='paste';pasteText='';statusMsg='';render();document.getElementById('p-text').focus();break;
+      case 'b-new':draft=S.blank();mode='edit';statusMsg='';render();document.querySelector('[data-f="name"]').focus();break;
+      case 'p-cancel':mode='view';render();break;
+      case 'p-go':{
+        var txt=document.getElementById('p-text').value, tag=document.getElementById('p-tag').value.trim(), got=S.parse(txt);
+        if(!got.length){pasteText=txt;statusMsg='Couldn’t find a stat block in that. Paste from the name line down.';render();return}
+        addParsed(got,tag);mode='view';pasteText='';render();break;}
+      case 'v-edit':draft=JSON.parse(JSON.stringify(mon(ui.sel)));mode='edit';statusMsg='';render();document.querySelector('[data-f="name"]').focus();break;
+      case 'v-dup':{var c=JSON.parse(JSON.stringify(mon(ui.sel)));c.id=S.newId();c.name=c.name+' (copy)';draft=c;mode='edit';render();var nm=document.querySelector('[data-f="name"]');nm.focus();nm.select();break;}
+      case 'v-ready':addReady(ui.sel,1);statusMsg='Added to the next fight';render();break;
+      case 'v-del':confirmDel=true;render();document.getElementById('v-del-no').focus();break;
+      case 'v-del-no':confirmDel=false;render();break;
+      case 'v-del-yes':{var gone=mon(ui.sel);data.monsters=data.monsters.filter(function(m){return m.id!==ui.sel});data.ready=data.ready.filter(function(r){return r.id!==ui.sel});
+        var l=shown();ui.sel=l.length?l[0].id:'';confirmDel=false;statusMsg='Deleted '+(gone?gone.name:'');save();saveUi();render();break;}
+      case 'e-save':saveDraft();break;
+      case 'e-cancel':case 'e-cancel2':draft=null;mode='view';statusMsg='';render();break;
+      case 'ready-clear':data.ready=[];save();render();break;
+      case 'b-export':exportFile();break;
+      case 'b-import':document.getElementById('b-file').click();break;
+    }
+  });
+  document.addEventListener('submit',function(ev){if(ev.target.id==='e-form'){ev.preventDefault();saveDraft()}});
+  document.addEventListener('input',function(ev){
+    var el=ev.target;
+    if(el.id==='q'){ui.q=el.value;saveUi();var pos=el.selectionStart;render();var q=document.getElementById('q');q.focus();try{q.setSelectionRange(pos,pos)}catch(e){}}
+    else if(el.dataset.f&&draft)draft[el.dataset.f]=el.value;
+    else if(el.id==='p-text')pasteText=el.value;
+  });
+  document.addEventListener('change',function(ev){
+    var el=ev.target;
+    if(el.id==='sort'){ui.sort=el.value;saveUi();render()}
+    else if(el.dataset.rcount){var r=data.ready.find(function(x){return x.id===el.dataset.rcount}),k=parseInt(el.value,10);
+      if(r){if(k>0)r.count=Math.min(30,k);else data.ready=data.ready.filter(function(x){return x!==r});save();render()}}
+    else if(el.id==='b-file'&&el.files&&el.files[0])importFile(el.files[0]);
+  });
+  document.addEventListener('keydown',function(ev){
+    var el=ev.target, typing=/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName);
+    if(ev.key==='/'&&!typing&&mode!=='edit'){ev.preventDefault();var q=document.getElementById('q');if(q){q.focus();q.select()}return}
+    if((ev.key==='ArrowDown'||ev.key==='ArrowUp')&&(el.id==='q'||el.dataset.sel)){
+      ev.preventDefault();var l=shown(),i=l.findIndex(function(m){return m.id===ui.sel}),j=Math.max(0,Math.min(l.length-1,i+(ev.key==='ArrowDown'?1:-1)));
+      if(l[j]){var fromQ=el.id==='q';select(l[j].id);var f=fromQ?document.getElementById('q'):document.querySelector('[data-sel="'+l[j].id+'"]');if(f)f.focus()}
+    }
+    if(ev.key==='Enter'&&el.id==='q'){var l2=shown();if(l2.length){select(l2[0].id)}}
+    if(ev.key==='Escape'&&mode==='edit'){draft=null;mode='view';render()}
+  });
+
+  /* ---- files ---- */
+  function exportFile(){
+    var blob=new Blob([JSON.stringify({kind:'saviors-bestiary',monsters:data.monsters},null,1)],{type:'application/json'});
+    var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='saviors-bestiary-'+new Date().toISOString().slice(0,10)+'.json';
+    document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500);
+    statusMsg='Exported '+data.monsters.length+' monsters';render();
+  }
+  // A .json from Export adds its monsters (same id: replaced by the file's version); a .txt is read as pasted stat blocks.
+  function importFile(file){
+    var r=new FileReader();
+    r.onload=function(){
+      var txt=String(r.result||''), list=null;
+      try{var j=JSON.parse(txt);list=Array.isArray(j)?j:j&&Array.isArray(j.monsters)?j.monsters:null}catch(e){}
+      if(list){
+        var n=0;list.forEach(function(m){if(!m||typeof m!=='object')return;var x=S.blank();Object.keys(x).forEach(function(k){if(m[k]!=null)x[k]=String(m[k])});
+          var i=data.monsters.findIndex(function(o){return o.id===x.id});if(i>=0)data.monsters[i]=x;else data.monsters.push(x);n++});
+        save();statusMsg='Imported '+n+' monsters';
+      } else {var got=S.parse(txt);if(got.length)addParsed(got,'');else statusMsg='That file has no monsters in it.'}
+      document.getElementById('b-file').value='';render();
+    };
+    r.readAsText(file);
+  }
+
+  /* ---- online saving ---- */
+  var ref=null, timer=null, pending=false, busy=false, again=false, remote='';
+  function push(){if(!ref)return;pending=true;clearTimeout(timer);timer=setTimeout(function(){pending=false;write()},600)}
+  function write(){
+    if(!ref)return;if(busy){again=true;return}
+    var body=JSON.parse(JSON.stringify(data)), sig=JSON.stringify(body);if(sig===remote)return;
+    busy=true;
+    ref.set(body).then(function(){remote=sig}).catch(function(e){
+      if(e&&e.code==='invalid_argument'){statusMsg='Couldn’t save online (the bestiary may be too big). Export a file to keep a copy.'}
+      else{statusMsg='Couldn’t save online. Retrying…';setTimeout(push,3000)}
+      render();
+    }).then(function(){busy=false;if(again){again=false;write()}});
+  }
+  function apply(d){
+    if(!d||!Array.isArray(d.monsters))return;
+    if(pending||busy||mode==='edit'||mode==='paste')return;   // local changes win; they go out on the next write
+    var sig=JSON.stringify(d);if(sig===remote)return;remote=sig;
+    data={monsters:d.monsters,ready:Array.isArray(d.ready)?d.ready:[]};
+    try{localStorage.setItem(STORE,JSON.stringify(data))}catch(e){}
+    var a=document.activeElement;if(a&&a.id==='q')return;   // don't yank focus from the search box
+    render();
+  }
+  render();
+  // DM only: nothing loads from online until this device has the DM password (js/cloud.js)
+  if(window.claude&&window.claude.use)window.claude.use('dm').then(function(ok){return ok?window.claude.use('db'):null}).then(function(db){
+    if(!db)return;
+    var r=db.doc('party/bestiary');
+    return r.get().then(function(s){
+      ref=r;cloudOk=true;
+      if(s.exists){var d=s.data(), extra=0;
+        // monsters this device made while offline: keep them alongside the online ones
+        if(d&&Array.isArray(d.monsters)){var ids=d.monsters.map(function(m){return m.id});
+          data.monsters.forEach(function(m){if(ids.indexOf(m.id)<0){d.monsters.push(m);extra++}});}
+        remote='';apply(d);if(extra)push();
+      } else write();
+      statusMsg='Saved online';render();
+      r.onSnapshot(function(s){if(s.exists&&!s.metadata.hasPendingWrites)apply(s.data())},function(){});
+    });
+  }).catch(function(){});
+})();
+</script>
+</body>
+</html>

@@ -3,6 +3,8 @@
 
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Saviors Party Sheet</title>
+<script>document.documentElement.classList.add('dm-locked')</script>
+<style>.dm-locked #root{visibility:hidden}</style>
 <link rel="preconnect" href="https://fonts.googleapis.com/">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@500;700&family=Alegreya+Sans:wght@400;500;700&display=swap">
 <style>
@@ -210,6 +212,28 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
 .fx.perf .left{color:var(--fly)}
 .fx .b{display:flex;flex-wrap:wrap;gap:4px}
 .fx .b button{padding:2px 8px;font-size:.8rem}
+/* Monsters from the Bestiary: HP and damage on the row, stat block under it, and the picker */
+.tag.down{background:var(--weak);color:var(--panel)}
+.ini-row.down .ini-who input.ini-name{text-decoration:line-through;color:var(--muted)}
+.mhp{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;margin-top:4px}
+.mhp input.n{width:4em;padding:2px 4px}
+.mhp button{padding:2px 9px;font-size:.85rem}
+.mhp-g{display:inline-flex;gap:4px;align-items:center}
+.mhp .hpbar{flex-basis:100%;max-width:280px}
+.ini-sb{grid-column:1/-1;background:var(--bg);border:1px solid var(--rule);border-radius:8px;padding:12px 14px;margin-top:4px}
+.pick{background:var(--panel);border:2px solid var(--accent);border-radius:8px;padding:12px 14px;display:grid;gap:10px}
+.pk-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px}
+.pk-head h2{font-family:var(--display);margin:0;font-size:1.2rem}
+.pick a{color:var(--accent)}
+.pk-ready{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;background:var(--accent-soft);border-radius:6px;padding:8px 10px}
+.pk-row{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+.pk-row input[type=search]{flex:1;min-width:12em;width:auto}
+.pk-roll{display:flex;gap:6px;align-items:center;white-space:nowrap}
+.pk-roll input{width:auto;accent-color:var(--accent)}
+.pk-list{list-style:none;margin:0;padding:0;display:grid;gap:2px;max-height:min(46vh,420px);overflow:auto}
+.pk-list li{display:grid;grid-template-columns:minmax(0,1fr) 3.4em auto;gap:8px;align-items:center;padding:4px 6px;border-radius:6px}
+.pk-list li:hover{background:var(--bg)}
+.pk-nm{min-width:0}.pk-nm .minor{white-space:normal}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -226,6 +250,7 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
 ]}</script>
 <script src="js/firebase-config.js"></script>
 <script src="js/cloud.js"></script>
+<script src="js/statblock.js"></script>
 <script id="app">
 (function(){
   var dataEl=document.getElementById('party-data');
@@ -958,7 +983,7 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
   function eName(e){var p=hero(e);return p?p.name:e.pc?e.pc:(e.name||'DM slot')}
   function entry(I,id){return I.list.find(function(e){return e.id===id})||null}
   function initMod(e){
-    var p=hero(e); if(!p) return null;
+    var p=hero(e); if(!p){var mm=e.s&&String(e.s.init||'').match(/[+−-]?\d+/);return mm?+mm[0].replace('−','-'):null}
     var l=live(p), v=l&&l.init!=null&&l.init!==''?l.init:p.init, m=String(v==null?'':v).match(/[+−-]?\d+/);
     return m?+m[0].replace('−','-'):null;
   }
@@ -1131,7 +1156,14 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
   function initRow(I,e,c,active){
     var isCur=active&&c===e, r=rolled(e), p=hero(e), m=initMod(e), sub=[];
     var rl=I.list.filter(rolled), ri=rl.indexOf(e);
-    if(!p)sub.push('<span class="tag dm">DM</span>');
+    if(!p)sub.push('<span class="tag dm">'+(e.s&&e.s.cr?'CR '+esc(e.s.cr):'DM')+'</span>');
+    if(!p&&e.hpMax!=null){
+      if(e.hp<=0)sub.push('<span class="tag down">Down</span>');
+      if(e.s.ac)sub.push('<span class="st">AC <b>'+esc(e.s.ac)+'</b>'+(e.s.touch?' · T '+esc(e.s.touch):'')+(e.s.ff?' · FF '+esc(e.s.ff):'')+'</span>');
+      if(e.s.fort||e.s.ref||e.s.will)sub.push('<span class="st">F <b>'+esc(SavStat.sgn(e.s.fort))+'</b> R <b>'+esc(SavStat.sgn(e.s.ref))+'</b> W <b>'+esc(SavStat.sgn(e.s.will))+'</b></span>');
+      if(e.s.sr)sub.push('<span class="st">SR <b>'+esc(e.s.sr)+'</b></span>');
+      if(e.s.cmd)sub.push('<span class="st">CMD <b>'+esc(e.s.cmd)+'</b></span>');
+    }
     if(e.held)sub.push('<span class="tag hold">Holding</span>');
     if(m!=null)sub.push('<span class="st">Init <b>'+fmt(m,true)+'</b></span>');
     if(p){var L=readLink(p.id);
@@ -1147,14 +1179,65 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
     if(r)act+='<button class="step" data-iup="'+e.id+'"'+(ri<=0?' disabled':'')+' aria-label="Move '+esc(eName(e))+' up" title="Move up">↑</button><button class="step" data-idown="'+e.id+'"'+(ri>=rl.length-1?' disabled':'')+' aria-label="Move '+esc(eName(e))+' down" title="Move down">↓</button>';
     if(isCur&&I.list.filter(inTurn).length>1)act+='<button data-ihold="'+e.id+'" title="Delay or ready: step out of the order until they act">Hold turn</button>';
     if(e.held)act+=(active?'<button class="primary" data-iact="'+e.id+'" title="Acts now, before '+esc(c?eName(c):'')+', and keeps this spot from now on">Act now</button>':'')+'<button class="ghost" data-iunhold="'+e.id+'">Back in place</button>';
+    if(!p&&e.mon)act+='<button data-istat="'+e.id+'" aria-expanded="'+!!openStat[e.id]+'" title="Show the full stat block">Stats</button>';
     if(!p)act+='<button class="ghost" data-idel="'+e.id+'" aria-label="Remove '+esc(eName(e))+'">Remove</button>';
-    return '<li class="ini-row'+(isCur?' cur':'')+(e.held?' held':'')+(r?'':' out')+'"'+(isCur?' aria-current="true"':'')+'>'+
+    var mhp='';
+    if(!p&&e.hpMax!=null){
+      var pct=e.hpMax>0?Math.max(0,Math.min(100,Math.round(e.hp/e.hpMax*100))):0;
+      mhp='<div class="mhp"><label class="minor" for="hp-'+e.id+'">HP</label><input class="n" id="hp-'+e.id+'" data-ihpcur="'+e.id+'" inputmode="numeric" value="'+e.hp+'"><span class="minor">/ '+e.hpMax+'</span>'+
+        '<span class="mhp-g"><input class="n" data-idmg="'+e.id+'" inputmode="numeric" placeholder="±" aria-label="'+esc(eName(e))+': amount of damage or healing" title="Type an amount, then Enter (or Hurt) for damage">'+
+        '<button class="hurt" data-ihurt="'+e.id+'">Hurt</button><button class="heal" data-iheal="'+e.id+'">Heal</button></span>'+
+        '<div class="hpbar"><i class="'+(pct<=25?'low':'')+'" style="width:'+pct+'%"></i></div></div>';
+    }
+    var sb=!p&&e.mon&&openStat[e.id]?'<div class="ini-sb">'+SavStat.render(monOf(e),{hp:e.hp})+'</div>':'';
+    return '<li class="ini-row'+(isCur?' cur':'')+(e.held?' held':'')+(r?'':' out')+(!p&&e.hpMax!=null&&e.hp<=0?' down':'')+'"'+(isCur?' aria-current="true"':'')+'>'+
       '<span class="ini-mark" aria-hidden="true">'+(isCur?'▶':'')+'</span>'+
       '<input class="ini-in" data-ini="'+e.id+'" inputmode="numeric" value="'+esc(r?e.init:'')+'" placeholder="—" aria-label="'+esc(eName(e))+' initiative">'+
       '<div class="ini-who">'+(p?'<span class="name">'+esc(p.name)+'</span>':
         '<div class="dmin"><input class="ini-name" data-iname="'+e.id+'" value="'+esc(e.name)+'" aria-label="DM slot name"><input data-inote="'+e.id+'" value="'+esc(e.note||'')+'" placeholder="Notes: HP, AC…" aria-label="'+esc(e.name)+' notes"></div>')+
-      '<div class="ini-sub">'+sub.join('')+'</div></div>'+
-      '<div class="ini-act">'+act+'</div></li>';
+      '<div class="ini-sub">'+sub.join('')+'</div>'+mhp+'</div>'+
+      '<div class="ini-act">'+act+'</div>'+sb+'</li>';
+  }
+  // ---- Monsters from the Bestiary (bestiary.html, saved at party/bestiary). A fight keeps its own copy of each stat block in
+  // I.mons, so editing or deleting a monster in the Bestiary never changes one already on the board. ----
+  var best={monsters:[],ready:[]}, pick=false, pickQ='', pickRoll=true, openStat={};
+  try{var bs=JSON.parse(localStorage.getItem('saviors-bestiary')||'null');if(bs&&Array.isArray(bs.monsters))best=bs}catch(e){}
+  function monOf(e){var I=ini();return (I.mons&&I.mons[e.mon])||best.monsters.find(function(m){return m.id===e.mon})||{name:e.name}}
+  function bmon(id){return best.monsters.find(function(m){return m.id===id})||null}
+  function addMonsters(picks){
+    var I=ini(), rolls=[];if(!I.mons)I.mons={};
+    picks.forEach(function(pk){
+      var m=pk.m, k=Math.max(1,Math.min(30,pk.count||1)), base=m.name||'Monster';
+      var copy=JSON.parse(JSON.stringify(m));delete copy.raw;I.mons[m.id]=copy;
+      var same=I.list.filter(function(e){return !e.pc&&e.mon===m.id}).length, many=k+same>1;
+      if(same===1){var lone=I.list.find(function(e){return !e.pc&&e.mon===m.id&&e.name===base});if(lone)lone.name=base+' 1'}
+      for(var i=0;i<k;i++){
+        var id='dm-'+Date.now().toString(36)+Math.random().toString(36).slice(2,6), hp=parseInt(m.hp,10);
+        var s={ac:m.ac,touch:m.touch,ff:m.ff,fort:m.fort,ref:m.ref,will:m.will,init:m.init,cr:m.cr,sr:m.sr,cmd:m.cmd};
+        var e={id:id,name:many?base+' '+(same+i+1):base,init:'',tb:0,note:'',mon:m.id,s:s,hp:isNaN(hp)?0:hp,hpMax:isNaN(hp)?0:hp};
+        var mod=initMod(e); e.tb=mod==null?0:mod;
+        if(pickRoll){var d=1+Math.floor(Math.random()*20);e.init=d+(mod||0);rolls.push(e.name+' '+e.init)}
+        I.list.push(e);
+      }
+    });
+    sortInit(I);saveExtras();postRound();
+    var tot=picks.reduce(function(a,p){return a+Math.max(1,p.count||1)},0);
+    statusMsg='Added '+tot+(tot===1?' monster':' monsters')+(rolls.length?'. Initiative: '+rolls.join(', '):'. Type their initiative rolls.');
+  }
+  function pickView(){
+    var q=pickQ.trim().toLowerCase(), list=best.monsters.filter(function(m){return !q||(m.name+' '+m.type+' '+m.tags+' cr'+m.cr).toLowerCase().indexOf(q)>=0})
+      .sort(function(a,b){return String(a.name).localeCompare(b.name)}).slice(0,40);
+    var ready=(best.ready||[]).filter(function(r){return bmon(r.id)});
+    return '<section class="pick" aria-labelledby="pk-h"><div class="pk-head"><h2 id="pk-h">Add from bestiary</h2><span class="ini-tools"><a href="bestiary.html" target="_blank" rel="noopener">Open bestiary ↗</a><button class="ghost" id="pk-close">Close</button></span></div>'+
+      (ready.length?'<div class="pk-ready"><span><b>Next fight:</b> '+ready.map(function(r){return r.count+'× '+esc(bmon(r.id).name)}).join(', ')+'</span><button class="primary" id="pk-ready">Add next fight</button></div>':'')+
+      '<div class="pk-row"><input id="pk-q" type="search" value="'+esc(pickQ)+'" placeholder="Search monsters" aria-label="Search the bestiary" autocomplete="off">'+
+      '<label class="minor pk-roll"><input type="checkbox" id="pk-roll"'+(pickRoll?' checked':'')+'> Roll initiative for them</label></div>'+
+      (best.monsters.length?(list.length?'<ul class="pk-list">'+list.map(function(m){
+        return '<li><span class="pk-nm"><b>'+esc(m.name||'Unnamed')+'</b> <span class="minor">'+(m.cr?'CR '+esc(m.cr)+' · ':'')+'AC '+esc(m.ac||'—')+' · HP '+esc(m.hp||'—')+' · Init '+esc(SavStat.sgn(m.init)||'—')+'</span></span>'+
+          '<input class="n" data-pkn="'+m.id+'" inputmode="numeric" value="1" aria-label="How many '+esc(m.name)+'"><button data-pkadd="'+m.id+'">Add</button></li>'}).join('')+'</ul>'
+        :'<p class="minor">Nothing matches.</p>')
+      :'<p class="minor" style="white-space:normal">The bestiary is empty. <a href="bestiary.html" target="_blank" rel="noopener">Open the Bestiary</a> and paste a stat block; it shows up here straight away.</p>')+
+      '</section>';
   }
   function initView(){
     var I=ini(); syncPerf(I);
@@ -1166,7 +1249,7 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
       '<div class="ini-ctl">'+(active?'<button id="ini-prev" title="Undo the last Next turn">◂ Back</button><button class="primary" id="ini-next">Next turn ▸</button><button id="ini-end">End combat</button>':
         '<button class="primary" id="ini-start"'+(seq.length?'':' disabled')+'>Start combat</button>')+'</div></div>';
     var alert=done.length?'<div class="ini-alert" role="alert">⏱ Ended: '+done.map(function(f){var w=f.who&&entry(I,f.who);return esc(f.name)+(w?' ('+esc(eName(w))+')':'')}).join(', ')+'<button data-fxclear="1">Dismiss all</button></div>':'';
-    var tools='<div class="ini-tools"><button id="ini-add">Add DM slot</button><button id="ini-sort" title="Re-sort by initiative">Sort</button>'+
+    var tools='<div class="ini-tools"><button class="primary" id="ini-best" aria-expanded="'+pick+'">Add from bestiary</button><button id="ini-add">Add DM slot</button><button id="ini-sort" title="Re-sort by initiative">Sort</button>'+
       (confirmNewFight?'<button class="primary" id="ini-new-yes">Yes, clear for a new fight</button><button id="ini-new-no">Cancel</button>':'<button id="ini-new" title="Clears every roll and the DM slots; spell timers keep running">New fight</button>')+'</div>';
     var list='<ol class="ini-list" aria-label="Turn order">'+I.list.map(function(e){return initRow(I,e,c,active)}).join('')+'</ol>';
     var perf=state.party.map(function(p){var f=perfOf(p);return f?perfCard(I,p,f):''}).join('');
@@ -1183,7 +1266,7 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
       (I.fx.length?I.fx.map(function(f){return fxCard(I,f)}).join(''):'<p class="minor" style="margin:0">No timers running.</p>')+
       (!active&&I.fx.some(function(f){return !ended(f)})?'<div class="ini-tools"><button id="fx-min" title="Outside combat: every timer loses 10 rounds">Pass 1 minute</button><button id="fx-10min">Pass 10 minutes</button></div>':'')+
       '</section>';
-    return '<div class="ini"><div class="ini-main">'+bar+alert+tools+list+'</div>'+side+'</div>';
+    return '<div class="ini"><div class="ini-main">'+bar+alert+tools+(pick?pickView():'')+list+'</div>'+side+'</div>';
   }
   function setInit(id,v){
     var I=ini(), e=entry(I,id); if(!e) return;
@@ -1195,6 +1278,16 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
     sortInit(I); saveExtras();
   }
   function initGo(fn){var I=ini();fn(I);saveExtras();postRound();render()}
+  // Damage (dir −1) or healing (+1) from the row's ± box; a typed "-12" counts as damage either way.
+  function monHp(id,dir){
+    var I=ini(), e=entry(I,id), box=document.querySelector('[data-idmg="'+id+'"]'); if(!e||e.hpMax==null||!box) return;
+    var raw=String(box.value).trim().replace('−','-'), v=parseInt(raw,10);
+    if(isNaN(v)||!v){statusMsg='Type an amount in the ± box first.';render();return}
+    if(raw[0]==='-'||raw[0]==='+'){dir=v<0?-1:1;v=Math.abs(v)}
+    var was=e.hp; e.hp=dir<0?e.hp-v:Math.min(e.hpMax,e.hp+v);
+    statusMsg=e.name+(dir<0?' takes '+v:' heals '+(e.hp-was))+' → '+e.hp+' / '+e.hpMax+' HP'+(e.hp<=0&&was>0?'. Down!':'');
+    saveExtras();render();
+  }
   document.addEventListener('click',function(ev){
     var t=ev.target.closest('button'); if(!t) return;
     var d=t.dataset, I, handled=true;
@@ -1210,9 +1303,16 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
       I.list.push({id:id,name:'Enemy '+k,init:'',tb:0,note:''});sortInit(I);saveExtras();render();
       var ni=document.querySelector('[data-iname="'+id+'"]');if(ni){ni.focus();ni.select()}return;
     }
+    else if(t.id==='ini-best'){pick=!pick;render();var pq=document.getElementById(pick?'pk-q':'ini-best');if(pq)pq.focus();return}
+    else if(t.id==='pk-close'){pick=false;render();var ib=document.getElementById('ini-best');if(ib)ib.focus();return}
+    else if(t.id==='pk-ready'){addMonsters((best.ready||[]).map(function(r){return {m:bmon(r.id),count:r.count}}).filter(function(x){return x.m}));pick=false;render();return}
+    else if(d.pkadd){var pm=bmon(d.pkadd),pn=document.querySelector('[data-pkn="'+d.pkadd+'"]');if(pm)addMonsters([{m:pm,count:parseInt(pn&&pn.value,10)||1}]);render();
+      var pb=document.querySelector('[data-pkadd="'+d.pkadd+'"]');if(pb)pb.focus();return}
+    else if(d.istat){openStat[d.istat]=!openStat[d.istat];render();var sbb=document.querySelector('[data-istat="'+d.istat+'"]');if(sbb)sbb.focus();return}
+    else if(d.ihurt||d.iheal){monHp(d.ihurt||d.iheal,d.ihurt?-1:1);var hb=document.querySelector('[data-idmg="'+(d.ihurt||d.iheal)+'"]');if(hb)hb.focus();return}
     else if(t.id==='ini-new'){confirmNewFight=true;render();}
     else if(t.id==='ini-new-no'){confirmNewFight=false;render();}
-    else if(t.id==='ini-new-yes'){confirmNewFight=false;initGo(function(I){I.list=I.list.filter(function(e){return e.pc});I.list.forEach(function(e){e.init='';e.tb=0;e.held=false;e.started=0});
+    else if(t.id==='ini-new-yes'){confirmNewFight=false;openStat={};initGo(function(I){I.list=I.list.filter(function(e){return e.pc});I.mons={};I.list.forEach(function(e){e.init='';e.tb=0;e.held=false;e.started=0});
       I.round=0;I.turn='';I.fx=I.fx.filter(function(f){return !ended(f)&&!(f.who&&!entry(I,f.who))});I.fx.forEach(function(f){f.anchor=''});});}
     else if(d.iup||d.idown){
       I=ini();var e=entry(I,d.iup||d.idown),rl=I.list.filter(function(x){return rolled(x)&&x!==e}),i=I.list.filter(rolled).indexOf(e);
@@ -1242,9 +1342,11 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
     var el=ev.target;
     // re-sort once focus has moved on (change fires before it does), then put focus back where it went
     if(el.dataset.ini){setInit(el.dataset.ini,el.value);setTimeout(function(){
-      var a=document.activeElement, sel=null, key=a&&a.dataset&&['ini','iname','inote'].find(function(k){return a.dataset[k]});
+      var a=document.activeElement, sel=null, key=a&&a.dataset&&['ini','iname','inote','idmg','ihpcur'].find(function(k){return a.dataset[k]});
       if(key)sel='[data-'+key+'="'+a.dataset[key]+'"]';else if(a&&a.id)sel='#'+a.id;
       render();var f=sel&&document.querySelector(sel);if(f)f.focus();},0);}
+    else if(el.dataset.ihpcur){var Ih=ini(),eh=entry(Ih,el.dataset.ihpcur),hv=parseInt(String(el.value).replace('−','-'),10);if(eh&&!isNaN(hv)){eh.hp=hv;saveExtras();}softRender();}
+    else if(el.id==='pk-roll'){pickRoll=el.checked;}
     else if(el.id==='fx-unit'){fxForm.unit=el.value;render();var u=document.getElementById('fx-unit');if(u)u.focus();}
     else if(el.id==='fx-who'){fxForm.who=el.value;}
     else if(el.dataset.fxwho){var I=ini(),f=I.fx.find(function(x){return x.id===el.dataset.fxwho});if(f){f.who=el.value;saveExtras();render();}}
@@ -1252,6 +1354,7 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
   document.addEventListener('input',function(ev){
     var el=ev.target, I;
     if(el.dataset.iname||el.dataset.inote){I=ini();var e=entry(I,el.dataset.iname||el.dataset.inote);if(e){e[el.dataset.iname?'name':'note']=el.value;saveExtras();}}
+    else if(el.id==='pk-q'){pickQ=el.value;var pos=el.selectionStart;render();var pq=document.getElementById('pk-q');if(pq){pq.focus();try{pq.setSelectionRange(pos,pos)}catch(e){}}}
     else if(el.id==='fx-name')fxForm.name=el.value;
     else if(el.id==='fx-dur')fxForm.dur=el.value;
   });
@@ -1264,6 +1367,8 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
       setInit(el.dataset.ini,el.value);render();
       var f=nid&&document.querySelector('[data-ini="'+nid+'"]');if(f){f.focus();f.select()}
     }
+    else if(ev.key==='Enter'&&el.dataset&&el.dataset.idmg){ev.preventDefault();monHp(el.dataset.idmg,-1);var db2=document.querySelector('[data-idmg="'+el.dataset.idmg+'"]');if(db2)db2.focus();}
+    else if(ev.key==='Escape'&&pick&&el.id==='pk-q'){pick=false;render();var ib2=document.getElementById('ini-best');if(ib2)ib2.focus();}
     else if(ev.key==='Enter'&&(el.id==='fx-name'||el.id==='fx-dur')){ev.preventDefault();var b=document.getElementById('fx-add');if(b)b.click();}
   });
 
@@ -1541,6 +1646,8 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
         // conditions the DM has sent to heroes' own sheets (kept whole, since each write replaces the document)
         Object.keys(SHEET_PAGES).forEach(function(id){db.doc('party/turn-'+id).onSnapshot(function(s){if(s.exists)takeReply(id,s.data())},function(){})});
         lastRoundKey=null;postRound();
+        // the Bestiary, for Add from bestiary on the Initiative tab
+        db.doc('party/bestiary').onSnapshot(function(s){if(s.exists){var b=s.data();if(b&&Array.isArray(b.monsters)){best=b;if(pick)softRender()}}},function(){});
         db.doc('party/conds').onSnapshot(function(s){if(!s.metadata||!s.metadata.hasPendingWrites)dmConds=(s.exists&&s.data())||{}},function(){});
         // Character sheets on this site post their spells and HP here, live, without the sync phrase.
         if(db.collection)db.collection('reports').onSnapshot(function(qs){
@@ -1553,7 +1660,8 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
   }
   render();
   syncConnect();
-  cloudStart();
+  // DM only: nothing loads from online until this device has the DM password (js/cloud.js)
+  window.claude.use('dm').then(function(ok){if(ok)cloudStart()});
 })();
 </script>
 
