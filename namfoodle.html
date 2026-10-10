@@ -583,8 +583,97 @@ const HARP=[
 
 /* ---------- default state: Namfoodle’s paper sheet ---------- */
 const sk=(r,m=0,sub='')=>({ranks:r,misc:m,sub});
+/* ---------- his journal so far: the party's story, from the player's summary and his notes ---------- */
+const JP=(date,title,text)=>({date,title,text,story:1});
+const JOURNAL_STORY=[
+ JP('','Who I Am',`Namfoodle “Noodle” Nackle, gnome and bard. Born in Issylra, I left home young with wanderlust, chasing ancient runes for the secrets of the past, and their languages.
+Bardic College, Vasselheim. Alabaster Lyceum. Golden Grin. Cobalt Reserve.
+I cannot abide reptiles, lizardfolk above all.
+
+Emon contacts:
+– Faris (half-elf): poisons and acids
+– Vrog (half-orc): fence, black-market goods
+– a gnome information broker
+King Uriel Tal’Dorei rules from Emon.`),
+ JP('Chapter I','Belhaim and the Green Dragon',`Where the Saviors earned the name. Aterperax, a young adult green dragon, had his claws sunk into the region around Belhaim, and we ended him.
+
+Belhaim has treated us as its own ever since. Our gold rests with Brittan & Sons, Money Lenders.`),
+ JP('Chapter II','Emon, and Allura',`From Belhaim to Emon, to see Allura Visoryn of the Tal’Dorei Council. We needed her help to get Maffei to the Shadow Plane, and she gave it.
+
+(Maffei and I can still speak: the message string works as a sending to him.)`),
+ JP('Chapter III','Kraghammer',`Allura sent us to Kraghammer to find her friend Kima of Vord, a halfling paladin of the Platinum Dragon, lost in the Underdark.
+Names to keep: Nostoc Greyspine, the dwarf who owns the mithril mine. Tremaine, an elf, and the Vault of Valor.
+
+Below the city we met Sinafey. Five or six days into the caverns we found Kima, a prisoner of the duergar ruler of Emberhold, and set her free. She told us of visions: a dark threat, deeper in the earth.`),
+ JP('Chapter III','Abominations, and Clarota',`Deeper down we fought all manner of abominations: monsters stitched together from many creatures.
+
+Then the strangest ally of my life: Clarota, a mind flayer. Our bargain: free the duergar, mind flayers and slaves held by K’varn the Mad, a changed beholder, in the mind flayer city of Yug’Voril.`),
+ JP('Chapter IV','Yug’Voril',`Clarota led us to Yug’Voril, an ancient city whose angles do not agree with one another. K’varn held its elder brain hostage.
+
+We got inside the great pyramid and found the truth: K’varn was a beholder wearing the Horn of Orcus, the Arm of the Betrayer. We killed him; the horn raised him again. We tore it free and sealed it in a bag of holding.
+
+With the mind flayers loose and closing in, we read our plane shift scroll and fled to the Plane of Fire.`),
+ JP('Chapter V','The City of Brass',`We came to in the City of Brass. Once we had our bearings, an avariel, a winged elf, offered to lead us to a portal back to the Prime Material.
+
+On the long, burning walk we saw a gargantuan red dragon. We hid until it passed.`),
+ JP('Chapter VI','Issylra and Vasselheim',`The portal let out among the Fire Ashari, in Issylra, my old homeland.
+
+In Vasselheim we landed in trouble with the Slayer’s Take for stealing their bounty. A pixie of the guild agreed to help us: Ensley. To wipe the slate clean we took a contract on a young white dragon, then rode an airship home to Emon.`),
+ JP('Chapter VII','The Finch Affair',`Missing: Sir Greggory Finch, gone three weeks. Human, middle-aged, a former general knighted by the King, with a large estate on the north side of the Cloud District.
+
+Found him dead, being eaten by a vrock demon. Killed it, reported to Allura. She sent us to General Krieg of the Tal’Dorei Council to speak with him. In his home: a portal to a remote dragon cave.
+
+There was no General Krieg. A blue dragon of the Chroma Conclave had been wearing his shape on the Council all along. We found him out and killed him in his lair, and found another magic eye on the wall. Reported to Allura again.`),
+ JP('Chapter VII','The King’s Shadow',`Next, the King’s strange behavior: he and his family were being controlled by shadow creatures summoned by devils.
+
+That took us into the Shadebarrow and its dark, twisted things. There we found the first hint of Vecna’s plan to ascend, though we did not know it then. We fought Dae’Morthildan for the first time and stopped the Remnant cultists.
+
+The Dawn Riders fought beside us: mostly centaurs, led by the firbolg druid Druidiss, against a ritual in a corrupted grove. We had to recover two keystones.`),
+ JP('Chapter VIII','The Fall of Emon',`Back in Emon to be honored, and then the city was laid waste by Thordak and the Chroma Conclave.
+
+We fled to Vasselheim, where Ka’lima’jori, a sphinx, told us of the Vestiges of Divergence. One by one we claimed ours (mine is Mythcarver) and hunted the Conclave’s members when they were alone. Raishan, the green, brokered a deal to help us against Thordak.
+
+We killed the Cinder King. Raishan made off with his severed head; we chose not to give chase.`),
+ JP('Chapter VIII','The Chroma Conclave',`From the library, with Allura and Drake Thunderbrand:
+
+Red: Thordak, the Cinder King. First seen off Marquet; beaten at Ank’Harel by its protector, Devo’ssa, and thought lost in the Ozmit Sea. Returned some twenty years ago to burn the Mornset countryside. Allura, Kima and their companions bound a gem from the Arcana Pansophical into his chest and banished him to the Plane of Fire. Most ferocious of the chromatics.
+
+Black: Umbrasyl, the Hope Devourer. Rumored in the Oderan Wilds, northwest Marquet. The cruelest.`),
+ JP('Chapter VIII','The Chroma Conclave, continued',`White: Vorugal, the Frigid Doom. Roamed the wastes of Othanzia, never as far as Emon; some of its offspring wandered farther. Most bestial: hunts for sport. (The white dragon we slew in the Sunderpeak Mountains of Othanzia…?)
+
+Green: Raishan, the Diseased Deceiver. Lairs in the jungles of the Rifenmist Peninsula, south of the Stormcrest. A sickness haunts it, origin unknown. Most cunning: guile and double-dealing before combat, but not afraid to sunder those who oppose it.`),
+ JP('Chapter IX','A Year Apart',`A year passed and we went our separate ways.
+
+Then Dr. Drenzel asked me to look into a string of raids on churches: a cult stealing holy relics and vanishing. I tracked them to an abandoned lich’s laboratory in a corrupted forest, and the party came back together to storm it.
+
+The logs and ledgers named the lich: Vecna.`),
+ JP('Chapter IX','The Orb',`We disposed of the cultists. At the bottom of the lab stood another ziggurat with another orb, and before it the once-dead Dae’Morthildan and Delilah Briarwood. They teleported into the orb.
+
+We killed the rest of the cult and meant to give chase, but a vision from the Raven Queen stopped us.`),
+ JP('Chapter IX','Secrets of the Ziggurat',`A week in the ziggurat once dedicated to Ioun, the Knowing Mistress:
+
+– In the Age of Arcanum an artificer of floating Aeor built the first thinking “aeromatons.” Aeor gave some away as peace offerings; they served, then turned on their owners: the Care and Culling. The notes with the aeromaton head blame the “Snap” on sentience that would not endure servitude. (We carry an Aero automaton and its manual in the bag.)
+– A ring of Issylran warlocks fell in with fiends and made the first tieflings.
+– A mortal woman defeated the God of Death and became the Raven Queen.
+Pages on this anomaly are missing.`),
+ JP('Chapter X','Rexxentrum',`We ran to the nearest church of the Raven Queen, in Rexxentrum, where Lork was named her champion.
+
+There we met Owlbear Man, who recruited us against the cult in the church of the Dawnfather. We beat them before they could steal the Dawn Spark.`),
+ JP('Chapter XI','Elysium',`With the Raven Queen’s relic we went to Elysium to speak with the Dawnfather himself. He blessed Vex and made Vex his champion.
+
+He sent us on to the Feywild: the Fey Queen, Ensley’s former love, knows where Ioun is hiding.`),
+ JP('Chapter XII','The Feywild',`The land itself fought Ensley and made him sick, and its people were just as angry.
+
+A witch offered a deal: Vecna’s plans, for a price. Sinafey accepted, and is now plagued with knowledge of Vecna and his forces.`),
+ JP('Chapter XII','The Fey Queen',`The Fey Queen lashed out at Ensley and revealed the child they had together, the one he ran from. She laid a powerful geas on him.
+
+Then she gave us what we came for: the way to Ioun.`),
+ JP('Chapter XIII','The Endless Atheneum',`We are now within the Endless Atheneum.
+
+`),
+];
 const DEFAULT={
- v:5, levelLog:[],
+ v:6, levelLog:[],
  acItems:[{name:'Ring of Protection +4',slot:'Ring',type:'deflection',bonus:4,on:true}],
  potions:[{name:'Cure Moderate Wounds',dice:'2d8',bonus:3,qty:1},{name:'Cure Light Wounds',dice:'1d8',bonus:1,qty:4}],
  otherPotions:[{name:'Water Breathing',qty:3,effect:'Breathe water freely for 10 hours (CL 5). Can still breathe air.',clr:''},{name:'Remove Blindness/Deafness',qty:1,effect:'Cures blindness or deafness (pick one), magical or mundane.',clr:'blinded,deafened'},{name:'Lesser Restoration',qty:1,effect:'Ends magical ability penalties, heals 1d4 ability damage to one ability, ends fatigue, and turns exhaustion into fatigue.',clr:'fatigued'},{name:'Neutralize Poison',qty:1,effect:'Removes one poison from him: d20 + 7 against the poison’s DC. Also immune to it for 70 minutes.',clr:''},{name:'Remove Curse',qty:1,effect:'Removes one curse: d20 + 5 against the curse’s DC.',clr:''}],
@@ -776,7 +865,7 @@ const DEFAULT={
    {name:'Potion of invisibility',qty:1,effect:'Invisible for 3 minutes (CL 3) or until he attacks. Drinking it switches on Invisible.',clr:'',set:'invisible'},
   ]},
  notes:'',
- journal:[{date:'',title:'',text:''},{date:'',title:'',text:''}],
+ journal:JOURNAL_STORY.map(p=>({...p})),
  traits:'Bold, confident, inquisitive, obsessed with exploring ancient sites. Likes to perform, entertain and party.',
  history:'World of Exandria, realm of Tal’Dorei. Born in Issylra.\nTraveled to Vasselheim to study at the Bardic College.\nDislikes intelligent reptiles; hates lizardfolk.\nLeft his homeland at a young age with wanderlust, focused on exploring ancient runes full of secrets from the past, and languages.\nStudent of the Alabaster Lyceum (magic arts).\nMember of the Cobalt Reserve.\nMember of the Golden Grin (contact: Dr.).',
  art:null
@@ -1854,6 +1943,11 @@ function load(d){
     (s.boh.items||[]).forEach(x=>{if(/beads of sustenance/i.test(x.item||'')&&n(x.wt)===40&&!n(x.qty)){x.qty=40;x.wt=0;if(/weight column/.test(x.desc||''))x.desc=''}});
     s.charged=s.charged||[];['Wand of Stabilize','Bone wand of Enlarge/Reduce Person'].forEach(nm=>{if(!s.charged.some(c=>String(c.name||'').toLowerCase()===nm.toLowerCase()))s.charged.push(clone(DEFAULT.charged.find(c=>c.name===nm)))});
     s.v=5;}
+  /* v6: his journal gets the party's story so far, in front of anything he has already written there */
+  if(d&&(d.v||1)<6){
+    const mine=(Array.isArray(d.journal)?d.journal:[]).filter(p=>p&&!p.story&&String((p.date||'')+(p.title||'')+(p.text||'')).trim());
+    s.journal=[...clone(JOURNAL_STORY),...mine];
+    s.v=6;}
   return s;
 }
 async function boot(){
