@@ -3320,8 +3320,10 @@ function dmReport(){
     fx:SPELL_FX.filter(x=>S.cond[x.id]).map(x=>x.n),
     ferv:f?{used:Math.min(f.uses,n(S.used['wp.fervor'])),max:f.uses,dice:f.fd,dc:f.dc}:null,
     hp:{cur:n(S.hp.cur),max:hpBase()-5*Math.max(0,n(S.neg)),temp:n(S.hp.temp),nl:n(S.hp.nl),neg:Math.max(0,n(S.neg))},
-    log:(S.spLog||[]).slice(-25)};
+    log:(S.spLog||[]).slice(-25),durs:castDurs((S.spLog||[]).slice(-25),nm=>SPELL_DESC[nm])};
 }
+/* the description (with its duration) of each spell in the cast log, so the party sheet's initiative tracker can time it */
+function castDurs(log,desc){const o={};log.forEach(e=>{const m=String(e.txt).match(/^Cast (?:Empowered )?(.+?)(?: \(| from the Ring|$)/);const d=m&&desc(m[1]);if(d)o[m[1]]=d});return o}
 const dmCode=()=>'SPELLS1:'+btoa(unescape(encodeURIComponent(JSON.stringify(dmReport()))));
 /* same browser, local files: the party sheet reads this key directly; with a sync phrase, it also goes out live */
 /* everything the DM's party sheet shows live: defenses, saves, speed and active conditions */

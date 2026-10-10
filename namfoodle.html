@@ -1590,8 +1590,11 @@ function dmReport(){
     powers,powersTitle:'bardic powers',
     note:(cur?`Performing ${cur.n}`:lg?`${lg.n} lingering`:'Not performing')+` · Mythcarver ${vestS().n.toLowerCase()}`,
     slots:[...Array(7).keys()].map(l=>{const si=slotInfo(l,C);return {s:l,total:si.total,used:l?Math.min(si.total,castOf(l)):0,dc:spDC(l,'',C)}}).filter(x=>x.s===0||x.total>0),
-    log:(S.sdLog||[]).slice(-25)};
+    log:(S.sdLog||[]).slice(-25),cl:levels().bard,durs:castDurs((S.sdLog||[]).slice(-25))};
 }
+/* the description (with its duration, already worked out at his caster level) of each spell in the cast log, so the party sheet's initiative tracker can time it */
+function castDurs(log){const o={};log.forEach(e=>{const m=String(e.txt).match(/^Cast (.+?)(?: \(|$)/);if(!m)return;
+  for(const l in BS){const h=BS[l].find(x=>x[0]===m[1]);if(h){o[m[1]]=h[1];break}}});return o}
 /* everything the DM's party sheet shows live: defenses, saves, speed and active conditions */
 function liveStats(){
   const A=compute(true),o=k=>A.O[k]?A.O[k].n:null,t=k=>A.O[k]?A.O[k].t:'';
