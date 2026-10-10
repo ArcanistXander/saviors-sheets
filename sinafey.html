@@ -2686,7 +2686,7 @@ function liveStats(){
   return {ac:o('ac.total'),touch:o('ac.touch'),ff:o('ac.ff'),fort:o('sv.fort'),ref:o('sv.ref'),will:o('sv.will'),
     rv:3,init:t('init'),speed:t('speed'),cmb:t('cmb'),cmd:t('cmd'),perception:t('sk.perception'),neg:A.M.neg||0,
     level:A.L.total,classes:S.classes.filter(c=>n(c.level)>0).map(c=>`${c.name} ${Math.floor(n(c.level))}`).join(' / '),
-    conds:A.M.active.map(c=>({id:c.id,n:String(cname(c)),buff:!!c.buff})),cids:CONDS.map(c=>c.id)};
+    conds:A.M.active.map(c=>({id:c.id,n:String(cname(c)),buff:!!c.buff})),cids:ALLC.map(c=>c.id)};
 }
 /* Namfoodle’s performances reach the party: his sheet posts party/perform, one section per performance stamped with when it changed */
 function watchPartyPerform(db){
@@ -2711,12 +2711,31 @@ function watchPartyPerform(db){
     if(!touched)return;render();if(ch.length)setStatus('Namfoodle: '+ch.join(', '));scheduleSave(true);
   },()=>{});
 }
+/* damage and healing the DM sends from the party sheet: party/hp holds {heroId:[{at,amt,type,heal,src}]}, the newest few each.
+   Each one applies once (S.dmHpAt keeps the newest time applied), with this sheet's own resistances and temp HP. */
+function dmHit(c){
+  const a=Math.max(0,Math.floor(n(c.amt)));
+  if(c.heal){const mx=hpBase()-5*Math.max(0,n(S.neg)),bf=n(S.hp.cur);S.hp.cur=Math.min(mx,bf+a);S.hp.nl=Math.max(0,n(S.hp.nl)-a);
+    const t=`${c.src||'Healed'} +${S.hp.cur-bf}`;hpLog(t+' (from the DM)');return t}
+  const type=c.type==='untyped'||c.type==='physical'||!c.type?'':String(c.type);let d=a,r='';
+  
+  const tmp=n(S.hp.temp),use=Math.min(tmp,d);S.hp.temp=tmp-use;S.hp.cur=n(S.hp.cur)-(d-use);
+  const t=`${a} ${type?type+' ':''}damage${r}: took ${d}`+(use?` (${use} from temp HP)`:'');hpLog(t+' (from the DM)');return t;
+}
+function watchDmHp(db){
+  db.doc('party/hp').onSnapshot(s=>{
+    const list=(((s.exists&&s.data())||{})['sinafey']||[]).filter(c=>c&&c.at&&c.at>(S.dmHpAt||'')).sort((x,y)=>x.at<y.at?-1:1);
+    if(!list.length)return;
+    const msg=list.map(c=>{S.dmHpAt=c.at;return dmHit(c)});
+    render();setStatus(`From the DM: ${msg.join('; ')}`);scheduleSave(true);
+  },()=>{});
+}
 /* conditions the DM sets on the party sheet: party/conds holds {heroId:{condition:{on,at}}}. Each change applies once
    (S.dmCond keeps its time), so the player can still change it here afterwards. */
 function watchDmConds(db){
   db.doc('party/conds').onSnapshot(s=>{
     const mine=((s.exists&&s.data())||{})['sinafey']||{},seen=S.dmCond||(S.dmCond={}),msg=[];let ch=false;
-    Object.keys(mine).forEach(k=>{const v=mine[k]||{},at=String(v.at||''),c=CONDS.find(x=>x.id===k);
+    Object.keys(mine).forEach(k=>{const v=mine[k]||{},at=String(v.at||''),c=ALLC.find(x=>x.id===k);
       if(!c||!at||at<=(seen[k]||''))return;seen[k]=at;ch=true;
       if(!!S.cond[k]!==!!v.on){S.cond[k]=!!v.on;msg.push((v.on?'':'removed ')+String(cname(c)).toLowerCase())}});
     if(!ch)return;
@@ -2822,7 +2841,7 @@ async function boot(){
     const [db,as]=await Promise.all([cl.use('db'),cl.use('assets').catch(()=>null)]);assets=as;
     if(db){dbRef=db.doc('sheets/sinafey');const snap=await dbRef.get();
       if(snap.exists&&!dirty){S=load(clone(snap.data()));render();if(migrated)scheduleSave(true);}
-      setStatus(dirty?'Unsaved changes':'Saved');if(dirty)flush();watchPartyRest(db);watchDmConds(db);watchPartyPerform(db);pushLink();}
+      setStatus(dirty?'Unsaved changes':'Saved');if(dirty)flush();watchPartyRest(db);watchDmConds(db);watchDmHp(db);watchPartyPerform(db);pushLink();}
     else setStatus('Edits save in this browser');
   }catch(e){setStatus('Couldn’t load saved sheet; showing local copy')}
 }

@@ -1859,14 +1859,33 @@ function liveStats(){
   return {ac:o('ac.total'),touch:o('ac.touch'),ff:o('ac.ff'),fort:o('sv.fort'),ref:o('sv.ref'),will:o('sv.will'),
     rv:3,init:t('init'),speed:t('speed'),cmb:t('cmb'),cmd:t('cmd'),perception:t('sk.perception'),neg:A.M.neg||0,
     level:A.L.total,classes:S.classes.filter(c=>n(c.level)>0).map(c=>`${c.name} ${Math.floor(n(c.level))}`).join(' / '),
-    conds:A.M.active.map(c=>({id:c.id,n:String(cname(c)),buff:!!c.buff})),cids:CONDS.map(c=>c.id)};
+    conds:A.M.active.map(c=>({id:c.id,n:String(cname(c)),buff:!!c.buff})),cids:ALLC.map(c=>c.id)};
+}
+/* damage and healing the DM sends from the party sheet: party/hp holds {heroId:[{at,amt,type,heal,src}]}, the newest few each.
+   Each one applies once (S.dmHpAt keeps the newest time applied), with this sheet's own resistances and temp HP. */
+function dmHit(c){
+  const a=Math.max(0,Math.floor(n(c.amt)));
+  if(c.heal){const mx=hpMaxNow(),bf=n(S.hp.cur);S.hp.cur=Math.min(mx,bf+a);S.hp.nl=Math.max(0,n(S.hp.nl)-a);
+    const t=`${c.src||'Healed'} +${S.hp.cur-bf}`;hpLog(t+' (from the DM)');return t}
+  const type=c.type==='untyped'||c.type==='physical'||!c.type?'':String(c.type);let d=a,r='';
+  if(type==='acid'){d=Math.max(0,d-10);r=', his ring stopped '+Math.min(a,10)}
+  const tmp=n(S.hp.temp),use=Math.min(tmp,d);S.hp.temp=tmp-use;S.hp.cur=n(S.hp.cur)-(d-use);
+  const t=`${a} ${type?type+' ':''}damage${r}: took ${d}`+(use?` (${use} from temp HP)`:'');hpLog(t+' (from the DM)');return t;
+}
+function watchDmHp(db){
+  db.doc('party/hp').onSnapshot(s=>{
+    const list=(((s.exists&&s.data())||{})['namfoodle']||[]).filter(c=>c&&c.at&&c.at>(S.dmHpAt||'')).sort((x,y)=>x.at<y.at?-1:1);
+    if(!list.length)return;
+    const msg=list.map(c=>{S.dmHpAt=c.at;return dmHit(c)});
+    render();setStatus(`From the DM: ${msg.join('; ')}`);scheduleSave(true);
+  },()=>{});
 }
 /* conditions the DM sets on the party sheet: party/conds holds {heroId:{condition:{on,at}}}. Each change applies once
    (S.dmCond keeps its time), so the player can still change it here afterwards. */
 function watchDmConds(db){
   db.doc('party/conds').onSnapshot(s=>{
     const mine=((s.exists&&s.data())||{})['namfoodle']||{},seen=S.dmCond||(S.dmCond={}),msg=[];let ch=false;
-    Object.keys(mine).forEach(k=>{const v=mine[k]||{},at=String(v.at||''),c=CONDS.find(x=>x.id===k);
+    Object.keys(mine).forEach(k=>{const v=mine[k]||{},at=String(v.at||''),c=ALLC.find(x=>x.id===k);
       if(!c||!at||at<=(seen[k]||''))return;seen[k]=at;ch=true;
       if(!!S.cond[k]!==!!v.on){S.cond[k]=!!v.on;msg.push((v.on?'':'removed ')+String(cname(c)).toLowerCase())}});
     if(!ch)return;
@@ -1885,11 +1904,33 @@ function watchPartyRest(db){
 /* the DM's initiative tracker posts party/round; each new round while he performs (or a performance lingers) counts one round here.
    S.dmRound remembers the last round counted for that combat, so reloading or the DM stepping back never charges a round twice. */
 let dmRound=null;
+function askEndPerf(){
+  if(document.getElementById('endperf'))return;
+  const cur=perfDef(S.perf.cur),lg=n(S.perf.linger)>0?perfDef(S.perf.lingerOf):null,nm=(cur||lg||{}).n||'his performance';
+  if(!document.getElementById('endperf-css')){const st=document.createElement('style');st.id='endperf-css';
+    st.textContent='.ep-veil{position:fixed;inset:0;z-index:1001;display:grid;place-items:center;padding:16px;background:rgba(10,8,16,.55)}'+
+      '.ep-box{max-width:400px;width:100%;box-sizing:border-box;background:var(--surface);color:var(--ink);border-radius:12px;padding:20px 22px;display:grid;gap:12px;box-shadow:0 10px 40px rgba(0,0,0,.4)}'+
+      '.ep-box h2{margin:0;font-family:var(--f-display)}.ep-box p{margin:0}.ep-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}';
+    document.head.appendChild(st)}
+  const v=document.createElement('div');v.id='endperf';v.className='ep-veil';
+  v.innerHTML=`<div class="ep-box" role="alertdialog" aria-modal="true" aria-labelledby="ep-t"><h2 id="ep-t">The fight is over</h2>`+
+    `<p>${cur?`He’s still performing <b>${esc(nm)}</b>.`:`<b>${esc(nm)}</b> is still lingering.`} End it now? Its bonuses switch off for him and the whole party.</p>`+
+    `<div class="ep-row"><button class="btn" data-ep="keep">Keep it going</button><button class="btn pri" data-ep="end">End performance</button></div></div>`;
+  document.body.appendChild(v);v.querySelector('.pri').focus();
+  const close=()=>{v.remove();document.removeEventListener('keydown',key,true)},key=e=>{if(e.key==='Escape'){e.stopPropagation();close()}};
+  document.addEventListener('keydown',key,true);
+  v.addEventListener('click',e=>{const b=e.target.closest('[data-ep]');if(!b)return;close();
+    if(b.dataset.ep==='end'){endAllPerf();dayLog(`Ended ${nm} when the fight ended`);render();setStatus('Performance ended; its bonuses are off for the whole party');scheduleSave(true)}});
+}
 function watchDmRound(db){
   db.doc('party/round').onSnapshot(s=>{
     const d=s.exists?(s.data()||{}):{},cid=String(d.cid||''),r=Math.floor(n(d.round)),was=dmRound;
     dmRound=d.active&&cid?r:null;
-    if(dmRound===null){if(was!==null)render();return}
+    if(dmRound===null){
+      /* the DM ended the fight he was performing in: once per fight, ask whether to stop (also on the next visit, if the sheet was closed) */
+      const pr=S.dmRound||{};
+      if(cid&&pr.cid===cid&&!pr.ended){pr.ended=true;scheduleSave(true);if(S.perf.cur||n(S.perf.linger)>0)askEndPerf()}
+      if(was!==null)render();return}
     const prev=S.dmRound||{};
     if(prev.cid!==cid){S.dmRound={cid,round:r};render();scheduleSave(true);return}
     if(r<=n(prev.round)){if(was!==dmRound)render();return}
@@ -1975,7 +2016,7 @@ async function boot(){
       cloudDb=db;db.doc('party/perform').get().then(p=>{const d=(p.exists&&p.data())||{};lastDoc=d;lastPerf={};
         for(const k in d){if(d[k]&&typeof d[k]==='object'){const x=Object.assign({},d[k]);delete x.at;lastPerf[k]=JSON.stringify(x)}}postPerf();}).catch(()=>{});
       if(snap.exists&&!dirty){S=load(clone(snap.data()));render();}
-      setStatus(dirty?'Unsaved changes':'Saved');if(dirty)flush();watchPartyRest(db);watchDmConds(db);watchDmRound(db);pushLink();}
+      setStatus(dirty?'Unsaved changes':'Saved');if(dirty)flush();watchPartyRest(db);watchDmConds(db);watchDmHp(db);watchDmRound(db);pushLink();}
     else{document.getElementById('backup').hidden=false;setStatus('Edits save in this browser');}
   }catch(e){setStatus('Couldn’t load saved sheet; showing local copy')}
 }
