@@ -1,5 +1,5 @@
 /* Opening flourish for each character sheet: a ~5 s canvas overlay played once per page load.
-   <script src="js/intro.js" data-intro="drax|ensley|sinafey|namfoodle|lork"></script>
+   <script src="js/intro.js" data-intro="drax|ensley|sinafey|namfoodle|lork|vex"></script>
    The canvas ignores the pointer, so the sheet stays usable underneath; any click or key fades it out early. */
 (function(){
   'use strict';
@@ -356,6 +356,68 @@
     }};
   }
 
+  /* =====================================================================
+     VEX — Mantle of the Dawn: the sun rises behind the sheet, arrows of sunlight fly,
+     and one Storm Arrow splits in three with a crack of lightning
+     ===================================================================== */
+  function vex(){
+    var arrows=[],bolts=[],flash=0,sunAt=0;
+    /* an arrow of pure sunlight: bright head, long fading tail */
+    function shoot(t,y,v,storm){arrows.push({born:t,x:-80*S,y:y,vy:rnd(-30,30)*S,v:v*S,storm:storm,split:false})}
+    function crack(x1,y1,x2,y2,t){
+      var pts=[[x1,y1]],segs=9;
+      for(var i=1;i<segs;i++){var k=i/segs;pts.push([x1+(x2-x1)*k+rnd(-14,14)*S,y1+(y2-y1)*k+rnd(-14,14)*S])}
+      pts.push([x2,y2]);bolts.push({born:t,pts:pts});
+    }
+    function drawArrow(x,y,ang,a,blue){
+      cx.save();cx.translate(x,y);cx.rotate(ang);cx.globalAlpha=a;
+      var g=cx.createLinearGradient(-170*S,0,0,0);
+      g.addColorStop(0,'rgba(255,200,90,0)');g.addColorStop(1,blue?'rgba(170,215,255,.95)':'rgba(255,236,170,.95)');
+      cx.strokeStyle=g;cx.lineWidth=3*S;cx.lineCap='round';cx.beginPath();cx.moveTo(-170*S,0);cx.lineTo(0,0);cx.stroke();
+      cx.shadowColor=blue?'rgba(120,190,255,1)':'rgba(255,190,70,1)';cx.shadowBlur=16*S;cx.fillStyle=blue?'#e8f4ff':'#fff7dc';
+      cx.beginPath();cx.moveTo(10*S,0);cx.lineTo(-6*S,-5*S);cx.lineTo(-3*S,0);cx.lineTo(-6*S,5*S);cx.closePath();cx.fill();
+      cx.restore();
+    }
+    var plan=[{at:0,fn:function(t){sunAt=t}}];
+    [650,900,1150].forEach(function(at,i){plan.push({at:at,fn:function(t){shoot(t,H*(.32+i*.14),1500)}})});
+    plan.push({at:1700,fn:function(t){shoot(t,H*.5,1350,true)}});
+    [2700,2850].forEach(function(at,i){plan.push({at:at,fn:function(t){shoot(t,H*(.38+i*.22),1600)}})});
+    for(var f=300;f<3600;f+=90)plan.push({at:f,fn:function(t){
+      emit({x:rnd(0,W),y:H+10,vx:rnd(-15,15),vy:-rnd(60,140)*S,age:0,life:rnd(1800,2800),sz:rnd(1.5,3.5)*S,
+        draw:function(p,k){cx.globalAlpha=(k<.15?k/.15:1-k)*.8;cx.fillStyle='#ffd88a';cx.beginPath();cx.arc(p.x,p.y,p.sz,0,7);cx.fill();cx.globalAlpha=1}})}});
+
+    return {plan:plan,dim:'rgba(20,14,4,0.42)',draw:function(t,dt){
+      /* the dawn: a gold glow rising from the bottom edge, with slow rays */
+      var age=t-sunAt,p=easeOut(age/1600),sy=H*(1.15-.35*p),R=Math.max(W,H)*.9;
+      var g=cx.createRadialGradient(W/2,sy,0,W/2,sy,R);
+      g.addColorStop(0,'rgba(255,226,150,'+(.55*p)+')');g.addColorStop(.25,'rgba(240,170,70,'+(.28*p)+')');g.addColorStop(1,'rgba(240,170,70,0)');
+      cx.fillStyle=g;cx.fillRect(0,0,W,H);
+      cx.save();cx.translate(W/2,sy);cx.rotate(age/9000);cx.globalAlpha=.16*p;cx.fillStyle='#ffe2a0';
+      for(var i=0;i<14;i++){cx.rotate(Math.PI*2/14);cx.beginPath();cx.moveTo(0,0);cx.lineTo(-30*S,-R);cx.lineTo(30*S,-R);cx.closePath();cx.fill()}
+      cx.restore();
+      /* arrows */
+      for(var j=arrows.length-1;j>=0;j--){
+        var a=arrows[j],s=(t-a.born)/1000,x=a.x+a.v*s,y=a.y+a.vy*s;
+        if(a.storm&&!a.split&&x>W*.42){
+          a.split=true;flash=.45;shake(6,280,t);
+          [-1,0,1].forEach(function(d){arrows.push({born:t,x:x,y:y,vy:d*170*S,v:a.v*1.05/S,blue:true,y0:y,fromSplit:true})});
+          for(var b=0;b<3;b++)crack(x,y-rnd(160,260)*S,x+rnd(-30,30)*S,y,t);
+          arrows.splice(j,1);continue;
+        }
+        if(a.fromSplit){x=a.x+a.v*S*s;y=a.y+a.vy*s}
+        if(x>W+220*S){arrows.splice(j,1);continue}
+        drawArrow(x,y,Math.atan2(a.vy,a.fromSplit?a.v*S:a.v),1,a.blue||a.storm);
+        if(a.storm||a.blue)emit({x:x,y:y,vx:rnd(-60,60),vy:rnd(-60,60),age:0,life:260,
+          draw:function(q,k){cx.globalAlpha=1-k;cx.fillStyle='#bfe3ff';cx.fillRect(q.x,q.y,2*S,2*S);cx.globalAlpha=1}});
+      }
+      /* lightning */
+      for(var m=bolts.length-1;m>=0;m--){var bo=bolts[m],ba=t-bo.born;if(ba>320){bolts.splice(m,1);continue}
+        cx.save();cx.globalAlpha=1-ba/320;cx.strokeStyle='#e6f3ff';cx.shadowColor='rgba(120,180,255,1)';cx.shadowBlur=18*S;cx.lineWidth=2.4*S;
+        cx.beginPath();bo.pts.forEach(function(q,i){i?cx.lineTo(q[0],q[1]):cx.moveTo(q[0],q[1])});cx.stroke();cx.restore();}
+      if(flash>.005){cx.fillStyle='rgba(200,225,255,'+flash+')';cx.fillRect(0,0,W,H);flash*=Math.pow(.86,dt/16)}
+    }};
+  }
+
   /* shared: expanding shockwave rings */
   function drawRings(rings,t){
     for(var i=rings.length-1;i>=0;i--){var r=rings[i],age=t-r.born;if(age<0)continue;if(age>r.life){rings.splice(i,1);continue}
@@ -363,7 +425,7 @@
   }
 
   /* ---------- run ---------- */
-  var scenes={drax:drax,ensley:ensley,sinafey:sinafey,namfoodle:namfoodle,lork:lork};
+  var scenes={drax:drax,ensley:ensley,sinafey:sinafey,namfoodle:namfoodle,lork:lork,vex:vex};
   if(!scenes[theme])return;
   function start(){
     size();document.body.appendChild(cv);

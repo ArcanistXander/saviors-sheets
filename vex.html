@@ -1,0 +1,1742 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}</style>
+<title>Vex’ahlia · Pathfinder Character Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus+SC&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap">
+<style>
+/* Layout: persistent header (identity left, portrait top-right, stat strip below), sticky tab bar, one panel grid per tab.
+   Palette: pine-forest green for the ranger, dawn gold for the Mantle of the Dawn, storm blue for the Sky Sentinel Bow */
+:root{
+  --bg:#eceeea; --surface:#f8f9f6; --sunk:#e2e6df; --ink:#141a16; --muted:#56635a; --line:#cdd6cc;
+  --accent:#2e6a47; --accent-ink:#ffffff; --accent-soft:#dcebe0;
+  --bad:#b3261e; --bad-soft:#f6dedb; --buff:#1f5f86; --buff-soft:#d8e9f3; --good:#2c7a4b;
+  --dawn:#9a5b0e; --dawn-soft:#f6ead2; --storm:#2f5b8c; --storm-soft:#dde7f3;
+  --f-display:"Marcellus SC","Trajan Pro",Georgia,serif;
+  --f-body:"Alegreya Sans","Segoe UI",system-ui,sans-serif;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1210; --surface:#161b18; --sunk:#111512; --ink:#e5ebe6; --muted:#98a69c; --line:#29312c;
+  --accent:#7fcf9e; --accent-ink:#08170e; --accent-soft:#1c2e23;
+  --bad:#f2867c; --bad-soft:#3a1d1c; --buff:#7cc4e6; --buff-soft:#15303b; --good:#7fcf9b;
+  --dawn:#f0b85a; --dawn-soft:#30240f; --storm:#8fb8ea; --storm-soft:#16253a; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0e1210; --surface:#161b18; --sunk:#111512; --ink:#e5ebe6; --muted:#98a69c; --line:#29312c;
+  --accent:#7fcf9e; --accent-ink:#08170e; --accent-soft:#1c2e23;
+  --bad:#f2867c; --bad-soft:#3a1d1c; --buff:#7cc4e6; --buff-soft:#15303b; --good:#7fcf9b;
+  --dawn:#f0b85a; --dawn-soft:#30240f; --storm:#8fb8ea; --storm-soft:#16253a; color-scheme:dark }
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font:16px/1.45 var(--f-body);font-variant-numeric:tabular-nums}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:20px 60px}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;margin:0;text-wrap:balance}
+h2{font-size:1.05rem;letter-spacing:.06em;color:var(--accent)}
+h3{font-size:.95rem;letter-spacing:.05em}
+.lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:500}
+.muted{color:var(--muted)}
+small{font-size:.82rem}
+button{font:inherit;color:inherit;cursor:pointer}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:3px 6px;min-width:0}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+input[type=number]{width:4.2em;text-align:center;-moz-appearance:textfield}
+input[type=number]::-webkit-inner-spin-button{opacity:.4}
+textarea{width:100%;resize:vertical;min-height:4.5em;line-height:1.4}
+
+/* header */
+.head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:start}
+.ident{display:grid;gap:6px;min-width:0}
+.namein{font-family:var(--f-display);font-size:clamp(2rem,6vw,3.2rem);line-height:1.05;border:0;background:transparent;padding:0;width:100%;letter-spacing:.03em}
+.namein:hover{background:var(--sunk)}
+.sub{font-size:1.05rem;color:var(--muted)}
+.sub b{color:var(--ink);font-weight:500}
+.chips{display:flex;flex-wrap:wrap;gap:6px;min-height:26px}
+.chip{border:1px solid var(--bad);color:var(--bad);background:var(--bad-soft);border-radius:999px;padding:1px 10px;font-size:.82rem}
+.chip.buff{border-color:var(--buff);color:var(--buff);background:var(--buff-soft)}
+.quick{display:flex;flex-wrap:wrap;gap:8px}
+.qt{display:inline-flex;align-items:center;gap:8px;border:1.5px solid var(--buff);color:var(--buff);background:transparent;border-radius:999px;padding:4px 14px 4px 10px;font-weight:700;font-size:.9rem}
+.qt::before{content:"";width:12px;height:12px;border-radius:50%;border:1.5px solid currentColor}
+.qt[aria-pressed=true]{background:var(--buff);color:var(--surface)}
+.qt[aria-pressed=true]::before{background:currentColor;border-color:var(--surface)}
+.qt.dim{border-color:var(--accent);color:var(--accent)}
+.qt.dim[aria-pressed=true]{background:var(--accent);color:var(--accent-ink)}
+.qt.dawn{border-color:var(--dawn);color:var(--dawn)}
+.qt.dawn[aria-pressed=true]{background:var(--dawn);color:var(--surface)}
+.qt:disabled{opacity:.45;cursor:default}
+details.more summary{cursor:pointer;color:var(--accent);font-size:.88rem}
+.ovr{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-top:4px;font-size:.82rem;color:var(--muted)}
+.ovr input[type=number]{width:3.6em}
+.ovr textarea{min-height:2.4em;font-size:.88rem}
+.weapon .wtop{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:6px 18px;align-items:center}
+.weapon .wname{display:grid;gap:2px;min-width:0}
+.weapon .wname input{font-weight:700;font-size:1.05rem;border-color:transparent;background:transparent;padding-left:0}
+.weapon .wname input:hover,.weapon .wname input:focus{border-color:var(--line);background:var(--surface);padding-left:6px}
+.weapon .wstat{display:grid;text-align:right}
+.weapon .wstat b{font-size:1.2rem}
+.weapon .wbtns{display:flex;gap:0}
+.btn:disabled{opacity:.3;cursor:default}
+@media (max-width:640px){.weapon .wtop{grid-template-columns:1fr 1fr}.weapon .wname{grid-column:1/-1}.weapon .wbtns{grid-column:1/-1}.weapon .wstat{text-align:left}}
+.critbox{font-weight:700}
+.fa{border-color:var(--accent)}
+.fatbl td.tot{font-size:1.2rem}
+.fatbl tr.xtra td{background:var(--sunk)}
+.fatbl tr.storm td{background:var(--storm-soft)}
+.roundtot{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline;background:var(--accent-soft);border-radius:var(--r);padding:10px 14px}
+.rtot{font-size:1.6rem;color:var(--ink)}
+.backup{margin-top:24px;display:flex;flex-wrap:wrap;gap:10px 20px;align-items:center;justify-content:space-between;border:1px dashed var(--line);border-radius:var(--r);padding:12px 16px;font-size:.9rem}
+.pots td{vertical-align:middle}
+.pots td:first-child{min-width:16em}
+.nowrap{white-space:nowrap}
+.geartbl{table-layout:fixed;min-width:640px}
+.geartbl .c-item{width:36%}.geartbl .c-desc{width:40%}.geartbl .c-loc{width:14%}.geartbl .c-wt{width:5.5em}.geartbl .c-x{width:2.5em}
+.geartbl td input[type=text]{width:100%}
+.geartbl td:first-child input{font-weight:700}
+.geartbl tr.future td{color:var(--muted)}
+.roll{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font-size:.88rem;padding:4px 0}
+.roll select{font-size:.85rem}
+.rgrp{display:inline-flex;align-items:center;gap:4px;flex-wrap:wrap}
+.rf{display:inline-flex;align-items:center;gap:4px;color:var(--muted)}
+.rf input{width:3.6em}
+.rres b{font-size:1.15rem;color:var(--ink)}
+.crit{color:var(--good);font-style:normal;font-weight:700}
+.miss{color:var(--bad);font-style:normal;font-weight:700}
+.rollrow td{border-top:0;padding-top:0}
+.rolltools{margin-left:auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.hplog{display:grid;gap:2px;font-size:.86rem;border-top:1px solid var(--line);padding-top:6px}
+.hplog div{display:flex;justify-content:space-between;gap:10px;color:var(--muted)}
+.hplog b{color:var(--ink)}
+.hplog .btn{justify-self:start}
+.ord{display:inline-block;min-width:2.6em;padding:1px 6px;border-radius:4px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:.85rem}
+.lvlup{border-color:var(--accent)}
+.summary{background:var(--accent-soft);border-radius:var(--r);padding:10px 14px}
+.summary h3{font-size:1.05rem}
+.summary ul{margin:6px 0 0;padding-left:1.2em;display:grid;gap:3px}
+
+.art{width:170px;aspect-ratio:4/5;max-width:100%;border:1px solid var(--line);border-radius:var(--r);background:var(--sunk);position:relative;overflow:hidden;display:grid;place-items:center;text-align:center}
+.art img{width:100%;height:100%;object-fit:cover;object-position:50% 22%;display:block}
+.art .ph{padding:12px;color:var(--muted);font-size:.85rem;display:grid;gap:6px;justify-items:center}
+.art .ph svg{width:34px;height:34px;opacity:.6}
+.art .tools{position:absolute;inset:auto 0 0 0;display:flex;gap:4px;justify-content:center;padding:6px;background:linear-gradient(transparent,rgba(0,0,0,.6));opacity:0;transition:opacity .15s}
+.art:hover .tools,.art:focus-within .tools{opacity:1}
+.art .tools button{background:rgba(255,255,255,.9);color:#1c1a24;border:0;border-radius:4px;font-size:.78rem;padding:2px 8px}
+.art.drag{outline:2px dashed var(--accent);outline-offset:3px}
+.art .pick{position:absolute;inset:0;background:transparent;border:0}
+
+.strip{display:flex;flex-wrap:wrap;gap:0;margin-top:16px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden}
+.stat{padding:8px 14px;border-right:1px solid var(--line);display:grid;gap:0;min-width:70px;flex:1 0 auto}
+.stat:last-child{border-right:0}
+.stat .v{font-size:1.35rem;font-weight:500;line-height:1.2}
+.hpstat{flex:3 1 220px}
+.hpbar{height:6px;background:var(--sunk);border-radius:3px;overflow:hidden;margin-top:4px}
+.hpbar i{display:block;height:100%;background:var(--good);transition:width .2s}
+.hpbar i.low{background:var(--bad)}
+
+/* tabs */
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);margin-top:18px;border-bottom:1px solid var(--line);display:flex;gap:2px;overflow-x:auto;scrollbar-width:thin}
+.tab{border:0;background:transparent;padding:10px 14px;white-space:nowrap;color:var(--muted);border-bottom:2px solid transparent;font-weight:500}
+.tab[aria-selected=true]{color:var(--ink);border-bottom-color:var(--accent)}
+.tab .dot{display:inline-block;min-width:18px;padding:0 5px;margin-left:4px;border-radius:9px;background:var(--bad);color:var(--surface);font-size:.72rem;line-height:18px;text-align:center}
+.status{margin-left:auto;align-self:center;font-size:.78rem;color:var(--muted);white-space:nowrap;padding-inline:8px}
+
+.page{display:grid;gap:18px;margin-top:18px}
+.cols{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));align-items:start}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:grid;gap:10px;min-width:0}
+.panel>header{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.panel>header .muted{font-size:.85rem}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%}
+th{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:500;text-align:center;padding:4px 4px;white-space:nowrap}
+th.l,td.l{text-align:left}
+td{padding:4px;text-align:center;border-top:1px solid var(--line);vertical-align:middle}
+td.tot{font-weight:700;font-size:1.08rem;min-width:3em}
+.op{color:var(--muted);font-size:.8rem;padding:0 1px}
+[data-d=down]{color:var(--bad)!important}
+[data-d=up]{color:var(--buff)!important}
+.abtbl td:first-child{font-family:var(--f-display);font-size:1.05rem;text-align:left}
+.mod{display:inline-block;min-width:2.6em;padding:2px 6px;border-radius:4px;background:var(--accent-soft);font-weight:700}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:center}
+.kv label{font-size:.85rem;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:8px 14px}
+.field{display:grid;gap:2px;min-width:0}
+.field input,.field select{width:100%}
+.big3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.big3>div{background:var(--sunk);border-radius:var(--r);padding:8px 4px}
+.big3 .v{font-size:1.7rem;font-weight:500;line-height:1.1}
+.note{font-size:.86rem;color:var(--muted);border-left:3px solid var(--line);padding-left:10px}
+.note.warn{border-color:var(--bad);color:var(--ink)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:4px;padding:3px 10px;font-size:.88rem}
+.btn:hover{border-color:var(--accent)}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.x{border:0;background:transparent;color:var(--muted);padding:2px 6px}
+.btn.x:hover{color:var(--bad)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.cs{width:16px;height:16px;accent-color:var(--accent)}
+.skilltbl td:nth-child(2){text-align:left;white-space:nowrap}
+.skilltbl input.sub{width:7.5em}
+.untr{color:var(--muted);font-weight:400!important}
+.counter{font-size:.9rem}
+.counter b.over{color:var(--bad)}
+.vers{font-size:.78rem;color:var(--accent);white-space:nowrap}
+.cols2{display:grid;gap:18px;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+@media (max-width:760px){.cols2{grid-template-columns:1fr}}
+.actop{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:14px;align-items:center}
+@media (max-width:760px){.actop{grid-template-columns:1fr}}
+.actop .big3 .v{font-size:2rem}
+.acedit{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;align-items:end}
+.acedit .field input{width:100%}
+@media (max-width:460px){.acedit{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.acparts{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:6px;border-top:1px solid var(--line);padding-top:10px}
+.acparts span{display:grid;justify-items:center;gap:1px;background:var(--sunk);border-radius:var(--r);padding:5px 4px}
+.acparts small{font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.acparts b{font-size:1.1rem}
+.acparts span:first-child{background:var(--accent-soft)}
+.ctiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,138px),1fr));gap:10px}
+.ctile{display:grid;gap:4px;align-content:start;background:var(--sunk);border-radius:var(--r);padding:10px 12px;min-width:0}
+.ctile .v{font-size:1.45rem;font-weight:600;line-height:1.15}
+.ctile .rf{flex-wrap:wrap;font-size:.82rem;gap:3px}
+.ctile select{max-width:100%;font-size:.85rem}
+.ctile input[type=number]{width:3.3em;padding:2px 3px;font-size:.85rem}
+
+/* abilities list */
+.ab-list{display:grid;gap:0}
+.ab{display:grid;grid-template-columns:3.6em minmax(0,1fr);gap:4px 12px;padding:10px 0;border-top:1px solid var(--line)}
+.ab:first-child{border-top:0}
+.ab .lv{font-family:var(--f-display);color:var(--accent);font-size:.95rem;padding-top:1px}
+.ab .nm{font-weight:700}
+.ab .ty{font-size:.78rem;color:var(--muted);margin-left:4px}
+.ab .ds{color:var(--ink);font-size:.93rem;margin-top:2px}
+.ab.new .lv::after{content:"new";display:block;font-family:var(--f-body);font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--dawn)}
+.pips{display:inline-flex;gap:4px;flex-wrap:wrap;margin-left:8px;vertical-align:middle}
+.pip{width:15px;height:15px;border-radius:50%;border:1.5px solid var(--accent);background:transparent;padding:0}
+.pip[aria-pressed=true]{background:var(--accent)}
+.custom{display:grid;gap:6px;padding:10px 0;border-top:1px solid var(--line)}
+.custom .row input.nm{flex:1 1 200px;font-weight:700}
+
+/* spells */
+.spl{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px 10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.spl input.nm{font-weight:700;width:100%}
+.spl .ds{grid-column:1/-1;font-size:.88rem;color:var(--muted)}
+.spl.cast input.nm{text-decoration:line-through;color:var(--muted)}
+.slothd{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline}
+.slothd .dc{font-size:.85rem;color:var(--muted)}
+
+/* conditions */
+.condgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));gap:8px}
+.cond{display:grid;gap:3px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:8px 10px;min-width:0}
+.cond .n{font-weight:700;display:flex;justify-content:space-between;gap:6px}
+.cond .e{font-size:.8rem;color:var(--muted);line-height:1.3}
+.cond:hover{border-color:var(--accent)}
+.cond[aria-pressed=true]{border-color:var(--bad);background:var(--bad-soft)}
+.cond[aria-pressed=true] .n::after{content:"ON";font-size:.68rem;letter-spacing:.08em;color:var(--bad);align-self:center}
+.cond.buffc[aria-pressed=true]{border-color:var(--buff);background:var(--buff-soft)}
+.cond.buffc[aria-pressed=true] .n::after{color:var(--buff)}
+.charge{display:inline-flex;align-items:center;gap:6px}
+.charge b{min-width:2.2em;text-align:center;font-size:1.1rem}
+.hpctl{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.hpctl input{width:5em}
+.net{display:grid;gap:3px;font-size:.92rem}
+.net div{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:3px}
+.net .neg{color:var(--bad);font-weight:700}.net .pos{color:var(--buff);font-weight:700}
+.down{border:1px solid var(--line);border-radius:var(--r);padding:8px 10px;display:grid;gap:6px}
+.down.alert{border-color:var(--bad);background:var(--bad-soft)}
+
+/* Mantle of the Dawn: parchment and sunrise gold */
+.mantle{border-color:var(--dawn);background:linear-gradient(160deg,var(--surface) 55%,var(--dawn-soft))}
+.mantle>header h2{color:var(--dawn)}
+.tag{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;border:1px solid var(--dawn);color:var(--dawn);border-radius:999px;padding:0 8px}
+.wpow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 14px;align-items:center;border-top:1px solid var(--line);padding:10px 0}
+.wpow .nm{font-family:var(--f-display);font-size:1.08rem;letter-spacing:.03em}
+.wpow .ds{grid-column:1/-1;font-size:.92rem}
+.mantle .btn.pri{background:var(--dawn);border-color:var(--dawn);color:var(--surface)}
+/* Sky Sentinel Bow: storm clouds */
+.storm{border-color:var(--storm);background:linear-gradient(160deg,var(--surface) 55%,var(--storm-soft))}
+.storm>header h2{color:var(--storm)}
+.storm .tag{border-color:var(--storm);color:var(--storm)}
+.storm .btn.pri{background:var(--storm);border-color:var(--storm);color:var(--surface)}
+.fx-ray{position:fixed;z-index:60;pointer-events:none;width:3px;height:70px;border-radius:2px;background:linear-gradient(#fff6d0,#f0b85a 60%,transparent);transform:translate(-50%,-50%) rotate(var(--a));animation:fxRay 1.4s ease-out forwards}
+@keyframes fxRay{0%{opacity:1;transform:translate(-50%,-50%) rotate(var(--a)) translateY(0)}100%{opacity:0;transform:translate(-50%,-50%) rotate(var(--a)) translateY(-110px)}}
+@media (prefers-reduced-motion:reduce){.fx-ray{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <div class="ident">
+      <input class="namein" id="f-name" data-p="info.name" aria-label="Character name">
+      <div class="sub" id="subline"></div>
+      <div class="quick" id="quick" role="group" aria-label="Quick toggles"></div>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="art" id="art"></div>
+  </div>
+
+  <div class="strip" id="strip">
+    <div class="stat hpstat"><span class="lbl">Hit points</span><span class="v"><span data-o="hp.cur"></span> <span class="muted" style="font-size:1rem">/ <span data-o="hp.max"></span></span> <small class="muted" data-o="hp.extra"></small></span><div class="hpbar"><i id="hpfill"></i></div></div>
+    <div class="stat"><span class="lbl">AC</span><span class="v" data-o="ac.total"></span></div>
+    <div class="stat"><span class="lbl">Touch</span><span class="v" data-o="ac.touch"></span></div>
+    <div class="stat"><span class="lbl">Flat</span><span class="v" data-o="ac.ff"></span></div>
+    <div class="stat"><span class="lbl">Init</span><span class="v" data-o="init"></span></div>
+    <div class="stat"><span class="lbl">Fort</span><span class="v" data-o="sv.fort"></span></div>
+    <div class="stat"><span class="lbl">Ref</span><span class="v" data-o="sv.ref"></span></div>
+    <div class="stat"><span class="lbl">Will</span><span class="v" data-o="sv.will"></span></div>
+    <div class="stat"><span class="lbl">Bow</span><span class="v" data-o="atk.0.first"></span></div>
+    <div class="stat"><span class="lbl">CMB / CMD</span><span class="v"><span data-o="cmb"></span> / <span data-o="cmd"></span></span></div>
+    <div class="stat"><span class="lbl">Speed</span><span class="v" data-o="speed"></span></div>
+  </div>
+
+  <nav class="tabs" id="tabs" role="tablist"></nav>
+  <main class="page" id="page"></main>
+  <footer class="backup" id="backup" hidden>
+    <div><b>Saved in this browser.</b> <span class="muted">Clearing browser data erases it, and it won’t follow the file to another computer. Keep a backup.</span></div>
+    <div class="row"><button class="btn pri" data-act="exportSheet">Download backup</button><button class="btn" data-act="importSheet">Restore from backup</button></div>
+  </footer>
+</div>
+<input type="file" id="importfile" accept=".json,application/json" hidden>
+<input type="file" id="artfile" accept="image/*" hidden>
+
+<script src="js/firebase-config.js"></script>
+<script src="js/cloud.js"></script>
+<script src="js/turn.js" data-hero="vex" data-name="Vex’ahlia"></script>
+<script>
+(() => {
+'use strict';
+/* ---------- rules data ---------- */
+const ABIL=['str','dex','con','int','wis','cha'];
+const ABN={str:'Strength',dex:'Dexterity',con:'Constitution',int:'Intelligence',wis:'Wisdom',cha:'Charisma'};
+const SIZES=['Fine','Diminutive','Tiny','Small','Medium','Large','Huge','Gargantuan','Colossal'];
+const SZ_ATK=[8,4,2,1,0,-1,-2,-4,-8], SZ_STL=[16,12,8,4,0,-4,-8,-12,-16], SZ_FLY=[8,6,4,2,0,-2,-4,-6,-8];
+const HEAVY=[0,10,20,30,40,50,60,70,80,90,100,115,130,150,175,200,230,260,300,350,400,460,520,600,700,800,920,1040,1200,1400];
+/* weapon damage one size larger (Gravity Bow) */
+const SIZE_UP={'1d2':'1d3','1d3':'1d4','1d4':'1d6','1d6':'1d8','1d8':'2d6','1d10':'2d8','1d12':'3d6','2d4':'2d6','2d6':'3d6','2d8':'3d8'};
+
+const K=(k,n,a,o={})=>Object.assign({k,n,a},o);
+const SKILLS=[
+ K('acrobatics','Acrobatics','dex',{acp:1}), K('appraise','Appraise','int'), K('bluff','Bluff','cha'),
+ K('climb','Climb','str',{acp:1}), K('craft1','Craft','int',{sub:1}), K('craft2','Craft','int',{sub:1}),
+ K('diplomacy','Diplomacy','cha'), K('disable','Disable Device','dex',{acp:1,tr:1}), K('disguise','Disguise','cha'),
+ K('escape','Escape Artist','dex',{acp:1}), K('fly','Fly','dex',{acp:1}), K('handle','Handle Animal','cha',{tr:1}),
+ K('heal','Heal','wis'), K('intimidate','Intimidate','cha'),
+ K('kArc','Knowledge (arcana)','int',{tr:1,kn:1}), K('kDun','Knowledge (dungeoneering)','int',{tr:1,kn:1}),
+ K('kEng','Knowledge (engineering)','int',{tr:1,kn:1}), K('kGeo','Knowledge (geography)','int',{tr:1,kn:1}),
+ K('kHis','Knowledge (history)','int',{tr:1,kn:1}), K('kLoc','Knowledge (local)','int',{tr:1,kn:1}),
+ K('kNat','Knowledge (nature)','int',{tr:1,kn:1}), K('kNob','Knowledge (nobility)','int',{tr:1,kn:1}),
+ K('kPla','Knowledge (planes)','int',{tr:1,kn:1}), K('kRel','Knowledge (religion)','int',{tr:1,kn:1}),
+ K('linguistics','Linguistics','int',{tr:1}), K('perception','Perception','wis'),
+ K('perform1','Perform','cha',{sub:1}), K('profession1','Profession','wis',{sub:1,tr:1}),
+ K('ride','Ride','dex',{acp:1}), K('sense','Sense Motive','wis'), K('sleight','Sleight of Hand','dex',{acp:1,tr:1}),
+ K('spellcraft','Spellcraft','int',{tr:1}), K('stealth','Stealth','dex',{acp:1}), K('survival','Survival','wis'),
+ K('swim','Swim','str',{acp:1}), K('umd','Use Magic Device','cha',{tr:1})
+];
+const KNOW=SKILLS.filter(s=>s.kn).map(s=>s.k);
+const PRESETS={
+ Ranger:{name:'Ranger',hd:10,bab:'full',fort:'good',ref:'good',will:'poor',prestige:false,sp:6,
+  skills:'Climb, Craft, Handle Animal, Heal, Intimidate, Knowledge (dungeoneering), Knowledge (geography), Knowledge (nature), Perception, Profession, Ride, Spellcraft, Stealth, Survival, Swim'},
+ Fighter:{name:'Fighter',hd:10,bab:'full',fort:'good',ref:'poor',will:'poor',prestige:false,sp:2,
+  skills:'Climb, Craft, Handle Animal, Intimidate, Knowledge (dungeoneering), Knowledge (engineering), Profession, Ride, Survival, Swim'},
+ Rogue:{name:'Rogue',hd:8,bab:'3/4',fort:'poor',ref:'good',will:'poor',prestige:false,sp:8,
+  skills:'Acrobatics, Appraise, Bluff, Climb, Craft, Diplomacy, Disable Device, Disguise, Escape Artist, Intimidate, Knowledge (dungeoneering), Knowledge (local), Linguistics, Perception, Perform, Profession, Sense Motive, Sleight of Hand, Stealth, Swim, Use Magic Device'},
+ Druid:{name:'Druid',hd:8,bab:'3/4',fort:'good',ref:'poor',will:'good',prestige:false,sp:4,
+  skills:'Climb, Craft, Fly, Handle Animal, Heal, Knowledge (geography), Knowledge (nature), Perception, Profession, Ride, Spellcraft, Survival, Swim'},
+};
+const ORD=['1st','2nd','3rd','4th','5th','6th','7th','8th','9th'];
+/* ranger spells per day by class level (1st–4th level spells); bonus spells from Wisdom come on top */
+const RSLOTS=[null,null,null,null,[0],[1],[1],[1,0],[1,1],[2,1],[2,1,0],[2,1,1],[2,2,1],[3,2,1,0],[3,2,1,1],[3,2,2,1],[3,3,2,1],[4,3,2,1],[4,3,2,2],[4,3,3,2],[4,4,3,3]];
+
+/* ---------- ranger spells: short descriptions; each starts with range and duration so the DM's tracker can time it ---------- */
+const RS={
+ 1:{
+  'Alarm':'Close range, 2 hr/level. Wards a 20-ft.-radius area; anything Tiny or larger that enters sets off a mental or audible alarm.',
+  'Animal Messenger':'Close range, 1 day/level. A Tiny animal carries a small item or note to a place she names.',
+  'Aspect of the Falcon':'Personal, 1 min/level. +3 competence on Perception, +1 competence on ranged attack rolls, and her bow threatens a critical on 19–20 (×3).',
+  'Calm Animals':'Close range, 1 min/level. Calms 2d4 + caster level HD of animals. Will negates.',
+  'Charm Animal':'Close range, 1 hour/level. One animal treats her as a trusted friend. Will negates.',
+  'Delay Poison':'Touch, 1 hour/level. The target is immune to poison until the spell ends.',
+  'Detect Animals or Plants':'Long-range cone, concentration (up to 10 min/level). Senses one kind of animal or plant.',
+  'Detect Poison':'Close range. Tells whether a creature, object or area is poisoned.',
+  'Detect Snares and Pits':'60-ft. cone, concentration (up to 10 min/level). Finds natural hazards, pits, deadfalls and snares.',
+  'Endure Elements':'Touch, 24 hours. Comfortable from −50 °F to 140 °F.',
+  'Entangle':'Long range, 1 min/level. Plants in a 40-ft. spread grab everything there: entangled (Reflex negates, can break free each round).',
+  'Gravity Bow':'Personal, 1 min/level. Her arrows deal damage as if one size larger (longbow 1d8 becomes 2d6).',
+  'Jump':'Touch, 1 min/level. +20 on Acrobatics checks to jump at caster level 5–8, +30 from caster level 9.',
+  'Longstrider':'Personal, 1 hour/level. +10 ft. enhancement bonus to land speed.',
+  'Magic Fang':'Touch, 1 min/level. One natural weapon gets +1 on attack and damage rolls.',
+  'Pass without Trace':'Touch, 1 hour/level. One creature per level leaves no tracks or scent.',
+  'Resist Energy':'Touch, 10 min/level. Resist 30 against one energy type (caster level 11+).',
+  'Speak with Animals':'Personal, 1 min/level. She can ask animals questions and understand their answers.',
+  'Summon Nature’s Ally I':'Close range, 1 round/level. Takes 1 round to cast. One animal ally from the 1st-level list.',
+ },
+ 2:{
+  'Barkskin':'Touch, 10 min/level. +5 enhancement bonus to natural armor (caster level 12+).',
+  'Bear’s Endurance':'Touch, 1 min/level. +4 enhancement bonus to Constitution.',
+  'Bull’s Strength':'Touch, 1 min/level. +4 enhancement bonus to Strength.',
+  'Cat’s Grace':'Touch, 1 min/level. +4 enhancement bonus to Dexterity.',
+  'Cure Light Wounds':'Touch. Heals 1d8 + caster level (max +5). Damages undead instead (Will half).',
+  'Hold Animal':'Medium range, 1 round/level. One animal is paralyzed. Will negates, new save each round.',
+  'Owl’s Wisdom':'Touch, 1 min/level. +4 enhancement bonus to Wisdom.',
+  'Protection from Energy':'Touch, 10 min/level. Absorbs 12 damage per caster level (max 120) of one energy type.',
+  'Snare':'Touch, until triggered. Turns a vine or rope into a magic snare (DC 23 Escape Artist to get out).',
+  'Speak with Plants':'Personal, 1 min/level. She can talk with plants and plant creatures.',
+  'Spike Growth':'Medium range, 1 hour/level. Ground in 20-ft. squares grows spikes: 1d4 piercing per 5 ft. moved, and slowed (Reflex).',
+  'Summon Nature’s Ally II':'Close range, 1 round/level. Takes 1 round to cast. One animal ally from the 2nd-level list, or 1d3 from the 1st.',
+  'Wind Wall':'Medium range, 1 round/level. A wall of wind blows away arrows and small flyers; ranged attacks through it have a 30% miss chance.',
+ },
+ 3:{
+  'Command Plants':'Close range, 1 day/level. Plant creatures (2 HD per level) obey her. Will negates.',
+  'Cure Moderate Wounds':'Touch. Heals 2d8 + caster level (max +10). Damages undead instead (Will half).',
+  'Darkvision':'Touch, 1 hour/level. The target sees in the dark out to 60 ft.',
+  'Diminish Plants':'Close range or long range, instantaneous. Prunes overgrowth or stunts crops.',
+  'Greater Magic Fang':'Close range, 1 hour/level. One natural weapon gets +1 per four caster levels (+3), or all of them get +1.',
+  'Instant Enemy':'Close range, 1 min/level. One creature counts as one of her favored enemy types for her ranger abilities. Will negates.',
+  'Neutralize Poison':'Touch, 10 min/level. Detoxifies one poison in a creature (caster level check).',
+  'Plant Growth':'Long range or 1-mile radius, instantaneous. Makes plants overgrown and impassable, or boosts crops.',
+  'Reduce Animal':'Touch, 1 hour/level. A willing animal shrinks one size.',
+  'Remove Disease':'Touch. Cures all diseases the target has (caster level check).',
+  'Repel Vermin':'10-ft. emanation, 10 min/level. Vermin with fewer than a third of her HD can’t enter; others take 2d6 damage to pass.',
+  'Summon Nature’s Ally III':'Close range, 1 round/level. Takes 1 round to cast. One animal ally from the 3rd-level list, or more from a lower list.',
+  'Tree Shape':'Personal, 1 hour/level. She looks exactly like a tree.',
+  'Water Walk':'Touch, 10 min/level. One creature per level walks on water as on firm ground.',
+ },
+ 4:{
+  'Animal Growth':'Close range, 1 min/level. One animal grows a size: +8 Str, −2 Dex, +4 Con, +2 natural armor, DR 10/magic, +4 on saves.',
+  'Commune with Nature':'Personal, instantaneous. She learns about the land and its creatures within 1 mile per level.',
+  'Cure Serious Wounds':'Touch. Heals 3d8 + caster level (max +15). Damages undead instead (Will half).',
+  'Freedom of Movement':'Touch, 10 min/level. The target moves and attacks normally despite magic that slows or holds, grapples and water.',
+  'Grove of Respite':'Close range, 2 hours/level. A stand of trees and a spring of water grow up around her party.',
+  'Nondetection':'Touch, 1 hour/level. Hides the target from divination and scrying.',
+  'Summon Nature’s Ally IV':'Close range, 1 round/level. Takes 1 round to cast. One animal ally from the 4th-level list, or more from a lower list.',
+  'Tree Stride':'Personal, 1 hour/level. She steps into one tree and out of another of the same kind, up to 3,000 ft. away.',
+ }
+};
+const rsDesc=nm=>{for(const l in RS)if(RS[l][nm])return RS[l][nm];return ''};
+/* spells that switch a buff on when she casts them on herself */
+const SPELL_FX={'Aspect of the Falcon':'falcon','Gravity Bow':'gravity','Barkskin':'barkskin','Cat’s Grace':'catsgrace','Bull’s Strength':'bullstr','Bear’s Endurance':'bearend','Owl’s Wisdom':'owlwis','Longstrider':'longstrider'};
+const AURA='Aura of the Revealing Light';
+const AURA_DESC='Swift action, 17 minutes (1 min/level at character level 17). 120-ft. radius of daylight that moves with her.';
+
+/* ---------- conditions, buffs and situations: fx = [target, value, bonusType] ---------- */
+const CONDS=[
+ {id:'blinded',n:'Blinded',e:'−2 AC, loses Dex to AC, −4 on most Str/Dex skills. Foes have total concealment.',fx:[['ac',-2],['skillStrDex',-4]],fl:['loseDex']},
+ {id:'confused',n:'Confused',e:'Acts randomly each round (d%).'},
+ {id:'cowering',n:'Cowering',e:'Frozen in fear: no actions, −2 AC, loses Dex to AC.',fx:[['ac',-2]],fl:['loseDex']},
+ {id:'dazed',n:'Dazed',e:'Can take no actions. No AC penalty.'},
+ {id:'dazzled',n:'Dazzled',e:'−1 attack and sight-based Perception.',fx:[['atk',-1]]},
+ {id:'deafened',n:'Deafened',e:'−4 initiative, fails sound-based Perception.',fx:[['init',-4]]},
+ {id:'entangled',n:'Entangled',e:'Half speed, no run/charge, −2 attack, −4 Dex.',fx:[['atk',-2],['dex',-4,'entangle']],fl:['halfSpeed']},
+ {id:'fatigued',n:'Fatigued',e:'−2 Str and Dex, can’t run or charge. (Endurance: +4 on checks and saves to avoid it.)',fx:[['str',-2,'fatigue'],['dex',-2,'fatigue']]},
+ {id:'exhausted',n:'Exhausted',e:'−6 Str and Dex, half speed.',fx:[['str',-6,'fatigue'],['dex',-6,'fatigue']],fl:['halfSpeed']},
+ {id:'flatfooted',n:'Flat-footed',e:'Loses Dex bonus to AC, no attacks of opportunity.',fl:['flatFooted']},
+ {id:'frightened',n:'Frightened',e:'−2 attack, saves, skill and ability checks. Flees.',fx:[['atk',-2,'fear'],['save',-2,'fear'],['skill',-2,'fear'],['ability',-2,'fear']]},
+ {id:'shaken',n:'Shaken',e:'−2 attack, saves, skill and ability checks.',fx:[['atk',-2,'fear'],['save',-2,'fear'],['skill',-2,'fear'],['ability',-2,'fear']]},
+ {id:'panicked',n:'Panicked',e:'−2 saves, skill and ability checks. Drops what she holds and flees.',fx:[['save',-2,'fear'],['skill',-2,'fear'],['ability',-2,'fear']]},
+ {id:'grappled',n:'Grappled',e:'Can’t move, −4 Dex, −2 attack and most maneuvers. No two-handed bow while grappled.',fx:[['atk',-2],['dex',-4,'grapple']]},
+ {id:'helpless',n:'Helpless',e:'Dex treated as 0. Open to coup de grace.',fl:['dexZero','loseDex']},
+ {id:'nauseated',n:'Nauseated',e:'Only a single move action each turn. No attacks, spells or concentration.'},
+ {id:'paralyzed',n:'Paralyzed',e:'Str and Dex 0, helpless. Can only take purely mental actions.',fl:['dexZero','strZero','loseDex']},
+ {id:'pinned',n:'Pinned',e:'Loses Dex to AC and takes an extra −4 AC.',fx:[['ac',-4]],fl:['loseDex']},
+ {id:'prone',n:'Prone',e:'−4 melee attack, can’t use a bow (except a crossbow). −4 AC vs melee, +4 AC vs ranged.',fx:[['atkMelee',-4]],fl:['prone']},
+ {id:'sickened',n:'Sickened',e:'−2 attack, weapon damage, saves, skill and ability checks.',fx:[['atk',-2,'sick'],['dmg',-2,'sick'],['save',-2,'sick'],['skill',-2,'sick'],['ability',-2,'sick']]},
+ {id:'staggered',n:'Staggered',e:'Only one move or standard action per round.'},
+ {id:'stunned',n:'Stunned',e:'Drops what she holds, can’t act, −2 AC and loses Dex to AC.',fx:[['ac',-2]],fl:['loseDex']},
+];
+/* favored enemies and terrains: one card per entry on her paper sheet (ids stay fixed for the DM's tracker) */
+const feOf=i=>(S.fe||[])[i], ftOf=i=>(S.ft||[])[i];
+const feFx=i=>{const f=feOf(i);if(!f)return[];const b=n(f.b);const L=[['atk',b,'fe'],['dmg',b,'fe'],['sk.bluff',b,'fe'],['sk.perception',b,'fe'],['sk.sense',b,'fe'],['sk.survival',b,'fe'],...KNOW.map(k=>['sk.'+k,b,'fe'])];
+  if(String(S.favDef)===String(i))L.push(['acDodge',Math.floor(b/2),'dodge']);return L};
+const ftFx=i=>{const f=ftOf(i);if(!f)return[];const b=n(f.b);return [['init',b,'ft'],['sk.kGeo',b,'ft'],['sk.perception',b,'ft'],['sk.stealth',b,'ft'],['sk.survival',b,'ft']]};
+const quarryB=()=>levels().ranger>=19?4:2;
+const BUFFS=[
+ ...[0,1,2,3].map(i=>({id:'fe'+i,grp:'fe',show:()=>!!feOf(i),n:()=>`Vs ${(feOf(i)||{}).name||'favored enemy'} (${sg(n((feOf(i)||{}).b))})`,
+   e:()=>{const f=feOf(i)||{},b=n(f.b);return `Favored enemy: ${sg(b)} on attack and damage rolls, and on Bluff, Knowledge, Perception, Sense Motive and Survival checks against ${f.name||'them'}.${String(S.favDef)===String(i)?` Favored Defense: ${sg(Math.floor(b/2))} dodge bonus to AC and CMD.`:''}`},fx:()=>feFx(i)})),
+ ...[0,1,2].map(i=>({id:'ft'+i,grp:'ft',show:()=>!!ftOf(i),n:()=>`In ${((ftOf(i)||{}).name||'favored terrain').toLowerCase()} (${sg(n((ftOf(i)||{}).b))})`,
+   e:()=>{const f=ftOf(i)||{};return `Favored terrain: ${sg(n(f.b))} on initiative and on Knowledge (geography), Perception, Stealth and Survival checks. She leaves no trail there, and Camouflage and Hide in Plain Sight work.`},fx:()=>ftFx(i)})),
+ {id:'quarry',n:'Attacking her quarry',e:()=>`Quarry: ${sg(quarryB())} insight bonus on attack rolls against it, and every critical threat against it is confirmed automatically.`,fx:()=>[['atk',quarryB(),'insight']],fl:['quarry']},
+ {id:'aura',n:'Aura of the Revealing Light',e:'Mantle of the Dawn: 120-ft. daylight around her. Enemies inside lose invisibility, blur and displacement, can’t use Stealth without total cover, and can’t hide in plain sight.'},
+ {id:'batfly',n:'Cloak of the Bat: flying',e:'She flies 60 ft. (good) holding the cloak’s edges, with +7 on Fly checks. Up to 7 minutes a day.',fx:[['sk.fly',7,'cloak']]},
+ {id:'haste',n:'Haste',e:'+1 attack, +1 dodge AC and Reflex, +30 ft. speed, one extra arrow on a full attack.',fx:[['atk',1,'haste'],['acDodge',1,'dodge'],['ref',1,'dodge'],['speed',30,'enh']]},
+ {id:'courage',n:'Inspire Courage +4 (Namfoodle)',e:'Namfoodle’s bardic performance: +4 competence on attack and weapon damage rolls, +4 morale on saves against charm and fear.',fx:[['atk',4,'competence'],['dmg',4,'competence']]},
+ {id:'falcon',n:'Aspect of the Falcon',e:'+3 competence on Perception, +1 competence on ranged attacks, her bow threatens on 19–20 (×3).',fx:[['sk.perception',3,'competence'],['atkRanged',1,'competence']],fl:['falcon']},
+ {id:'gravity',n:'Gravity Bow',e:'Her arrows deal damage as one size larger: 1d8 becomes 2d6.',fl:['gravity']},
+ {id:'barkskin',n:'Barkskin',e:'+5 enhancement bonus to natural armor.',fx:[['acNat',5,'enh']]},
+ {id:'catsgrace',n:'Cat’s Grace',e:'+4 enhancement to Dex.',fx:[['dex',4,'enh']]},
+ {id:'bullstr',n:'Bull’s Strength',e:'+4 enhancement to Str.',fx:[['str',4,'enh']]},
+ {id:'bearend',n:'Bear’s Endurance',e:'+4 enhancement to Con.',fx:[['con',4,'enh']]},
+ {id:'owlwis',n:'Owl’s Wisdom',e:'+4 enhancement to Wis.',fx:[['wis',4,'enh']]},
+ {id:'eagles',n:'Eagle’s Splendor',e:'+4 enhancement to Cha.',fx:[['cha',4,'enh']]},
+ {id:'longstrider',n:'Longstrider',e:'+10 ft. enhancement bonus to land speed.',fx:[['speed',10,'enh']]},
+ {id:'invisible',n:'Invisible',e:'+2 attack vs sighted foes, and they lose their Dex bonus to AC against her.',fx:[['atk',2,'invis']]},
+ {id:'heroism',n:'Heroism',e:'+2 morale on attacks, saves, skill checks.',fx:[['atk',2,'morale'],['save',2,'morale'],['skill',2,'morale']]},
+ {id:'gheroism',n:'Greater Heroism',e:'+4 morale on attacks, saves, skill checks; immune to fear.',fx:[['atk',4,'morale'],['save',4,'morale'],['skill',4,'morale']]},
+ {id:'goodhope',n:'Good Hope',e:'+2 morale on attacks, saves, ability checks, skill checks, weapon damage.',fx:[['atk',2,'morale'],['save',2,'morale'],['skill',2,'morale'],['dmg',2,'morale'],['ability',2,'morale']]},
+ {id:'bless',n:'Bless',e:'+1 morale on attacks (and saves vs fear).',fx:[['atk',1,'morale']]},
+ {id:'mobility',n:'Moving past a threat (Mobility)',e:'Not on her sheet; Shadow has Mobility. Left here for a future feat.',show:()=>false},
+ {id:'fightdef',n:'Fighting defensively',e:'−4 attack; +3 dodge AC with 3+ Acrobatics ranks.',fx:(S)=>[['atk',-4],['acDodge',(+((S.skills.acrobatics||{}).ranks)||0)>=3?3:2,'dodge']]},
+];
+BUFFS.forEach(b=>b.buff=true);
+const ok=k=>k.replace(/\./g,'_');
+const cname=c=>typeof c.n==='function'?c.n():c.n, cdesc=c=>typeof c.e==='function'?c.e():c.e;
+const shown=c=>!c.show||c.show();
+const ALLC=[...CONDS,...BUFFS];
+/* turning on one favored enemy (or terrain) turns the others of that group off */
+function setCond(id,on){const c=ALLC.find(x=>x.id===id);if(on&&c&&c.grp)ALLC.forEach(x=>{if(x.grp===c.grp&&x.id!==id)S.cond[x.id]=false});S.cond[id]=on}
+
+/* ---------- default state: Vex'ahlia's paper sheet (level 16), raised to ranger 17 ---------- */
+const sk=(r,m=0,sub='')=>({ranks:r,misc:m,sub});
+const DEFAULT={
+ v:1, levelLog:[],
+ acItems:[{name:'Ring of Protection +2',slot:'Ring',type:'deflection',bonus:2,on:true}],
+ potions:[{name:'Cure Light Wounds',dice:'1d8',bonus:1,qty:1},{name:'Cure Moderate Wounds',dice:'2d8',bonus:2,qty:2},{name:'Cure Serious Wounds',dice:'3d8',bonus:3,qty:1}],
+ otherPotions:[
+  {name:'Potion of Invisibility',qty:1,effect:'Invisible for up to 5 minutes, or until she attacks. Drinking it turns on Invisible.',on:'invisible',verb:'Drink'},
+  {name:'Bull’s Strength',qty:1,effect:'+4 enhancement to Str for 3 minutes. Drinking it turns on Bull’s Strength.',on:'bullstr',verb:'Drink'},
+  {name:'Eagle’s Splendor',qty:1,effect:'+4 enhancement to Cha for 3 minutes. Drinking it turns on Eagle’s Splendor.',on:'eagles',verb:'Drink'},
+  {name:'Green dragon acid',qty:5,effect:'Thrown flask: 3d10 acid.',on:'',verb:'Throw'},
+  {name:'Drow poison',qty:4,effect:'Coat an arrow or blade. Injury, Fortitude DC 13 or fall asleep (unconscious for 1 minute, then another save or 2d4 hours).',on:'',verb:'Apply'}],
+ info:{name:'Vex’ahlia',nick:'Vex',player:'Brookelyn',race:'Elf',alignment:'Neutral Good',deity:'Archheart · Champion of the Dawnfather',size:'Medium',gender:'Female',age:'',height:'6′0″',weight:'125 lb.',hair:'Brown',eyes:'Green',speed:30,
+  languages:'Elven, Common, Sylvan, Undercommon, Draconic',xp:'DM says when',campaign:'Tal’Dorei · The Belhaim Saviors',homeland:'Issylra (Vasselheim)'},
+ classes:[Object.assign({preset:'Ranger',level:17},PRESETS.Ranger)],
+ fcbHp:0, fcbSkill:0,
+ ab:{str:{base:10,temp:0},dex:{base:20,temp:0},con:{base:13,temp:0},int:{base:10,temp:0},wis:{base:12,temp:0},cha:{base:14,temp:0}},
+ hp:{mode:'manual',max:115,cur:115,temp:0,nl:0,misc:0,conAdj:0},
+ ac:{natural:0,deflection:0,dodge:1,misc:0},
+ armor:{name:'Dragon Breastplate',bonus:6,maxDex:3,acp:2,fail:25,wt:30,speed:0},
+ shield:{name:'+1 light shield (stowed while she shoots)',bonus:0,acp:0,fail:0,wt:6},
+ init:{misc:0}, speedMisc:0,
+ saves:{fort:{magic:0,misc:0,temp:0},ref:{magic:0,misc:0,temp:0},will:{magic:0,misc:0,temp:0}},
+ saveNotes:'Endurance: +4 on Fortitude saves and checks against nonlethal damage from hunger, thirst, heat, cold, running, forced marches and suffocation.\nElven immunities: immune to magic sleep; +2 on saves against enchantment spells and effects.\nEvasion and Improved Evasion: no damage on a successful Reflex save against a half-damage effect, and only half on a failed one.\nShield of the Sun (Mantle of the Dawn): resist negative energy 10; immune to energy drain and negative levels.',
+ resist:'Acid 10 (Dragon Breastplate) · Negative energy 10 (Mantle of the Dawn)', dr:'', sr:'',
+ cmbAbil:'str', cmbMisc:0, cmdMisc:0,
+ skills:{acrobatics:sk(7),bluff:sk(4),climb:sk(9),escape:sk(7),handle:sk(8),heal:sk(2),kDun:sk(4),kNat:sk(6),linguistics:sk(4),
+  perception:sk(16,2),ride:sk(7),spellcraft:sk(2),stealth:sk(3,5),survival:sk(14),swim:sk(6)},
+ attacks:[
+  {id:'bow',name:'Sky Sentinel Bow',kind:'ranged',abil:'dex',enh:2,misc:0,dice:'1d8',dmgAbil:'none',dmgMisc:2,extra:'+1d6 fire',crit:'×3',range:'110 ft.',type:'P',uses:0,
+   notes:'+2 longbow. Bracers of Archery add +2 damage (in misc dmg). The Mantle’s Sun String makes it flaming (+1d6 fire) and ghost touch. Paper sheet: 23/18/13/8, d8+4 (+5 within 30 ft.).',desc:''},
+  {id:'sword',name:'Dragonslaying Longsword',kind:'melee',abil:'str',enh:2,misc:0,dice:'1d8',dmgAbil:'str',dmgMisc:0,extra:'+2d6 vs dragons',crit:'19–20/×2',range:'',type:'S',uses:0,
+   notes:'Paper sheet: “+2 (3)”, 19/14/9/4, d8+2 (3) +2d6 vs dragons. The paper’s attack counts +3; here it uses +2, so ask the DM which is right.',desc:''},
+  {id:'dagger',name:'+1 Dagger',kind:'melee',abil:'str',enh:1,misc:0,dice:'1d4',dmgAbil:'str',dmgMisc:0,extra:'',crit:'19–20/×2',range:'10 ft. thrown',type:'P/S',uses:0,
+   notes:'Paper sheet: 17/12/7/2, d4+1.',desc:''},
+ ],
+ fa:{weapon:'bow',rapid:true,many:true,deadly:false,pb:false,evil:false,storm:false,string:false,stringType:'fire',ammo:'sun'},
+ atkNotes:'Point Blank Shot: +1 attack and damage within 30 ft. (tick it in Full Attack).\nVital Strike: a standard-action shot rolls the weapon dice twice (2d8 with the bow), not doubled on a crit.\nPinpoint Targeting: a standard-action shot where the target gets no armor, natural armor or shield bonus to AC. Not if she moved this round.\nStabbing Shot: with Rapid Shot against an adjacent foe, she can give up the extra arrow to stab it with an arrow (a melee attack). If it hits, the foe is pushed back 5 ft. without provoking.\nImproved Precise Shot: her arrows ignore cover short of total cover and concealment short of total concealment.',
+ fe:[{name:'Dragons',b:8},{name:'Aberrations',b:4},{name:'Magical beasts',b:2},{name:'Fey',b:2}],
+ favDef:'0',
+ ft:[{name:'Forest',b:4},{name:'Mountain',b:2}],
+ feats:[
+  {name:'Point Blank Shot',desc:'+1 on attack and damage rolls with ranged weapons within 30 ft. Tick it in Full Attack.'},
+  {name:'Precise Shot (archery style, ranger 2)',desc:'No −4 penalty for shooting into melee.'},
+  {name:'Endurance (ranger 3)',desc:'+4 on checks and saves against exhaustion, starvation, cold, heat and similar. She can sleep in light or medium armor without becoming fatigued. Ref. p. 122.'},
+  {name:'Rapid Shot',desc:'One extra arrow on a full attack, at her highest bonus. Every attack that round is −2.'},
+  {name:'Dodge',desc:'+1 dodge bonus to AC.'},
+  {name:'Manyshot',desc:'The first attack of a full attack fires two arrows. Precision damage and extra critical damage count only once. Ref. p. 130.'},
+  {name:'Improved Precise Shot (archery style, ranger 6)',desc:'Ranged attacks ignore AC bonuses from anything less than total cover, and miss chances from anything less than total concealment. No penalty for shooting into a grapple. Ref. p. 128.'},
+  {name:'Vital Strike',desc:'Standard-action attack: roll the weapon’s damage dice twice and add them together.'},
+  {name:'Shot on the Run (archery style, ranger 10)',desc:'As a full-round action, she can move up to her speed and make one ranged attack at any point during the move. Ref. p. 133.'},
+  {name:'Stabbing Shot',desc:'With Rapid Shot against an adjacent foe, she gives up the extra ranged attack to stab with an arrow. On a hit the foe is pushed back 5 ft. Ref. Advanced Race Guide p. 170.'},
+  {name:'Favored Defense (dragons)',desc:'Against her chosen favored enemy she gets a dodge bonus to AC and CMD equal to half her favored enemy bonus (+4 against dragons). The paper sheet says +3; its AC line says 26 against dragons, which is +4.'},
+  {name:'Pinpoint Targeting',desc:'Standard action: one ranged attack; the target gets no armor, natural armor or shield bonus to AC. Doesn’t work if she moved this round. Ref. p. 131.'},
+  {name:'Deadly Aim',desc:'−5 on ranged attacks for +10 damage at base attack +17 (tick it in Full Attack).'},
+ ],
+ profs:'Ranger: simple and martial weapons, light and medium armor, shields (except tower shields). Elf: longbows (including composite), longswords, rapiers and shortbows; elven weapons count as martial.',
+ special:[{name:'Wisdom of the Forest',desc:'Once per day, while in a favored terrain, she can cast divination. Ref. p. 277.',uses:1}],
+ racial:[
+  {name:'Elven Immunities',desc:'Immune to magic sleep effects. +2 on saving throws against enchantment spells and effects.',uses:0},
+  {name:'Keen Senses',desc:'+2 on Perception checks (in skill Misc).',uses:0},
+  {name:'Elven Magic',desc:'+2 on caster level checks to overcome spell resistance, and +2 on Spellcraft checks to identify the properties of magic items.',uses:0},
+  {name:'Low-Light Vision',desc:'Sees twice as far as a human in dim light.',uses:0},
+  {name:'Weapon Familiarity',desc:'Proficient with longbows, longswords, rapiers and shortbows.',uses:0},
+ ],
+ ov:{},
+ spells:{1:[],2:[],3:[],4:[]}, spOv:{},
+ mantle:{reprieve:false,last:''},
+ mitems:[],
+ ammo:[
+  {name:'Arrows',max:20,left:18,extra:'',notes:'Plain arrows. Two boxes are crossed off on the paper sheet.'},
+  {name:'Fire arrows',max:10,left:10,extra:'+2d6 fire',notes:'+2d6 damage.'},
+  {name:'Ice arrows',max:10,left:0,extra:'+2d6 cold',notes:'The count is scribbled out on the paper sheet. Set it to what she has.'},
+  {name:'Necrotic arrows',max:10,left:10,extra:'+2d6 negative',notes:'+2d6 damage.'}],
+ used:{hero:0}, cond:{}, neg:0,
+ /* Shadow as a level 14 companion (ranger 17 − 3): wolf, advanced to Large at companion level 4 */
+ comp:{name:'Shadow',kind:'Wolf (animal companion)',status:'active',size:'Large',hp:126,hpMax:126,temp:0,
+  str:26,dex:18,con:20,int:2,wis:12,cha:6,
+  ac:30,touch:14,ff:25,init:'+4',speed:'50 ft. (35 ft. in the barding)',fort:'+13',ref:'+12',will:'+5 (+4 more vs enchantment)',bab:'+9',cmb:'+18',cmd:'33',
+  attack:'Bite +16/+11 (2d6+12 piercing, ×2) plus trip. Power Attack: +13/+8 (2d6+21).',
+  dr:'Electricity 15 (Blue Dragon Armour)',
+  senses:'Low-light vision, scent. Smell: +6 on Survival.',
+  skills:'Acrobatics +1 (+9 to jump), Climb +5, Escape Artist +1, Intimidate +3, Perception +11, Stealth +3, Survival +1 (+7 by smell), Swim +5',
+  feats:'Dodge (+1 AC), Mobility (+4 AC against attacks of opportunity from moving), Blind-Fight (reroll a miss chance), Improved Natural Attack (bite), Power Attack (−3 attack, +9 bite damage), Toughness (+12 HP)',
+  tricks:[{n:'Attack',dc:20},{n:'Come',dc:15},{n:'Defend',dc:20},{n:'Guard',dc:20},{n:'Heel',dc:15},{n:'Seek',dc:15},{n:'Work',dc:15}],
+  gear:'Blue Dragon Armour (hide barding): +4 AC, max Dex +4, armor check −3, resist electricity 15.',
+  notes:'Level 14 companion (ranger 17 − 3): 12 HD, base attack +9, base saves Fort +8 / Ref +8 / Will +4, natural armor +12 (wolf +2, Large +2, level +8), Str/Dex +4, 12 skill ranks (Perception 7, Stealth 3, Intimidate 2), 6 feats, 5 bonus tricks.\nSpecial: link, share spells, evasion, devotion (+4 morale on Will saves against enchantment), multiattack (a second bite at −5), 3 ability score increases (Con, Str, Dex).\nTrip: when his bite hits, he can try to trip as a free action (CMB +18) without provoking.\nLarge: −1 AC and attack, +1 CMB and CMD, takes up 10 × 10 ft. She gets +4 on Handle Animal checks with him. Tricks: Core Rulebook p. 97. Wolf companion: p. 54. Paper margin: “Short rest = (9/9)”.'},
+ crow:{hp:3,hpMax:3,ac:15,perception:'+8',melee:'+5 (1d4−2)',tricks:'Come, Retrieve Item',notes:'Flies.'},
+ gear:[
+  {item:'Dragon Breastplate',desc:'Armor +6, max Dex +3, check −2. Resist acid 10.',loc:'Body',wt:30},
+  {item:'+1 light shield',desc:'+2 AC when strapped on. Resist acid 10 (doesn’t stack with the breastplate).',loc:'Back',wt:6},
+  {item:'Ring of Protection +2',desc:'Deflection +2.',loc:'Ring',wt:0},
+  {item:'Sky Sentinel Bow',desc:'+2 longbow. Storm Arrow 1/day (Mantle tab).',loc:'Hands',wt:3},
+  {item:'Blazing & Lightning Bowstring',desc:'2/day: +1d8 fire or lightning on an arrow.',loc:'Bow',wt:0},
+  {item:'Bracers of Archery',desc:'+2 damage with ranged attacks.',loc:'Wrists',wt:1},
+  {item:'Cloak of the Bat',desc:'+5 Stealth. Flight for 7 minutes a day (+7 Fly), or turn into a bat.',loc:'Shoulders',wt:1},
+  {item:'Glove of Missile Snaring',desc:'Catch one ranged attack.',loc:'Hands',wt:0},
+  {item:'Ring of Animal Friendship',desc:'Casts charm animal (Will DC 14).',loc:'Ring',wt:0},
+  {item:'Animal Call',desc:'+2 on Survival checks to track animals. Ref. Adventurer’s Guide p. 202.',loc:'Neck',wt:0.5},
+  {item:'Earring of Whisper',desc:'Communication, as message.',loc:'Ear',wt:0},
+  {item:'Dragonslaying Longsword',desc:'+2 longsword, +2d6 vs dragons.',loc:'Hip',wt:4},
+  {item:'+1 Dagger',desc:'',loc:'Belt',wt:1},
+  {item:'Bag of Holding (type III)',desc:'Paper sheet: “lvl 3”.',loc:'',wt:35},
+  {item:'Backpack',desc:'',loc:'Back',wt:2},
+  {item:'Flint and steel',desc:'',loc:'',wt:0},
+  {item:'Torches (5)',desc:'',loc:'',wt:5},
+  {item:'Everburning torch',desc:'',loc:'',wt:1},
+  {item:'Waterskin',desc:'',loc:'',wt:4},
+  {item:'Map of Belhaim',desc:'',loc:'',wt:0},
+  {item:'Map of Tal’Dorei',desc:'',loc:'',wt:0},
+ ],
+ coins:{pp:51,gp:1589,sp:287,cp:820}, bank:'Ruby worth 100 gp',
+ notes:'',
+ traits:'',
+ history:'Homeland: Issylra (Vasselheim).\nHer mother (Elaina) and brother (Vax’ildan) were killed by a red dragon.\nHer father (Syldor) abandoned her at a young age. Last she heard, he is an ambassador in an elven city in Tal’Dorei.\nGod: Archheart. Now a champion of the Dawnfather, bearer of the Mantle of the Dawn.',
+ art:null
+};
+
+/* ---------- state + helpers ---------- */
+const clone=o=>JSON.parse(JSON.stringify(o));
+function merge(d,s){ if(Array.isArray(d)||typeof d!=='object'||d===null) return s===undefined?d:s;
+  const o={...d}; if(s&&typeof s==='object'&&!Array.isArray(s)) for(const k in s) o[k]=(k in d)?merge(d[k],s[k]):s[k]; return o; }
+let S=clone(DEFAULT);
+const n=v=>{const x=parseFloat(v);return isFinite(x)?x:0};
+const sg=v=>(v>=0?'+':'−')+Math.abs(v);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function getP(p){return p.split('.').reduce((o,k)=>o==null?o:o[k],S)}
+function setP(p,v){const ks=p.split('.');let o=S;for(let i=0;i<ks.length-1;i++){if(o[ks[i]]==null)o[ks[i]]={};o=o[ks[i]]}o[ks.at(-1)]=v}
+const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}}};
+const dice=(c,s)=>{let t=0;for(let i=0;i<c;i++)t+=1+Math.floor(Math.random()*s);return t};
+
+/* input builders */
+const num=(p,o={})=>`<input type="number" id="i-${p.replace(/\W/g,'_')}" data-p="${p}" value="${esc(getP(p))}" ${o.step?`step="${o.step}"`:''} ${o.w?`style="width:${o.w}"`:''} ${o.ph?`placeholder="${esc(o.ph)}"`:''} aria-label="${esc(o.label||p)}"${o.rr?' data-rr':''}>`;
+const txt=(p,o={})=>`<input type="text" id="i-${p.replace(/\W/g,'_')}" data-p="${p}" value="${esc(getP(p))}" placeholder="${esc(o.ph||'')}" ${o.cls?`class="${o.cls}"`:''} ${o.w?`style="width:${o.w}"`:''} ${o.list?`list="${o.list}"`:''} aria-label="${esc(o.label||o.ph||p)}"${o.rr?' data-rr':''}>`;
+const area=(p,o={})=>`<textarea id="i-${p.replace(/\W/g,'_')}" data-p="${p}" rows="${o.rows||3}" placeholder="${esc(o.ph||'')}" aria-label="${esc(o.label||p)}">${esc(getP(p))}</textarea>`;
+const sel=(p,opts,o={})=>`<select id="i-${p.replace(/\W/g,'_')}" data-p="${p}"${o.rr?' data-rr':''} aria-label="${esc(o.label||p)}">${opts.map(x=>{const [v,l]=Array.isArray(x)?x:[x,x];return `<option value="${esc(v)}"${String(getP(p))===String(v)?' selected':''}>${esc(l)}</option>`}).join('')}</select>`;
+const out=(k,cls='')=>`<span data-o="${k}"${cls?` class="${cls}"`:''}></span>`;
+const field=(label,html)=>`<label class="field"><span class="lbl">${label}</span>${html}</label>`;
+
+/* ---------- rules engine ---------- */
+function agg(list){
+  const by={};list.forEach(e=>(by[e.t]=by[e.t]||[]).push(e));
+  const out={};
+  for(const t in by){let tot=0;const pos={},neg={};
+    for(const e of by[t]){const ty=e.ty||'untyped';
+      if(e.v>=0){ if(ty==='untyped'||ty==='dodge'||ty==='circumstance') tot+=e.v; else pos[ty]=Math.max(pos[ty]||0,e.v); }
+      else { if(ty==='untyped') tot+=e.v; else neg[ty]=Math.min(neg[ty]||0,e.v); } }
+    for(const k in pos) tot+=pos[k]; for(const k in neg) tot+=neg[k]; out[t]=tot;}
+  return out;
+}
+function gather(map,neg){
+  const list=[],flags={},active=[];
+  for(const c of ALLC){ if(!map||!map[c.id]||!shown(c)) continue;
+    active.push(c); const fx=typeof c.fx==='function'?c.fx(S):(c.fx||[]);
+    fx.forEach(([t,v,ty])=>list.push({t,v,ty})); (c.fl||[]).forEach(f=>flags[f]=true); }
+  if(map)(S.mitems||[]).forEach(x=>{if(x.on&&n(x.bonus)&&x.target)list.push({t:x.target,v:n(x.bonus),ty:x.type||'untyped'})});
+  neg=Math.max(0,Math.floor(n(neg)));
+  if(neg) ['atk','save','skill','ability','cmd'].forEach(t=>list.push({t,v:-neg}));
+  const tot=agg(list);
+  return {g:t=>tot[t]||0,tot,flags,active,neg};
+}
+const babFor=(p,l)=>p==='full'?l:p==='1/2'?Math.floor(l/2):Math.floor(l*3/4);
+const saveFor=(t,l,pr)=>t==='good'?(pr?Math.floor((l+1)/2):2+Math.floor(l/2)):(pr?Math.floor((l+1)/3):Math.floor(l/3));
+function levels(){const by={};let total=0;for(const c of S.classes){const l=Math.max(0,Math.floor(n(c.level)));total+=l;by[c.preset]=(by[c.preset]||0)+l}return{total,by,ranger:by.Ranger||0}}
+function classSkillSet(){const s=new Set();S.classes.forEach(c=>String(c.skills||'').split(',').forEach(x=>{x=x.trim().toLowerCase();if(x)s.add(x)}));return s}
+const famOf=s=>s.n.toLowerCase();
+const isCS=(s,cs)=>cs.has(famOf(s))||(/^knowledge/i.test(s.n)&&cs.has('knowledge (all)'));
+function conMod(){return Math.floor((n(S.ab.con.base)+n(S.ab.con.temp)-10)/2)}
+const avgHD=hd=>hd/2+1;
+function hpBase(){
+  if(S.hp.mode!=='auto')return n(S.hp.max);
+  const con=conMod();let tot=0,first=true;
+  S.classes.forEach(c=>{const hd=Math.max(1,n(c.hd)||8),l=Math.max(0,Math.floor(n(c.level)));for(let i=0;i<l;i++){tot+=Math.max(1,(first?hd:avgHD(hd))+con);first=false}});
+  return tot+n(S.fcbHp)+n(S.hp.misc);
+}
+const AC_TYPES=[['natural','Natural armor'],['deflection','Deflection'],['armor','Armor'],['shield','Shield'],['dodge','Dodge'],['insight','Insight'],['luck','Luck'],['sacred','Sacred'],['profane','Profane']];
+const AC_SLOTS=['Neck','Ring','Wrists','Body','Shoulders','Head','Headband','Eyes','Belt','Hands','Feet','Slotless'];
+function acItemBonuses(){const o={};(S.acItems||[]).forEach(x=>{if(!x.on)return;const v=n(x.bonus),t=x.type;if(!t||!v)return;o[t]=t==='dodge'?(o[t]||0)+v:Math.max(o[t]||0,v)});return o}
+/* ranger spellcasting: caster level is ranger level − 3, Wisdom-based */
+const casterLevel=()=>Math.max(0,levels().ranger-3);
+function slotInfo(l,C){const r=Math.min(20,levels().ranger),row=RSLOTS[r]||[],base=row[l-1];
+  const m=C?C.ab.wis.mod:Math.floor((n(S.ab.wis.base)+n(S.ab.wis.temp)-10)/2);
+  const bonus=base===undefined?0:(m>=l?1+Math.floor((m-l)/4):0);
+  const ov=(S.spOv||{})[l];const rule=base===undefined?0:base+bonus;
+  return {base:base===undefined?null:base,bonus,rule,total:ov!==''&&ov!=null&&isFinite(+ov)?Math.max(0,+ov):rule};}
+const prepOf=l=>(S.spells||{})[l]||[];
+function ammoSel(){const a=(S.fa||{}).ammo||'sun';if(a==='sun')return{name:'Sunlight arrows',extra:''};const x=(S.ammo||[])[+String(a).slice(1)];return x?{name:x.name||'Arrows',extra:String(x.extra||'').trim(),idx:+String(a).slice(1)}:{name:'Sunlight arrows',extra:''}}
+
+function compute(useC){
+  const O={};const put=(k,v,signed,t)=>{O[k]={n:v,t:t!=null?t:(signed?sg(v):String(v))}};
+  const M=useC?gather(S.cond,S.neg):gather(null,0);
+  const L=levels();
+  const ab={};
+  for(const a of ABIL){const s=S.ab[a]||{};let sc=n(s.base)+n(s.temp)+M.g(a);
+    if(a==='dex'&&M.flags.dexZero)sc=0; if(a==='str'&&M.flags.strZero)sc=0; sc=Math.max(0,sc);
+    const mod=Math.floor((sc-10)/2);ab[a]={sc,mod};put(`ab.${a}.sc`,sc);put(`ab.${a}.mod`,mod,true);}
+  let si=SIZES.indexOf(S.info.size);if(si<0)si=4;
+  const szA=SZ_ATK[si];put('size',szA,true);put('sizeName',si,false,SIZES[si]);
+  let bab=0;const base={fort:0,ref:0,will:0};
+  S.classes.forEach(c=>{const l=Math.max(0,Math.floor(n(c.level)));bab+=babFor(c.bab,l);
+    ['fort','ref','will'].forEach(s=>base[s]+=saveFor(c[s],l,!!c.prestige))});
+  put('bab',bab,true);
+  const iter=[];for(let b=bab,i=0;i<4&&(i===0||b>=1);i++,b-=5)iter.push(b);
+  put('bab.iter',bab,false,iter.map(sg).join('/'));
+  put('lvl',L.total);
+  // AC: the breastplate caps Dex at +3; rangers have no uncanny dodge, so flat-footed drops Dex
+  const IT=acItemBonuses();
+  const armorB=Math.max(n(S.armor.bonus),IT.armor||0), shieldB=Math.max(n(S.shield.bonus),IT.shield||0);
+  const natT=n(S.ac.natural)+(IT.natural||0)+M.g('acNat'),defT=Math.max(n(S.ac.deflection)+(IT.deflection||0),M.g('acDefl')),othT=(IT.insight||0)+(IT.luck||0)+(IT.sacred||0)+(IT.profane||0);
+  const md=String(S.armor.maxDex).trim()===''?99:n(S.armor.maxDex);
+  const dexAC=Math.min(ab.dex.mod,md);
+  const lose=M.flags.loseDex||M.flags.flatFooted;
+  const dexUse=lose?Math.min(0,dexAC):dexAC;
+  const dodge=lose?0:n(S.ac.dodge)+M.g('acDodge')+(IT.dodge||0);
+  const condAC=M.g('ac');
+  const common=szA+defT+othT+n(S.ac.misc)+condAC;
+  const ac=10+armorB+shieldB+dexUse+natT+dodge+common;
+  const touch=10+dexUse+dodge+common;
+  const ff=10+armorB+shieldB+Math.min(0,dexAC)+natT+common;
+  put('ac.total',ac);put('ac.touch',touch);put('ac.ff',ff);
+  put('ac.armor',armorB,true);put('ac.shield',shieldB,true);put('ac.dex',dexUse,true);put('ac.dodgeT',dodge,true);put('ac.nat',natT,true);put('ac.defl',defT,true);put('ac.oth',othT+n(S.ac.misc),true);put('ac.cond',condAC,true);
+  put('ac.vsMelee',ac-(M.flags.prone?4:0));put('ac.vsRanged',ac+(M.flags.prone?4:0));
+  // vs dragons with Favored Defense (even when the dragon card is off)
+  const fd=feOf(n(S.favDef)),fdB=fd&&!(useC&&S.cond['fe'+n(S.favDef)])?Math.floor(n(fd.b)/2):0;
+  put('ac.vsFav',ac+(lose?0:fdB));
+  // init, speed (Cloak of the Bat adds a fly speed)
+  put('init',ab.dex.mod+n(S.init.misc)+M.g('init'),true);
+  const armSpd=n(S.armor.speed);
+  let spd=(armSpd>0?Math.min(armSpd,n(S.info.speed)):n(S.info.speed))+n(S.speedMisc)+M.g('speed');if(M.flags.halfSpeed)spd=Math.floor(spd/2/5)*5;
+  const fly=!!(useC&&S.cond.batfly);
+  put('speed',spd,false,spd+' ft.'+(fly?' · fly 60':''));put('speed.land',spd,false,spd+' ft.');
+  // saves
+  const svA={fort:'con',ref:'dex',will:'wis'};const sv={};
+  for(const s of ['fort','ref','will']){const x=S.saves[s];const cond=M.g('save')+M.g(s);
+    const t=base[s]+ab[svA[s]].mod+n(x.magic)+n(x.misc)+n(x.temp)+cond;sv[s]=t;
+    put(`sv.${s}`,t,true);put(`sv.${s}.base`,base[s],true);put(`sv.${s}.ab`,ab[svA[s]].mod,true);put(`sv.${s}.cond`,cond,true);}
+  // CMB/CMD: CMD takes her full Dex (the armor's cap is for AC only)
+  const cmbAb=ab[S.cmbAbil==='dex'?'dex':'str'].mod;
+  put('cmb',bab+cmbAb-szA+n(S.cmbMisc)+M.g('atk')+M.g('cmb'),true);
+  const dexCMD=lose?Math.min(0,ab.dex.mod):ab.dex.mod;
+  put('cmd',10+bab+ab.str.mod+dexCMD+dodge-szA+defT+othT+n(S.cmdMisc)+M.g('cmd'));
+  // HP
+  const hpAdj=(ab.con.mod-conMod())*L.total; put('hp.adj',hpAdj,true);
+  const hpMax=hpBase()+hpAdj-5*M.neg; put('hp.max',hpMax); put('hp.cur',Math.min(n(S.hp.cur),hpMax));
+  put('hp.why',0,false,hpAdj||M.neg?`${hpBase()} base${hpAdj?` ${sg(hpAdj)} from Con`:''}${M.neg?` −${5*M.neg} negative levels`:''}`:'');
+  put('hp.extra',0,false,[n(S.hp.temp)?`+${n(S.hp.temp)} temp`:'',n(S.hp.nl)?`${n(S.hp.nl)} nonlethal`:''].filter(Boolean).join(' · '));
+  // skills
+  const cs=classSkillSet(); const acp=-Math.abs(n(S.armor.acp))-Math.abs(n(S.shield.acp));
+  let spent=0;
+  for(const s of SKILLS){const x=S.skills[s.k]||{};const r=n(x.ranks);spent+=r;
+    const isC=isCS(s,cs)||!!x.csx; const cb=isC&&r>0?3:0; const am=ab[s.a].mod;
+    let other=(s.acp?acp:0)+M.g('skill')+M.g('sk.'+s.k)+((s.a==='str'||s.a==='dex')?M.g('skillStrDex'):0)+(s.a==='cha'?M.g('skillCha'):0);
+    if(s.k==='stealth')other+=SZ_STL[si]; if(s.k==='fly')other+=SZ_FLY[si];
+    const t=r+cb+am+n(x.misc)+other;
+    const untr=s.tr&&r<=0;
+    put(`sk.${s.k}`,t,true,untr?'—':sg(t)); put(`sk.${s.k}.ab`,am,true); put(`sk.${s.k}.cb`,cb,false,cb?'+3':'—'); put(`sk.${s.k}.oth`,other,true);
+    O[`sk.${s.k}`].cs=isC;}
+  for(const s of SKILLS)put(`sk.${s.k}.vp`,0,false,'');
+  const track=Math.max(1,Math.floor(L.ranger/2));
+  if(L.ranger){const sv2=O['sk.survival'].n;put('sk.survival.vp',sv2,false,`${sg(sv2+track)} to follow tracks${L.ranger>=11?` · ${sg(sv2+track+10)} tracking her quarry`:''} · +2 more tracking animals (Animal Call)`);
+    const sc=O['sk.spellcraft'].n;put('sk.spellcraft.vp',sc,false,`${sg(sc+2)} to identify magic items`);
+    put('sk.handle.vp',0,false,`${sg(O['sk.handle'].n+4)} with Shadow`);}
+  const intMod=Math.floor((n(S.ab.int.base)+n(S.ab.int.temp)-10)/2);
+  const avail=S.classes.reduce((a,c)=>a+Math.max(1,n(c.sp)+intMod)*Math.max(0,Math.floor(n(c.level))),0)+n(S.fcbSkill);
+  put('sk.spent',spent);put('sk.avail',avail);
+  // attacks
+  const atkCalc=(a,offHalf)=>{const am=ab[a.abil==='str'?'str':'dex'].mod;
+    const hit=bab+am+szA+n(a.enh)+n(a.misc)+M.g('atk')+(a.kind==='melee'?M.g('atkMelee'):M.g('atkRanged'));
+    const dmA=String(a.dmgAbil||'str');let da=0;
+    if(dmA!=='none'){const sm=dmA.startsWith('dex')?ab.dex.mod:ab.str.mod;let mul=/15$/.test(dmA)?1.5:/05$/.test(dmA)?0.5:1;if(offHalf&&mul===1)mul=0.5;da=sm>0?Math.floor(sm*mul):sm;}
+    const db=n(a.enh)+n(a.dmgMisc)+da+M.g('dmg')+(a.kind==='melee'?M.g('dmgMelee'):M.g('dmgRanged'));
+    let dc=a.dice||'—';if(M.flags.gravity&&a.kind==='ranged')dc=SIZE_UP[dc]||dc;
+    const crit=M.flags.falcon&&a.kind==='ranged'?'19–20/×3':a.crit;
+    return {hit,db,crit,dice:dc,dmg:`${dc}${db?sg(db):''}${a.extra?' '+String(a.extra).trim():''}`};};
+  S.attacks.forEach((a,i)=>{const r=atkCalc(a,false);
+    const its=[];for(let b=r.hit,k=0;k<4&&(k===0||bab-5*k>=1);k++,b-=5)its.push(b);
+    put(`atk.${i}.hit`,r.hit,true,its.map(sg).join('/')); put(`atk.${i}.first`,r.hit,true); put(`atk.${i}.dmg`,r.db,false,r.dmg); O[`atk.${i}.hit`].crit=r.crit;});
+  // full attack with the bow: Manyshot, Rapid Shot, haste, then the iteratives
+  const F=S.fa||{};const W=S.attacks.find(x=>x.id===F.weapon)||S.attacks.find(x=>x.kind==='ranged');const seq=[];let fa=null;
+  if(W){const r=atkCalc(W,false),da=F.deadly?1+Math.floor(bab/4):0,pb=F.pb?1:0;
+    const hit=r.hit+pb-da-(F.rapid?2:0),db=r.db+pb+2*da;
+    const am=W.kind==='ranged'?ammoSel():{extra:''};const base=[String(W.extra||'').trim(),am.extra].filter(Boolean);
+    const mk=(label,h,ex,note,cls)=>{const all=[...base,...ex];seq.push({label,hit:h,db,crit:r.crit,note:note||'',cls:cls||'',dmg:`${r.dice}${db?sg(db):''}${all.length?' '+all.join(' '):''}`})};
+    const first=[F.evil?'+2d6 holy':'',F.string?`+1d8 ${F.stringType==='lightning'?'electricity':'fire'}`:''].filter(Boolean);
+    if(F.storm){for(let k=0;k<3;k++)mk(`Storm Arrow ${k+1} of 3`,hit,[...(k?[]:first),'+1d6 electricity'],k?'its own attack roll':'the first arrow splits in three','storm')}
+    else mk('1st attack',hit,first,F.evil?'the holy damage counts on the first arrow that hits each round':'');
+    if(F.many)mk('Manyshot: 2nd arrow',hit,[],'same attack roll as the 1st; not multiplied on a crit','xtra');
+    if(F.rapid)mk('Rapid Shot',hit,[],'','xtra');
+    if(M.active.some(c=>c.id==='haste'))mk('Haste',hit,[],'','xtra');
+    const nIt=Math.min(4,1+Math.max(0,Math.floor((bab-1)/5)));
+    for(let k=1;k<nIt;k++)mk(`${ORD[k]} attack`,hit-5*k,[]);
+    seq.forEach((x,j)=>{put(`seq.${j}.hit`,x.hit,true);put(`seq.${j}.dmg`,x.db,false,x.dmg)});
+    fa={W,da,pb,hit,db,arrows:seq.length-(F.storm?2:0),ammo:am};}
+  // ranger numbers
+  put('track',track,true);
+  put('empathy',L.ranger+ab.cha.mod,true);
+  put('cl',casterLevel());
+  for(let l=1;l<=4;l++)put('dc.'+l,10+l+ab.wis.mod);
+  put('spatk.melee',bab+ab.str.mod+szA+M.g('atk')+M.g('atkMelee'),true);
+  put('spatk.ranged',bab+ab.dex.mod+szA+M.g('atk')+M.g('atkRanged'),true);
+  put('deadly',0,false,`−${1+Math.floor(bab/4)} / +${2*(1+Math.floor(bab/4))}`);
+  return {O,M,L,ab,bab,lose,acp,si,base,seq,fa};
+}
+
+/* ---------- class abilities (auto) ---------- */
+function autoAbilities(L){
+  const A=[];const add=(cls,lvl,name,ty,ds,o={})=>A.push(Object.assign({cls,lvl,name,ty,ds},o));
+  const r=L.ranger,cl=casterLevel();
+  const feL=(S.fe||[]).map((f,i)=>`<b>${esc(f.name||'?')}</b> ${sg(n(f.b))}`).join(', ');
+  const ftL=(S.ft||[]).map(f=>`<b>${esc(f.name||'?')}</b> ${sg(n(f.b))}`).join(', ');
+  if(r>=1){add('Ranger',1,'Favored Enemy','Ex',`${feL||'None set'}. Against them: the bonus on attack and damage rolls, and on Bluff, Knowledge, Perception, Sense Motive and Survival checks. Turn one on with the buttons at the top or on the Conditions tab. ${Math.min(5,1+Math.floor(r/5))} favored enemies at ranger ${r}; the bonuses are edited below.`);
+    add('Ranger',1,'Track','Ex',`${out('track')} on Survival checks to follow tracks (half her ranger level).`);
+    add('Ranger',1,'Wild Empathy','Ex',`d20 ${out('empathy')} (ranger level + Cha) to improve an animal’s attitude, like Diplomacy. Magical beasts with Int 1–2 at −4.`);}
+  if(r>=2)add('Ranger',2,'Combat Style (archery)','Ex',`Bonus feats at ranger 2, 6, 10, 14 and 18, even without the prerequisites. Her paper sheet marks Precise Shot (2), Improved Precise Shot (6) and Shot on the Run (10); the 14th-level pick isn’t marked.${r>=18?'':' Next one at ranger 18.'}`);
+  if(r>=3){add('Ranger',3,'Endurance','Ex','Endurance as a bonus feat: +4 against exhaustion, starvation, heat and cold, and she can sleep in medium armor.');
+    add('Ranger',3,'Favored Terrain','Ex',`${ftL||'None set'}. In it: the bonus on initiative and on Knowledge (geography), Perception, Stealth and Survival, and she leaves no trail. ${Math.min(4,1+Math.floor((r-3)/5))} terrains at ranger ${r}; her paper sheet names two.`);}
+  if(r>=4){add('Ranger',4,'Hunter’s Bond','Ex',`Animal companion: <b>${esc((S.comp||{}).name||'Shadow')}</b>, with an effective druid level of ${Math.max(1,r-3)} (Companion tab).`);
+    add('Ranger',4,'Spells','',`Divine spells from the ranger list, prepared from Wisdom. Caster level ${out('cl')}; save DC 10 + spell level ${sg(Math.floor((n(S.ab.wis.base)+n(S.ab.wis.temp)-10)/2))} (Spells tab).`);}
+  if(r>=7)add('Ranger',7,'Woodland Stride','Ex','Moves through natural undergrowth at full speed without taking damage. Magically altered plants still hinder her.');
+  if(r>=8)add('Ranger',8,'Swift Tracker','Ex','Moves at full speed while following tracks without a penalty, and at double speed with only −10 (instead of −20).');
+  if(r>=9)add('Ranger',9,'Evasion','Ex','No damage on a successful Reflex save against a half-damage effect. Only in light armor or none: check with the DM whether the Dragon Breastplate counts as light.');
+  if(r>=11)add('Ranger',11,'Quarry','Ex',`Standard action: mark one creature in sight as her quarry. She can take 10 on Survival to track it while moving at normal speed, gets ${sg(quarryB())} insight on attack rolls against it, and every critical threat against it is confirmed. One quarry at a time; a new one after the first dies or 1 hour passes.`);
+  if(r>=12)add('Ranger',12,'Camouflage','Ex','Can use Stealth in any of her favored terrains, even without cover or concealment.');
+  if(r>=16)add('Ranger',16,'Improved Evasion','Ex','On a failed Reflex save against a half-damage effect she takes only half. Light armor or none (see Evasion).');
+  if(r>=17)add('Ranger',17,'Hide in Plain Sight','Ex','In any of her favored terrains she can use Stealth even while being observed.',{fresh:true});
+  if(r>=19)add('Ranger',19,'Improved Quarry','Ex','Quarry as a free action, take 20 to track it, +4 insight on attacks against it.');
+  if(r>=20)add('Ranger',20,'Master Hunter','Ex','Full-round attack against a favored enemy: Fort save or dies. Can always move at full speed while tracking.');
+  A.forEach(a=>{a.key=a.key||('ab.'+a.name.replace(/\W+/g,''));a.base=a.uses;const o=(S.ov||{})[ok(a.key)];
+    if(a.uses&&o&&String(o.uses??'').trim()!=='')a.uses=Math.max(0,Math.floor(n(o.uses)));});
+  return A.sort((a,b)=>a.lvl-b.lvl);
+}
+
+/* ---------- rendering ---------- */
+const TABS=[['overview','Overview'],['skills','Skills'],['saves','Saving Throws'],['attacks','Attacks'],['spells','Spells'],['companion','Shadow'],['mantle','Mantle of the Dawn'],['abilities','Class Abilities'],['conditions','Conditions'],['gear','Gear & Notes']];
+let tab=(()=>{const h=(location.hash||'').slice(1);if(TABS.some(t=>t[0]===h))return h;const s=ls.get('vex-tab');return TABS.some(t=>t[0]===s)?s:'overview'})();
+/* the Initiative tab: only while the DM's tracker runs a fight; js/turn.js fills it and redraws the sheet when a fight starts or ends */
+const ttTabs=()=>window.ttActive&&window.ttActive()?[['initiative',window.ttLabel?window.ttLabel():'Initiative']]:[];
+const ttTab=()=>window.ttTab?window.ttTab():'';
+window.ttRefresh=()=>render();
+
+function renderTabs(){
+  const nc=ALLC.filter(c=>S.cond[c.id]&&shown(c)).length;
+  if(tab==='initiative'&&!ttTabs().length)tab='overview';document.getElementById('tabs').innerHTML=TABS.concat(ttTabs()).map(([k,l])=>`<button class="tab" role="tab" data-act="tab" data-t="${k}" aria-selected="${k===tab}">${k==='companion'?esc((S.comp||{}).name||l):l}${k==='conditions'&&nc?`<span class="dot">${nc}</span>`:''}</button>`).join('')+`<span class="status" id="status">${esc(statusText)}</span>`;
+}
+/* keep current HP in step with Con changes */
+function syncConHP(){const a=compute(true).O['hp.adj'].n,prev=n(S.hp.conAdj);if(a===prev)return;
+  S.hp.cur=n(S.hp.cur)+(a-prev);S.hp.conAdj=a;hpLog(a>prev?`Con up: +${a-prev} HP`:`Con back down: −${prev-a} HP`);}
+const hpMaxNow=()=>compute(true).O['hp.max'].n;
+function render(){
+  syncConHP();
+  document.getElementById('f-name').value=S.info.name||'';
+  renderTabs();
+  const P={initiative:ttTab,overview:pOverview,skills:pSkills,saves:pSaves,attacks:pAttacks,spells:pSpells,companion:pCompanion,mantle:pMantle,abilities:pAbilities,conditions:pConditions,gear:pGear}[tab];
+  const pg=document.getElementById('page');const openD=[...pg.querySelectorAll('details[id][open]')].map(d=>d.id);
+  pg.innerHTML=P();openD.forEach(id=>{const d=document.getElementById(id);if(d)d.open=true});
+  renderArt(); refresh();
+}
+
+/* the Dawn's Reprieve: what keeps her alive */
+function downBox(){
+  const cur=n(S.hp.cur),used=!!(S.mantle||{}).reprieve,dead=cur<=-n(S.ab.con.base);
+  return `<div class="down${cur<=0?' alert':''}"><span class="lbl">${cur<=0?`She’s at ${cur} HP${dead?': that would kill her':''}`:'If she would die'}</span>
+   <div class="row"><button class="btn${dead&&!used?' pri':''}" data-act="reprieve"${used?' disabled':''}>${used?'Dawn’s Reprieve spent':'Dawn’s Reprieve: deny death'}</button>${used?'<button class="btn" data-act="tab" data-t="mantle">Mantle tab</button>':''}</div>
+   <small class="muted">The Mantle of the Dawn, once until the Dawnfather restores it: she heals to half her maximum HP (${Math.floor(hpMaxNow()/2)}), negative levels, ability damage, blinded, stunned and paralyzed end, and a sunburst erupts around her (Reflex DC 25; allies unaffected). She dies at −${n(S.ab.con.base)} HP (her Con score).</small></div>`;
+}
+
+function pOverview(){
+  const cls=S.classes.map((c,i)=>`<tr>
+    <td class="l">${sel(`classes.${i}.preset`,[...Object.keys(PRESETS),'Custom'],{rr:1,label:'Class preset'})}</td>
+    <td class="l">${txt(`classes.${i}.name`,{w:'9em',label:'Class name'})}</td>
+    <td>${num(`classes.${i}.level`,{rr:1,label:'Level'})}</td>
+    <td>d${num(`classes.${i}.hd`,{w:'3.2em',label:'Hit die'})}</td>
+    <td>${sel(`classes.${i}.bab`,[['full','Full'],['3/4','¾'],['1/2','½']],{label:'BAB progression'})}</td>
+    <td>${sel(`classes.${i}.fort`,['good','poor'],{label:'Fort'})}</td><td>${sel(`classes.${i}.ref`,['good','poor'],{label:'Ref'})}</td><td>${sel(`classes.${i}.will`,['good','poor'],{label:'Will'})}</td>
+    <td><input type="checkbox" class="cs" data-p="classes.${i}.prestige" ${S.classes[i].prestige?'checked':''} aria-label="Prestige class"></td>
+    <td>${num(`classes.${i}.sp`,{w:'3.2em',label:'Skill points per level'})}</td>
+    <td><button class="btn x" data-act="delClass" data-i="${i}" aria-label="Remove class">✕</button></td></tr>
+    <tr><td colspan="11" class="l" style="border-top:0;padding-top:0">${txt(`classes.${i}.skills`,{w:'100%',label:'Class skills',ph:'Class skills, comma separated'})}</td></tr>`).join('');
+  const fd=feOf(n(S.favDef));
+  return `<div class="cols2">
+   <section class="panel"><header><h2>Ability Scores</h2><span class="muted">Adj covers permanent changes; worn items are on the Gear tab</span></header>
+    <div class="scroll"><table class="abtbl"><thead><tr><th class="l">Ability</th><th>Base</th><th>Adj</th><th>Score</th><th>Mod</th></tr></thead><tbody>
+    ${ABIL.map(a=>`<tr><td title="${ABN[a]}">${a.toUpperCase()}</td><td>${num(`ab.${a}.base`,{label:ABN[a]+' base'})}</td><td>${num(`ab.${a}.temp`,{label:ABN[a]+' adjustment'})}</td><td class="tot">${out(`ab.${a}.sc`)}</td><td><span class="mod" data-o="ab.${a}.mod"></span></td></tr>`).join('')}
+    </tbody></table></div>
+    <p class="note">From her paper sheet: Str 10, Dex 20, Con 13, Int 10, Wis 12, Cha 14.</p></section>
+   <section class="panel"><header><h2>Hit Points</h2></header>
+    ${field('Max HP comes from',sel('hp.mode',[['manual','The number I enter'],['auto','Classes (average HP per level)']],{label:'HP mode'}))}
+    ${S.hp.mode==='auto'?`<p class="note">1st level: max hit die. Later levels: average (d10 = 6). Plus Con ${sg(conMod())} per level and ${n(S.fcbHp)} favored-class HP.</p>`:''}
+    <div class="grid2"><div class="field"><span class="lbl">Max HP</span><b style="font-size:1.3rem" data-o="hp.max"></b><small class="muted" data-o="hp.why"></small></div>${S.hp.mode==='auto'?`<div class="field"><span class="lbl">Base max HP</span><b>${hpBase()}</b></div>${field('Bonus HP',num('hp.misc',{rr:1,label:'Bonus HP'}))}`:field('Base max HP',num('hp.max',{label:'Base max HP'}))}${field('Current HP',num('hp.cur',{label:'Current HP'}))}${field('Temp HP',num('hp.temp',{label:'Temp HP'}))}${field('Nonlethal',num('hp.nl',{label:'Nonlethal'}))}</div>
+    <div class="hpctl"><input type="number" id="hpamt" value="" placeholder="amt" aria-label="Amount"><button class="btn" data-act="dmg">Damage</button><button class="btn" data-act="dmgRes" data-v="acid" title="Acid: the Dragon Breastplate resists 10">Acid (−10)</button><button class="btn" data-act="dmgRes" data-v="negative" title="Negative energy: the Mantle resists 10">Negative (−10)</button><button class="btn" data-act="heal">Heal</button><button class="btn" data-act="full">Long rest (+${restHeal()} HP)</button></div>
+    ${downBox()}
+    ${(S.hpLog||[]).length?`<div class="hplog"><span class="lbl">Recent</span>${S.hpLog.slice(-6).reverse().map(e=>`<div><span>${esc(e.txt)}</span><b>${e.cur} HP</b></div>`).join('')}<button class="btn x" data-act="clearLog">Clear log</button></div>`:''}
+    <p class="note">Max HP is 115 at level 17 (her paper sheet, at 16, says 107). Long rest heals level + Con modifier (${levels().total} + ${conMod()}), clears nonlethal damage, resets daily uses (Aura of the Revealing Light, Storm Arrow, the bowstring, the Cloak of the Bat, Wisdom of the Forest) and gives back her spell slots. Damage uses temp HP first.</p>
+    <div class="row"><span class="lbl">Hero points spent</span>${pips('hero',3)}<small class="muted">${3-Math.min(3,n(S.used.hero))} of 3 left</small></div>
+   </section>
+  </div>
+  <section class="panel"><header><h2>Armor Class</h2><span class="muted">Armor and the ring are on the Gear tab</span></header>
+   <div class="actop">
+    <div class="big3"><div><span class="lbl">AC</span><div class="v" data-o="ac.total"></div></div><div><span class="lbl">Touch</span><div class="v" data-o="ac.touch"></div></div><div><span class="lbl">Flat-footed</span><div class="v" data-o="ac.ff"></div></div></div>
+    <div class="acedit">${field('Extra natural',num('ac.natural'))}${field('Extra deflection',num('ac.deflection'))}${field('Dodge',num('ac.dodge'))}${field('Misc',num('ac.misc'))}</div>
+   </div>
+   <div class="acparts" aria-label="AC breakdown"><span><small>Base</small><b>10</b></span><span><small>Armor</small><b data-o="ac.armor"></b></span><span><small>Shield</small><b data-o="ac.shield"></b></span><span><small>Dex</small><b data-o="ac.dex"></b></span><span><small>Natural</small><b data-o="ac.nat"></b></span><span><small>Deflection</small><b data-o="ac.defl"></b></span><span><small>Dodge</small><b data-o="ac.dodgeT"></b></span><span><small>Size</small><b data-o="size"></b></span><span><small>Other</small><b data-o="ac.oth"></b></span><span><small>Conditions</small><b data-o="ac.cond"></b></span></div>
+   <p class="note">Paper sheet: AC 22, touch 16, flat-footed 18, and 26 against dragons. The breastplate caps her Dex bonus to AC at +3. ${fd?`Against ${esc(String(fd.name).toLowerCase())} (Favored Defense): <b data-o="ac.vsFav"></b>.`:''} ${S.cond.prone?`Prone: AC <b data-o="ac.vsMelee"></b> vs melee, <b data-o="ac.vsRanged"></b> vs ranged.`:''}</p>
+  </section>
+  <section class="panel"><header><h2>Combat</h2></header>
+   <div class="ctiles">
+    <div class="ctile"><span class="lbl">Base attack</span><b class="v" data-o="bab.iter"></b><small class="muted">Ranger: full progression</small></div>
+    <div class="ctile"><span class="lbl">Bow, full attack</span><b class="v">${(compute(true).seq||[]).map(x=>sg(x.hit)).join('/')}</b><small class="muted">Attacks tab</small></div>
+    <div class="ctile"><span class="lbl">Initiative</span><b class="v" data-o="init"></b><label class="rf">misc ${num('init.misc',{label:'Initiative misc'})}</label></div>
+    <div class="ctile"><span class="lbl">CMB</span><b class="v" data-o="cmb"></b><label class="rf">misc ${num('cmbMisc',{label:'CMB misc'})}</label></div>
+    <div class="ctile"><span class="lbl">CMD</span><b class="v" data-o="cmd"></b><label class="rf">misc ${num('cmdMisc',{label:'CMD misc'})}</label></div>
+    <div class="ctile"><span class="lbl">Land speed</span><b class="v" data-o="speed.land"></b><label class="rf">base ${num('info.speed',{label:'Base speed'})}</label><label class="rf">bonus ${num('speedMisc',{label:'Speed bonus'})}</label></div>
+    <div class="ctile"><span class="lbl">Fly speed</span><b class="v">${S.cond.batfly?'60 ft.':'—'}</b><small class="muted">${S.cond.batfly?'Cloak of the Bat: flying':'60 ft. with the Cloak of the Bat, 7 minutes a day'}</small></div>
+    <div class="ctile"><span class="lbl">Spells</span><b class="v">CL ${out('cl')}</b><small class="muted">DC ${out('dc.1')}–${out('dc.4')}</small></div>
+    <div class="ctile"><span class="lbl">Size</span>${sel('info.size',SIZES,{label:'Size'})}<small class="muted">Medium: no modifiers</small></div>
+   </div>
+   <p class="note">Paper sheet (level 16): BAB 16/11/6/1, CMB 16, CMD 34. At 17 every attack is one higher. CMD uses her full Dex (+5); the breastplate’s cap only applies to AC.</p>
+  </section>
+  <section class="panel"><header><h2>Identity</h2></header>
+   <div class="grid2">
+    ${field('Nickname',txt('info.nick'))}${field('Race',txt('info.race'))}${field('Alignment',txt('info.alignment'))}${field('Deity',txt('info.deity'))}${field('Gender',txt('info.gender'))}
+    ${field('Age',txt('info.age'))}${field('Height',txt('info.height'))}${field('Weight',txt('info.weight'))}${field('Hair',txt('info.hair'))}${field('Eyes',txt('info.eyes'))}
+    ${field('Homeland',txt('info.homeland'))}${field('Campaign',txt('info.campaign'))}${field('Player',txt('info.player'))}${field('Experience',txt('info.xp'))}
+   </div>
+   ${field('Languages',area('info.languages',{rows:2}))}
+   ${field('Personality',area('traits',{rows:2}))}
+  </section>
+  <section class="panel lvlup" id="levelup"><header><h2>Level Up</h2><span class="muted">Character level ${out('lvl')} · adds one level and recalculates BAB, saves, HP, skill ranks and spells</span></header>
+   <div class="row" style="align-items:end">
+    ${field('Class for the new level',`<select id="lu-cls">${S.classes.map((c,i)=>`<option value="row:${i}">${esc(c.name)} ${Math.floor(n(c.level))} → ${Math.floor(n(c.level))+1}</option>`).join('')}<optgroup label="Start a new class">${Object.keys(PRESETS).filter(p=>!S.classes.some(c=>c.preset===p)).map(p=>`<option value="preset:${p}">${p} 1</option>`).join('')}<option value="custom">Custom class 1</option></optgroup></select>`)}
+    ${S.hp.mode==='auto'?'':field('Hit points',`<select id="lu-hp"><option value="avg">Average</option><option value="roll">I rolled…</option><option value="max">Max</option></select>`)}
+    ${S.hp.mode==='auto'?'':field('Roll',`<input type="number" id="lu-roll" min="1" aria-label="Hit die roll" style="width:4.5em">`)}
+    ${field('Favored class bonus',`<select id="lu-fcb"><option value="">None</option><option value="hp">+1 HP</option><option value="skill">+1 skill rank</option></select>`)}
+    <button class="btn pri" data-act="levelUp">Add level ${levels().total+1}</button>
+    ${(S.levelLog||[]).length?`<button class="btn" data-act="undoLevel">Undo last level</button>`:''}
+   </div>
+   ${lastSummary||`<div class="summary"><h3>Level 17 (her paper sheet is level 16)</h3><ul>
+    <li>Hit points <b>115</b>, as you gave them</li>
+    <li>Base attack +16 → <b>+17/+12/+7/+2</b>, so every attack and CMB/CMD go up by 1. Saves stay at Fort +10, Ref +10, Will +5 base.</li>
+    <li>New: <b>Hide in Plain Sight</b> (Stealth while observed, in her favored terrains)</li>
+    <li>Spells per day 4 / 3 / 2 / 1, plus a bonus 1st-level spell from Wis 12. Caster level 14.</li>
+    <li><b>Choose a feat</b> (character level 17). Shadow now counts as a level 14 companion.</li>
+    <li>6 more skill ranks (102 in all). The skills tab still has the level 16 ranks, ready for you to redistribute.</li></ul></div>`}
+  </section>
+  <section class="panel"><header><h2>Classes &amp; Levels</h2><span class="muted">Pick a preset to fill in hit die, BAB, saves, skill points and class skills</span></header>
+   <div class="scroll"><table><thead><tr><th class="l">Preset</th><th class="l">Name</th><th>Level</th><th>HD</th><th>BAB</th><th>Fort</th><th>Ref</th><th>Will</th><th>Prestige</th><th>Skills/lvl</th><th></th></tr></thead><tbody>${cls}</tbody></table></div>
+   <div class="row"><button class="btn" data-act="addClass">Add class</button><span class="muted"><small>Favored class bonus:</small></span><label class="row"><small>HP</small>${num('fcbHp',{label:'Favored class HP'})}</label><label class="row"><small>Skill ranks</small>${num('fcbSkill',{label:'Favored class skill ranks'})}</label></div>
+   <p class="note">Her paper sheet says hit die d8; rangers use d10. HP is typed in, so this doesn’t change it.</p>
+  </section>`;
+}
+
+function pSkills(){
+  const C=compute(true);
+  const rows=SKILLS.map(s=>{const x=S.skills[s.k]||{};const csOn=C.O[`sk.${s.k}`].cs;
+    return `<tr><td><input type="checkbox" class="cs" ${csOn?'checked':''} data-p="skills.${s.k}.csx" data-rr ${isCS(s,classSkillSet())?'disabled title="Class skill"':'title="Mark as an extra class skill (e.g. from a trait)"'} aria-label="Class skill"></td>
+     <td>${esc(s.n)}${s.tr?'<span class="muted">*</span>':''}${s.sub?` ${txt(`skills.${s.k}.sub`,{cls:'sub',ph:'type',label:s.n+' type',rr:1})}`:''} <span class="vers" data-o="sk.${s.k}.vp"></span></td>
+     <td class="muted">${s.a.toUpperCase()}</td>
+     <td class="tot${s.tr&&!(n(x.ranks)>0)?' untr':''}" data-o="sk.${s.k}"></td><td class="op">=</td>
+     <td data-o="sk.${s.k}.ab"></td><td class="op">+</td>
+     <td>${num(`skills.${s.k}.ranks`,{w:'3.6em',label:s.n+' ranks',rr:1})}</td><td class="op">+</td>
+     <td data-o="sk.${s.k}.cb"></td><td class="op">+</td>
+     <td>${num(`skills.${s.k}.misc`,{w:'3.6em',label:s.n+' misc'})}</td><td class="op">+</td>
+     <td data-o="sk.${s.k}.oth"></td></tr>`}).join('');
+  return `<section class="panel"><header><h2>Skills</h2>
+    <span class="counter">Ranks spent <b id="spent" data-o="sk.spent"></b> of <b data-o="sk.avail"></b> · max ${out('lvl')} per skill</span></header>
+   <div class="scroll"><table class="skilltbl"><thead><tr><th>Class</th><th class="l">Skill</th><th>Key</th><th>Total</th><th></th><th>Ability</th><th></th><th>Ranks</th><th></th><th>Class</th><th></th><th>Misc</th><th></th><th title="Armor check penalty, size and conditions">Other</th></tr></thead><tbody>${rows}</tbody></table></div>
+   <p class="note">These are the ranks from her level 16 paper sheet (99 spent). Level 17 adds 6 more; spread them however you like. Misc holds Keen Senses (+2 Perception) and the Cloak of the Bat (+5 Stealth). “Other” holds the breastplate’s −2 armor check penalty and conditions. Favored enemy and favored terrain bonuses join in when you turn them on.</p>
+   <p class="note">From the paper sheet: “Prof (Ride)” is the Ride skill (7 ranks). Its totals left out the armor check penalty, so Acrobatics, Climb, Escape Artist, Ride, Stealth and Swim run 2 lower here. Handle Animal on paper adds +3 class and +2 Cha. Wild empathy is d20 <b data-o="empathy"></b>.</p>
+  </section>`;
+}
+
+function pSaves(){
+  const nm={fort:['Fortitude','CON'],ref:['Reflex','DEX'],will:['Will','WIS']};
+  const breakdown=S.classes.map(c=>{const l=Math.floor(n(c.level));return `<tr><td class="l">${esc(c.name)} ${l}</td>${['fort','ref','will'].map(s=>`<td>${sg(saveFor(c[s],l,!!c.prestige))}</td>`).join('')}</tr>`}).join('');
+  return `<section class="panel"><header><h2>Saving Throws</h2></header>
+   <div class="scroll"><table><thead><tr><th class="l">Save</th><th>Total</th><th></th><th>Base</th><th></th><th>Ability</th><th></th><th>Magic</th><th></th><th>Misc</th><th></th><th>Temp</th><th></th><th>Conditions</th></tr></thead><tbody>
+   ${['fort','ref','will'].map(s=>`<tr><td class="l"><b>${nm[s][0]}</b> <span class="muted">(${nm[s][1]})</span></td><td class="tot" data-o="sv.${s}"></td><td class="op">=</td><td data-o="sv.${s}.base"></td><td class="op">+</td><td data-o="sv.${s}.ab"></td><td class="op">+</td><td>${num(`saves.${s}.magic`,{label:nm[s][0]+' magic'})}</td><td class="op">+</td><td>${num(`saves.${s}.misc`,{label:nm[s][0]+' misc'})}</td><td class="op">+</td><td>${num(`saves.${s}.temp`,{label:nm[s][0]+' temp'})}</td><td class="op">+</td><td data-o="sv.${s}.cond"></td></tr>`).join('')}
+   </tbody></table></div>
+   <p class="note">Paper sheet: Fort +11, Ref +15, Will +6, the same at level 17. Elves get +2 against enchantments; Endurance gives +4 against exhaustion and the like. Conditions update these automatically.</p></section>
+  <div class="cols">
+   <section class="panel"><header><h2>Base Save by Class</h2></header>
+    <div class="scroll"><table><thead><tr><th class="l">Class</th><th>Fort</th><th>Ref</th><th>Will</th></tr></thead><tbody>${breakdown}</tbody></table></div>
+    <p class="note">Evasion and Improved Evasion: no damage on a successful Reflex save against a half-damage effect, half on a failed one.</p>
+   </section>
+   <section class="panel"><header><h2>Defenses</h2></header>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--dawn-soft);border-radius:var(--r);padding:8px 10px;font-size:.9rem"><b>Shield of the Sun:</b> resist negative energy 10, immune to energy drain and negative levels. <button class="btn" data-act="tab" data-t="mantle">Mantle</button></div>
+    ${field('Resistances',txt('resist'))}<div class="grid2">${field('DR',txt('dr'))}${field('SR',txt('sr'))}</div>
+    ${field('Conditional modifiers',area('saveNotes',{rows:6}))}
+   </section></div>`;
+}
+
+function pAttacks(){
+  const C=compute(true);
+  const rows=S.attacks.map((a,i)=>`<div class="custom weapon">
+    <div class="wtop">
+     <div class="wname">${txt(`attacks.${i}.name`,{cls:'nm',ph:'Weapon',label:'Weapon name'})}<small class="muted">${esc([a.kind==='melee'?'Melee':'Ranged / thrown',a.range,a.type,(C.O[`atk.${i}.hit`]||{}).crit?'crit '+C.O[`atk.${i}.hit`].crit:''].filter(Boolean).join(' · '))}</small></div>
+     <div class="wstat"><span class="lbl">Attack</span><b data-o="atk.${i}.hit"></b></div>
+     <div class="wstat"><span class="lbl">Damage</span><b data-o="atk.${i}.dmg"></b></div>
+     <div class="wbtns"><button class="btn x" data-act="mvAtk" data-i="${i}" data-d="-1" aria-label="Move ${esc(a.name)} up"${i===0?' disabled':''}>↑</button><button class="btn x" data-act="mvAtk" data-i="${i}" data-d="1" aria-label="Move ${esc(a.name)} down"${i===S.attacks.length-1?' disabled':''}>↓</button><button class="btn x" data-act="delAtk" data-i="${i}" aria-label="Remove ${esc(a.name)}">✕</button></div>
+    </div>
+    ${rollBox('w'+i,String((C.O[`atk.${i}.hit`]||{}).t||'').split('/'))}
+    ${n(a.uses)?`<div class="row"><span class="lbl">Daily use</span>${pips('atk.'+(a.id||i),n(a.uses))}</div>`:''}
+    ${a.notes?`<p class="muted" style="margin:0;font-size:.9rem">${esc(a.notes)}</p>`:''}
+    <details class="more" id="det-${a.id||i}"><summary>Edit stats &amp; description</summary>
+    <div class="row" style="margin-top:6px">
+     ${field('Kind',sel(`attacks.${i}.kind`,[['melee','Melee'],['ranged','Ranged / thrown']],{rr:1}))}
+     ${field('Attack uses',sel(`attacks.${i}.abil`,[['dex','Dex'],['str','Str']]))}
+     ${field('Enh.',num(`attacks.${i}.enh`))}${field('Misc atk',num(`attacks.${i}.misc`))}
+     ${field('Dice',txt(`attacks.${i}.dice`,{w:'5em'}))}
+     ${field('Damage ability',sel(`attacks.${i}.dmgAbil`,[['dex','Dex ×1'],['dex05','Dex ×½'],['str','Str ×1'],['str15','Str ×1½'],['str05','Str ×½'],['none','none']]))}
+     ${field('Misc dmg',num(`attacks.${i}.dmgMisc`))}
+     ${field('Extra damage',txt(`attacks.${i}.extra`,{w:'8em',ph:'+1d6 fire'}))}
+     ${field('Critical',txt(`attacks.${i}.crit`,{w:'9em',rr:1}))}${field('Range',txt(`attacks.${i}.range`,{w:'7em',rr:1}))}${field('Type',txt(`attacks.${i}.type`,{w:'3.5em',rr:1}))}
+     ${field('Uses/day',num(`attacks.${i}.uses`,{w:'3.4em',rr:1}))}
+    </div>
+    ${field('Notes',txt(`attacks.${i}.notes`,{w:'100%',label:'Attack notes',rr:1}))}
+    ${field('Description',area(`attacks.${i}.desc`,{rows:3,label:'Weapon description'}))}</details></div>`).join('');
+  const act=C.M.active.filter(c=>c.fx&&(typeof c.fx==='function'||c.fx.some(f=>/atk|dmg|str|dex/.test(f[0])))||(c.fl||[]).some(f=>f==='gravity'||f==='falcon'));
+  return `${act.length?`<p class="note warn">Active effects: ${act.map(c=>esc(cname(c))).join(', ')}. All totals on this tab include them.</p>`:''}
+  ${faPanel(C)}
+  <section class="panel"><header><h2>Weapons</h2><span class="muted">Pick which iterative attack, then type your d20 and damage dice.</span>${rollTools()}</header>
+   <div>${rows}</div><div class="row"><button class="btn" data-act="addAtk">Add weapon</button></div></section>
+  ${ammoPanel()}
+  <div class="cols">
+   <section class="panel"><header><h2>Attack Bonuses</h2></header>
+    <div class="kv"><label>Base attack</label><b data-o="bab.iter"></b><label>Size modifier</label><b data-o="size"></b><label>Melee touch</label><b data-o="spatk.melee"></b><label>Ranged touch</label><b data-o="spatk.ranged"></b><label>CMB / CMD</label><b><span data-o="cmb"></span> / <span data-o="cmd"></span></b><label>Deadly Aim</label><b data-o="deadly"></b></div>
+    <p class="note">Favored enemy and quarry bonuses join every attack when you turn them on (top of the sheet). Quarry also confirms every critical threat against that creature.</p>
+   </section>
+   <section class="panel"><header><h2>Attack Notes</h2></header>${area('atkNotes',{rows:7})}${field('Proficiencies',area('profs',{rows:2}))}</section>
+  </div>`;
+}
+function rollTools(){return `<span class="rolltools"><label class="rf">Target AC <input type="number" data-roll="ac" value="${rolls.ac??''}" style="width:4em" aria-label="Target armor class"></label><button class="btn" data-act="clearRolls">Clear rolls</button></span>`}
+/* the archer's full attack: one row per arrow, in order */
+function faPanel(C){
+  const F=S.fa||{},L=C.seq||[],fa=C.fa;if(!fa)return '';
+  const opts=S.attacks.filter(a=>a.kind==='ranged').map(a=>[a.id,a.name||'Unnamed']);
+  const chk=(k,l,o={})=>`<label class="row" style="gap:6px"${o.title?` title="${esc(o.title)}"`:''}><input type="checkbox" class="cs" data-p="fa.${k}" ${F[k]?'checked':''}${o.dis?' disabled':''}>${l}</label>`;
+  const stormUsed=n(S.used.storm)>=1,strUsed=n(S.used.string);
+  const ammoOpts=[['sun','Sunlight arrows (Mantle, unlimited)'],...(S.ammo||[]).map((x,i)=>['a'+i,`${x.name||'Arrows'} (${n(x.left)} left)`])];
+  return `<section class="panel fa"><header><h2>Full Attack</h2><span class="muted">One row per arrow, in order. Type each d20 and the dice you rolled.</span>${rollTools()}</header>
+   <div class="row" style="align-items:end">${field('Weapon',sel('fa.weapon',opts,{label:'Full attack weapon'}))}${field('Arrows',sel('fa.ammo',ammoOpts,{label:'Arrows'}))}</div>
+   <div class="row">${chk('rapid','Rapid Shot (−2)')}${chk('many','Manyshot')}${chk('deadly',`Deadly Aim (${C.O.deadly.t})`)}${chk('pb','Within 30 ft. (Point Blank +1)')}${chk('evil','Evil target (+2d6 holy)',{title:'Sun String: the first arrow that hits an evil creature each round'})}</div>
+   <div class="row">${chk('storm',`Storm Arrow${stormUsed&&!F.storm?' (used today)':' (1/day)'}`,{dis:stormUsed&&!F.storm,title:'Sky Sentinel Bow: the first arrow splits into three, each +1d6 electricity'})}
+    ${chk('string',`Bowstring +1d8 (${Math.max(0,2-strUsed)} of 2 left)`,{dis:strUsed>=2&&!F.string})}${F.string?sel('fa.stringType',[['fire','fire'],['lightning','lightning']],{label:'Bowstring damage type'}):''}</div>
+   ${L.length?`<div class="scroll"><table class="fatbl"><thead><tr><th>Order</th><th class="l">Arrow</th><th>Attack</th><th class="l">Damage</th></tr></thead><tbody>
+   ${L.map((x,j)=>`<tr class="${x.cls}"><td><span class="ord">${j+1}</span></td><td class="l"><b>${esc(x.label)}</b>${x.note?`<br><small class="muted">${esc(x.note)}</small>`:''}</td><td class="tot" data-o="seq.${j}.hit"></td><td class="l" data-o="seq.${j}.dmg"></td></tr><tr class="rollrow ${x.cls}"><td></td><td colspan="3" class="l">${rollBox('t'+j)}</td></tr>`).join('')}
+   </tbody></table></div><div class="roundtot" id="rt-t"></div>
+   <div class="row"><button class="btn" data-act="spendArrows">Take ${fa.arrows} arrow${fa.arrows===1?'':'s'} from the quiver</button><small class="muted">${fa.ammo&&fa.ammo.idx!=null?`${esc(fa.ammo.name)}: ${n((S.ammo[fa.ammo.idx]||{}).left)} left`:'Sunlight arrows form on the string: nothing to count. They’re magic and good against damage reduction.'}</small></div>
+   <p class="note">Paper sheet (level 16): Rapid Shot 21/21/16/11/6, Manyshot 23/18/13/8 with 2d8+8 on the first attack, Storm Arrow 23/23/23 then 18/13/8. A Manyshot crit multiplies only one arrow. Crit damage here multiplies the weapon die and bonuses; the extra dice (fire, holy, elemental arrows) aren’t multiplied, so type them in their own box.</p>`:''}
+  </section>`;
+}
+function ammoPanel(){
+  const A=S.ammo||[];
+  return `<section class="panel"><header><h2>Arrows</h2><span class="muted">Counted from the boxes on her paper sheet. Sunlight arrows from the Mantle never run out.</span></header>
+   <div class="scroll"><table class="geartbl"><colgroup><col style="width:22%"><col style="width:12em"><col style="width:5.5em"><col style="width:8.5em"><col><col class="c-x"></colgroup>
+   <thead><tr><th class="l">Type</th><th>Left</th><th>Of</th><th class="l">Extra dmg</th><th class="l">Notes</th><th></th></tr></thead><tbody>
+   ${A.map((x,i)=>`<tr class="${n(x.left)<1?'future':''}"><td class="l">${txt(`ammo.${i}.name`,{label:'Arrows'})}</td>
+     <td><span class="charge"><button class="btn x" data-act="ammo" data-i="${i}" data-d="-1" aria-label="Fire one">−</button>${num(`ammo.${i}.left`,{w:'3.6em',rr:1,label:'Left'})}<button class="btn x" data-act="ammo" data-i="${i}" data-d="1" aria-label="Pick one up">+</button></span></td>
+     <td>${num(`ammo.${i}.max`,{w:'3.6em',rr:1,label:'Full count'})}</td>
+     <td class="l">${txt(`ammo.${i}.extra`,{label:'Extra damage',ph:'+2d6 fire',rr:1})}</td>
+     <td class="l">${txt(`ammo.${i}.notes`,{label:'Notes'})}</td>
+     <td><button class="btn x" data-act="ammoDel" data-i="${i}" aria-label="Remove">✕</button></td></tr>`).join('')||'<tr><td colspan="6" class="muted">None.</td></tr>'}
+   </tbody></table></div>
+   <div class="row"><button class="btn" data-act="ammoAdd">Add arrows</button><button class="btn" data-act="ammoRefill">Refill all to full</button></div>
+   <p class="note">Paper sheet: “10 Fire, Ice, 10 Necrotic: all arrows +2d6 damage”. The Ice count is scribbled out.</p>
+  </section>`;
+}
+
+/* ---------- spells ---------- */
+function pSpells(){
+  const C=compute(true),cl=casterLevel();
+  const lv=[1,2,3,4].map(l=>({l,si:slotInfo(l,C)})).filter(x=>x.si.base!==null);
+  if(!lv.length)return `<section class="panel"><p class="muted">Rangers cast spells from 4th level.</p></section>`;
+  const lists=Object.keys(RS).map(l=>`<datalist id="rs-${l}">${Object.keys(RS[l]).map(nm=>`<option value="${esc(nm)}">`).join('')}</datalist>`).join('');
+  const panels=lv.map(({l,si})=>{const P=prepOf(l),used=P.filter(x=>x.c).length;
+    return `<section class="panel"><header class="slothd"><h2>${ORD[l-1]} level</h2><span class="dc">DC ${out('dc.'+l)} · ${si.total} a day${si.bonus?` (${si.base} + ${si.bonus} from Wis)`:''}</span><span class="muted">${Math.max(0,si.total-used)} left</span></header>
+     ${P.length>si.total?`<p class="note warn">${P.length} prepared, but she has ${si.total} slots at this level.</p>`:''}
+     <div>${P.map((x,i)=>{const d=x.d||rsDesc(x.n);return `<div class="spl${x.c?' cast':''}">${txt(`spells.${l}.${i}.n`,{cls:'nm',list:'rs-'+l,label:'Spell name',rr:1,ph:'Spell'})}
+       ${x.c?`<button class="btn" data-act="spUncast" data-l="${l}" data-i="${i}">Undo cast</button>`:`<button class="btn pri" data-act="spCast" data-l="${l}" data-i="${i}">Cast</button>`}
+       <button class="btn x" data-act="spDel" data-l="${l}" data-i="${i}" aria-label="Remove ${esc(x.n)}">✕</button>
+       <div class="ds">${d?esc(d):`<span>No description. </span>`}${!rsDesc(x.n)?` ${txt(`spells.${l}.${i}.d`,{w:'100%',label:'Spell description',ph:'Range, duration (e.g. “Touch, 10 min/level”), effect'})}`:''}</div></div>`}).join('')||'<p class="muted" style="margin:0">Nothing prepared yet.</p>'}</div>
+     <div class="row"><button class="btn" data-act="spAdd" data-l="${l}"${P.length>=si.total?' title="All slots are filled"':''}>Prepare a spell</button>
+      ${field('Slots per day (override)',num(`spOv.${l}`,{w:'4em',rr:1,label:`${ORD[l-1]}-level slots override`,ph:String(si.rule)}))}</div>
+    </section>`}).join('');
+  return `${lists}<section class="panel"><header><h2>Ranger Spells</h2><span class="muted">Caster level ${cl} (ranger ${levels().ranger} − 3) · Wisdom ${C.ab.wis.sc} (${sg(C.ab.wis.mod)})</span><button class="btn" data-act="spRest" style="margin-left:auto">Prepare again (new day)</button></header>
+   <p class="note" style="margin:0">Her paper sheet lists slots but no spells. Prepare them each morning: type a name or pick one from the ranger list, then press Cast when she uses it. Casting Aspect of the Falcon, Gravity Bow, Barkskin, the stat buffs or Longstrider on herself switches the buff on, and the DM’s tracker times it. Paper sheet (level 16): 3 / 2 / 2 / 1.</p>
+  </section><div class="cols">${panels}</div>${dmPanel()}`;
+}
+function castTargets(nm,selfId,desc){
+  const L=S.sdLog||[], e=L[L.length-1], personal=/^\s*personal\b/i.test(desc||'');
+  const done=on=>{if(e){e.on=on;e.fx=selfId}if(on.includes('vex'))S.cond[selfId]=true;render();scheduleSave(true)};
+  if(personal||!window.ttAskTargets){done(['vex']);return}
+  window.ttAskTargets(nm,{all:/,\s*mass\b|\bburst\b|\ballies\b/i.test(nm+' '+(desc||''))}).then(done);
+}
+
+/* ---------- Shadow, her wolf companion, and the crow ---------- */
+function pCompanion(){
+  const c=S.comp,w=S.crow,hp=n(c.hp),mx=n(c.hpMax),r=levels().ranger;
+  const tr=c.tricks||[];
+  return `<div class="cols">
+   <section class="panel"><header><h2>${esc(c.name||'Companion')}</h2><span class="muted">${esc(c.kind||'')} · ${esc(c.size||'')}</span></header>
+    <div class="grid2">${field('Name',txt('comp.name',{rr:1}))}${field('Status',sel('comp.status',[['active','Active'],['dismissed','Dismissed'],['dead','Dead']],{rr:1}))}</div>
+    <div class="row"><span class="lbl">HP</span><b style="font-size:1.4rem">${hp} / ${mx}</b>${n(c.temp)?`<small class="muted">+${n(c.temp)} temp</small>`:''}</div>
+    <div class="hpbar"><i style="width:${Math.max(0,Math.min(100,hp/Math.max(1,mx)*100))}%" class="${hp<=mx/4?'low':''}"></i></div>
+    <div class="hpctl"><input type="number" id="chpamt" placeholder="amt" aria-label="Amount"><button class="btn" data-act="cdmg">Damage</button><button class="btn" data-act="cdmgRes" title="Blue Dragon Armour resists 15 electricity">Electricity (−15)</button><button class="btn" data-act="cheal">Heal</button><button class="btn" data-act="cfull">Full</button></div>
+    <div class="grid2">${field('Max HP',num('comp.hpMax',{rr:1}))}${field('Temp HP',num('comp.temp',{rr:1}))}</div>
+    ${c.status==='dead'?`<p class="note warn">If her companion dies, she can bond a new one after 24 hours of prayer in her favored terrain.</p>`:''}
+    <p class="note">Hunter’s Bond makes Shadow a level ${Math.max(1,r-3)} companion at ranger ${r}. His numbers are rebuilt for level 14 from the wolf companion rules (the paper sheet was level 10, 103 HP). HP is 12 HD at the average plus Con and Toughness.${r!==17?' <b>Her ranger level has changed since, so his stats need another update.</b>':''}</p>
+   </section>
+   <section class="panel"><header><h2>Tricks</h2><span class="muted">Handle Animal ${out('sk.handle')} (+4 more with Shadow: ${out('sk.handle.vp')})</span></header>
+    <div class="scroll"><table><thead><tr><th class="l">Trick</th><th>DC</th><th>Roll needed</th><th></th></tr></thead><tbody>
+    ${tr.map((t,i)=>{const need=n(t.dc)-(compute(true).O['sk.handle'].n+4);return `<tr><td class="l">${txt(`comp.tricks.${i}.n`,{label:'Trick'})}</td><td>${num(`comp.tricks.${i}.dc`,{w:'3.6em',rr:1,label:'DC'})}</td><td>${need<=1?'automatic':need+'+'}</td><td><button class="btn x" data-act="trDel" data-i="${i}" aria-label="Remove trick">✕</button></td></tr>`}).join('')}
+    </tbody></table></div>
+    <div class="row"><button class="btn" data-act="trAdd">Add trick</button></div>
+    <p class="note">DC 10 to “handle” (a trick he knows), DC 25 to “push”. Her paper sheet lists the DCs beside each trick.</p>
+   </section>
+  </div>
+  <section class="panel"><header><h2>Stat Block</h2><span class="muted">From the companion sheet; edit as he grows</span></header>
+   <div class="grid2">${ABIL.map(a=>field(a.toUpperCase(),num('comp.'+a,{label:'Shadow '+ABN[a]}))).join('')}</div>
+   <div class="grid2">${field('AC',num('comp.ac'))}${field('Touch',num('comp.touch'))}${field('Flat-footed',num('comp.ff'))}${field('Initiative',txt('comp.init'))}${field('Speed',txt('comp.speed'))}${field('Size',txt('comp.size'))}</div>
+   <div class="grid2">${field('Fort',txt('comp.fort'))}${field('Ref',txt('comp.ref'))}${field('Will',txt('comp.will'))}${field('Base attack',txt('comp.bab'))}${field('CMB',txt('comp.cmb'))}${field('CMD',txt('comp.cmd'))}</div>
+   ${field('Attack',txt('comp.attack',{w:'100%'}))}
+   <div class="grid2">${field('Resistance / DR',txt('comp.dr'))}${field('Senses',txt('comp.senses'))}</div>
+   ${field('Skills',area('comp.skills',{rows:2}))}
+   ${field('Feats',area('comp.feats',{rows:2}))}
+   ${field('Armor &amp; gear',txt('comp.gear',{w:'100%'}))}
+   ${field('Notes',area('comp.notes',{rows:3}))}
+  </section>
+  <section class="panel"><header><h2>The Crow</h2><span class="muted">From the portrait box on the companion sheet</span></header>
+   <div class="row"><span class="lbl">HP</span><b>${n(w.hp)} / ${n(w.hpMax)}</b><button class="btn" data-act="crowHit">−1 HP</button><button class="btn" data-act="crowFull">Full</button></div>
+   <div class="grid2">${field('AC',num('crow.ac'))}${field('Max HP',num('crow.hpMax',{rr:1}))}${field('Perception',txt('crow.perception'))}${field('Melee',txt('crow.melee'))}</div>
+   ${field('Tricks',txt('crow.tricks',{w:'100%'}))}${field('Notes',txt('crow.notes',{w:'100%'}))}
+  </section>`;
+}
+
+/* ---------- Mantle of the Dawn and the Sky Sentinel Bow ---------- */
+function pMantle(){
+  const C=compute(true),M=S.mantle||{},au=n(S.used.aura)>=1,auOn=!!S.cond.aura,st=n(S.used.storm)>=1,str=n(S.used.string);
+  const mantle=`<section class="panel mantle"><header><h2>Mantle of the Dawn</h2><span class="muted">Divine boon · Champion of the Dawnfather</span><span class="tag">Bearer: Vex’ahlia</span></header>
+   <p class="muted" style="margin:0;font-style:italic">Where the Dawnfather’s light falls, nothing hides and nothing rots.</p>
+   <div class="wpow"><div><span class="nm">Shield of the Sun</span> <small class="muted">passive</small></div><span></span>
+    <div class="ds">Resist negative energy 10, and immune to energy drain and negative levels. Her maximum hit points can’t be reduced by negative energy or by the abilities of undead creatures. The Negative (−10) button on the Overview tab takes the 10 off.</div></div>
+   <div class="wpow"><div><span class="nm">The Sun String</span> <small class="muted">passive</small></div><span></span>
+    <div class="ds">Any bow she wields gains <i>flaming</i> and <i>ghost touch</i> (<i>flaming burst</i> if it was already flaming): the Sky Sentinel Bow’s +1d6 fire is already on the Attacks tab. The first arrow that hits an evil creature each round deals an extra 2d6 holy (tick “Evil target” in Full Attack).<br>Drawing an empty string forms an arrow of pure sunlight: piercing, magic and good-aligned for damage reduction. She can still nock real arrows whenever she likes.</div></div>
+   <div class="wpow"><div><span class="nm">${AURA}</span> <small class="muted">1/day · swift · 1 min/level (17 minutes)</small> ${pips('aura',1)}</div>
+    <span class="row">${auOn?`<button class="btn" data-act="auraOff">Let it fade</button>`:`<button class="btn pri" data-act="aura"${au?' disabled':''}>${au?'Used today':'Shine'}</button>`}</span>
+    <div class="ds">The Dawnfather’s gaze shines from her in a 120-ft. radius that moves with her, as <i>daylight</i>. Inside it, enemies lose invisibility, <i>blur</i> and <i>displacement</i>, can’t use Stealth without total cover, and can’t hide in plain sight. Undead harmed by sunlight are affected as if by natural sunlight. When she lights it she picks any number of creatures to leave out: they suffer no light blindness or sensitivity from it and can still hide.${auOn?' <b>The aura is shining.</b>':''}</div></div>
+   <div class="wpow"><div><span class="nm">The Dawn’s Reprieve</span> <small class="muted">once · restored only by the Dawnfather</small></div>
+    <span class="row">${M.reprieve?`<button class="btn" data-act="reprieveBack">The Dawnfather restored it</button>`:`<button class="btn pri" data-act="reprieve">Deny death</button>`}</span>
+    <div class="ds">If she would die for any reason, she denies it. She is healed to half her maximum HP (${Math.floor(hpMaxNow()/2)}), and negative levels, ability damage, blinded, stunned and paralyzed end. She erupts in a <i>sunburst</i> centered on herself (caster level 17, Reflex DC 25), which leaves her allies unharmed: every enemy within 80 ft. takes 6d6 and is blinded (Reflex half and not blinded); undead take 17d6 (Reflex half), and undead harmed by bright light are destroyed if they fail.${M.reprieve?' <b>Spent.</b>':' <b>Ready.</b>'}</div>
+    ${M.last?`<p class="note" style="grid-column:1/-1;margin:0">${M.last}</p>`:''}</div>
+  </section>`;
+  const bow=`<section class="panel storm"><header><h2>Sky Sentinel Bow</h2><span class="muted">+2 longbow · once the weapon of a legendary ranger</span><span class="tag">Storm</span></header>
+   <p class="muted" style="margin:0;font-style:italic">Well crafted, of an elvish design.</p>
+   <div class="kv"><label>Attack</label><b><span data-o="atk.0.hit"></span></b><label>Damage</label><b data-o="atk.0.dmg"></b></div>
+   <div class="wpow"><div><span class="nm">Storm Arrow</span> <small class="muted">1/day</small> ${pips('storm',1)}</div>
+    <button class="btn pri" data-act="stormGo"${st&&!(S.fa||{}).storm?' disabled':''}>${(S.fa||{}).storm?'In the full attack':st?'Used today':'Use in the next full attack'}</button>
+    <div class="ds">She makes one arrow fired from the bow split into 3 separate arrows, each dealing an extra 1d6 lightning. Roll separately for each. The split arrows don’t copy magic effects or poisons from the original arrow.</div></div>
+   <div class="wpow"><div><span class="nm">Blazing &amp; Lightning Bowstring</span> <small class="muted">2/day</small> ${pips('string',2)}</div><span class="muted">${Math.max(0,2-str)} left</span>
+    <div class="ds">Twice a day an arrow deals an extra 1d8 fire or lightning. Tick “Bowstring” in Full Attack to add it to the first arrow.</div></div>
+  </section>`;
+  return mantle+`<div class="cols">${bow}${dmPanel()}</div>`;
+}
+
+function acItemsPanel(){
+  const L=S.acItems||[],IT=acItemBonuses();
+  const applied=AC_TYPES.filter(([k])=>IT[k]).map(([k,l])=>`${l} ${sg(IT[k])}`);
+  return `<section class="panel"><header><h2>Rings, Amulets &amp; Other AC Items</h2><span class="muted">Tick Worn to add the bonus to AC</span></header>
+   <div class="scroll"><table class="geartbl acitems"><colgroup><col style="width:4.5em"><col class="c-item"><col style="width:9em"><col style="width:11em"><col style="width:5.5em"><col class="c-x"></colgroup>
+   <thead><tr><th>Worn</th><th class="l">Item</th><th class="l">Slot</th><th class="l">Bonus type</th><th>Bonus</th><th></th></tr></thead><tbody>
+   ${L.map((x,i)=>`<tr class="${x.on?'':'future'}"><td><input type="checkbox" class="cs" data-p="acItems.${i}.on" ${x.on?'checked':''} aria-label="Worn"></td>
+     <td class="l">${txt(`acItems.${i}.name`,{label:'Item name'})}</td>
+     <td class="l">${sel(`acItems.${i}.slot`,AC_SLOTS,{label:'Slot'})}</td>
+     <td class="l">${sel(`acItems.${i}.type`,AC_TYPES,{label:'Bonus type'})}</td>
+     <td>${num(`acItems.${i}.bonus`,{w:'3.6em',rr:1,label:'Bonus'})}</td>
+     <td><button class="btn x" data-act="acDel" data-i="${i}" aria-label="Remove item">✕</button></td></tr>`).join('')||'<tr><td colspan="6" class="muted">No AC items.</td></tr>'}
+   </tbody></table></div>
+   <div class="row"><button class="btn" data-act="acAdd">Add item</button></div>
+   <p class="note"><b>Applied to AC:</b> ${applied.length?applied.join(', '):'nothing'}.</p>
+  </section>`;
+}
+const MI_T=[['str','Strength'],['dex','Dexterity'],['con','Constitution'],['int','Intelligence'],['wis','Wisdom'],['cha','Charisma'],['save','All saves'],['fort','Fortitude'],['ref','Reflex'],['will','Will'],['atk','Attack rolls'],['atkRanged','Ranged attack rolls'],['dmg','Weapon damage'],['dmgRanged','Ranged damage'],['acNat','Natural armor'],['init','Initiative'],['speed','Speed (ft.)'],['cmb','CMB'],['cmd','CMD'],['skill','All skills'],['skillCha','Cha-based skills'],...SKILLS.map(s=>['sk.'+s.k,s.n])];
+const MI_TY=[['enh','Enhancement'],['inherent','Inherent (tomes, wishes)'],['resistance','Resistance'],['competence','Competence'],['luck','Luck'],['insight','Insight'],['morale','Morale'],['sacred','Sacred'],['profane','Profane'],['circumstance','Circumstance'],['untyped','Untyped']];
+const MI_SLOTS=['Belt','Headband','Neck','Shoulders','Body','Chest','Eyes','Head','Hands','Wrists','Ring','Feet','Slotless'];
+const miLabel=k=>(MI_T.find(x=>x[0]===k)||[k,k])[1];
+function miPanel(C){
+  const L=S.mitems=S.mitems||[];
+  const sum=L.filter(x=>x.on&&n(x.bonus)).map(x=>`${esc(x.name||'Unnamed')}: ${miLabel(x.target)} ${sg(n(x.bonus))} ${((MI_TY.find(t=>t[0]===x.type)||[,''])[1]).toLowerCase()}`);
+  return `<section class="panel"><header><h2>Stat-Boosting Magic Items</h2><span class="muted">Tick Worn and the bonus flows into every tab</span></header>
+   <div class="scroll"><table class="geartbl"><colgroup><col style="width:4.5em"><col class="c-item"><col style="width:8.5em"><col style="width:11em"><col style="width:5.5em"><col style="width:12em"><col class="c-x"></colgroup>
+   <thead><tr><th>Worn</th><th class="l">Item</th><th class="l">Slot</th><th class="l">Raises</th><th>Bonus</th><th class="l">Bonus type</th><th></th></tr></thead><tbody>
+   ${L.map((x,i)=>`<tr class="${x.on?'':'future'}"><td><input type="checkbox" class="cs" data-p="mitems.${i}.on" ${x.on?'checked':''} aria-label="Worn"></td>
+     <td class="l">${txt(`mitems.${i}.name`,{label:'Item name'})}</td>
+     <td class="l">${sel(`mitems.${i}.slot`,MI_SLOTS,{label:'Slot'})}</td>
+     <td class="l">${sel(`mitems.${i}.target`,MI_T,{label:'What it raises'})}</td>
+     <td>${num(`mitems.${i}.bonus`,{w:'3.6em',rr:1,label:'Bonus'})}</td>
+     <td class="l">${sel(`mitems.${i}.type`,MI_TY,{label:'Bonus type'})}</td>
+     <td><button class="btn x" data-act="miDel" data-i="${i}" aria-label="Remove item">✕</button></td></tr>`).join('')||'<tr><td colspan="7" class="muted">None on her paper sheet (the bracers’ +2 damage is on the bow, the cloak’s +5 in Stealth misc). Add a belt or headband here when she gets one.</td></tr>'}
+   </tbody></table></div>
+   <div class="row"><button class="btn" data-act="miAdd">Add item</button></div>
+   <p class="note"><b>Now applied:</b> ${sum.length?sum.join(' · '):'nothing'}. Dexterity is <b>${C.ab.dex.sc}</b> (${sg(C.ab.dex.mod)}). Same-type bonuses don’t stack.</p>
+  </section>`;
+}
+function customList(key,title,hint){
+  return `<section class="panel"><header><h2>${title}</h2>${hint?`<span class="muted">${hint}</span>`:''}</header><div>
+   ${S[key].map((a,i)=>`<div class="custom"><div class="row">${txt(`${key}.${i}.name`,{cls:'nm',ph:'Name',label:'Name'})}
+     ${key!=='feats'?`<label class="row"><small class="muted">Uses/day</small>${num(`${key}.${i}.uses`,{w:'3.4em',rr:1,label:'Uses per day'})}</label>${pips(`${key}.${i}`,n(a.uses))}`:''}
+     <button class="btn x" data-act="delItem" data-k="${key}" data-i="${i}" aria-label="Remove">✕</button></div>${area(`${key}.${i}.desc`,{rows:2,label:'Description'})}</div>`).join('')||'<p class="muted">None yet.</p>'}
+   </div><div class="row"><button class="btn" data-act="addItem" data-k="${key}">Add</button></div></section>`;
+}
+function pips(k,max){if(!max)return '';const used=n(S.used[k]);let h='<span class="pips" role="group" aria-label="Uses">';for(let i=0;i<Math.min(max,40);i++)h+=`<button class="pip" data-act="use" data-k="${k}" data-i="${i}" aria-pressed="${i<used}" aria-label="Use ${i+1}"></button>`;return h+'</span>';}
+function pAbilities(){
+  const L=levels();const A=autoAbilities(L);
+  const feRows=(S.fe||[]).map((f,i)=>`<tr><td class="l">${txt(`fe.${i}.name`,{label:'Favored enemy',rr:1})}</td><td>${num(`fe.${i}.b`,{w:'3.6em',rr:1,label:'Bonus'})}</td><td><input type="radio" name="favdef" class="cs" data-act="favDef" data-i="${i}" ${String(S.favDef)===String(i)?'checked':''} aria-label="Favored Defense against ${esc(f.name)}"></td><td><button class="btn x" data-act="feDel" data-i="${i}" aria-label="Remove">✕</button></td></tr>`).join('');
+  const ftRows=(S.ft||[]).map((f,i)=>`<tr><td class="l">${txt(`ft.${i}.name`,{label:'Favored terrain',rr:1})}</td><td>${num(`ft.${i}.b`,{w:'3.6em',rr:1,label:'Bonus'})}</td><td><button class="btn x" data-act="ftDel" data-i="${i}" aria-label="Remove">✕</button></td></tr>`).join('');
+  return `<section class="panel"><header><h2>Class Abilities</h2><span class="muted">Built from her Ranger levels. Filled pips are spent uses.</span><button class="btn" data-act="rest" style="margin-left:auto">Rest: reset daily uses</button></header>
+   <div class="ab-list">${A.map(a=>{const k='ov.'+ok(a.key);const hasNote=String(getP(k+'.note')||'').trim();return `<div class="ab${a.fresh?' new':''}"><div class="lv">Rgr ${a.lvl}</div><div><span class="nm">${a.name}</span>${a.ty?`<span class="ty">(${a.ty})</span>`:''}${a.uses?pips(a.key,a.uses):''}${a.uses?` <small class="muted">${a.uses}/day</small>`:''}<div class="ds">${a.ds}</div>
+    ${hasNote?`<div class="ovr" style="display:block">${area(k+'.note',{rows:2,label:a.name+' notes'})}</div>`:`<div class="ovr"><button class="btn x" data-act="addNote" data-k="${k}.note">+ Add note or DM ruling</button></div>`}</div></div>`}).join('')||'<p class="muted">Set a Ranger level on the Overview tab to see abilities here.</p>'}</div></section>
+  <div class="cols">
+   <section class="panel"><header><h2>Favored Enemies</h2><span class="muted">From her paper sheet</span></header>
+    <div class="scroll"><table><thead><tr><th class="l">Enemy</th><th>Bonus</th><th title="Favored Defense">Fav. Defense</th><th></th></tr></thead><tbody>${feRows}</tbody></table></div>
+    <div class="row"><button class="btn" data-act="feAdd"${(S.fe||[]).length>=4?' disabled title="Four cards at most (a fifth comes at ranger 20)"':''}>Add enemy</button></div>
+    <p class="note">The paper sheet: Dragons +8, Aberrations +4, Magical beasts +2, Fey +2. Favored Defense (dragons): half the bonus as dodge AC and CMD.</p></section>
+   <section class="panel"><header><h2>Favored Terrains</h2><span class="muted">From her paper sheet</span></header>
+    <div class="scroll"><table><thead><tr><th class="l">Terrain</th><th>Bonus</th><th></th></tr></thead><tbody>${ftRows}</tbody></table></div>
+    <div class="row"><button class="btn" data-act="ftAdd"${(S.ft||[]).length>=3?' disabled':''}>Add terrain</button></div>
+    <p class="note">The paper sheet names Forest +4 and Mountain +2. A ranger gets a third terrain at 13th level (and a fourth at 18th), and +2 to one of them each time; it’s blank on the paper.</p></section>
+  </div>
+  ${customList('special','Other Abilities','From her paper sheet')}
+  <div class="cols">${customList('racial','Racial Traits','Elf')}${customList('feats','Feats','Archery style feats and Endurance are marked; 9 general feats at level 17')}</div>`;
+}
+
+function condCards(list,map){
+  return list.filter(shown).map(c=>`<button class="cond${c.buff?' buffc':''}" data-act="cond" data-id="${c.id}" aria-pressed="${!!map[c.id]}"><span class="n">${cname(c)}</span><span class="e">${cdesc(c)}</span></button>`).join('');
+}
+function netSummary(){
+  const M=gather(S.cond,S.neg);
+  const lab={atk:'Attack rolls',atkMelee:'Melee attacks',atkRanged:'Ranged attacks',dmg:'Weapon damage',dmgRanged:'Ranged damage',ac:'AC',acDodge:'Dodge AC',acDefl:'Deflection AC',acNat:'Natural armor',save:'All saves',fort:'Fortitude',ref:'Reflex',will:'Will',skill:'Skill checks',skillStrDex:'Str/Dex skills',ability:'Ability checks',init:'Initiative',cmd:'CMD',str:'Strength',dex:'Dexterity',con:'Constitution',wis:'Wisdom',cha:'Charisma',speed:'Speed (ft.)'};
+  const rows=Object.entries(M.tot).filter(([,v])=>v).map(([k,v])=>`<div><span>${lab[k]||miLabel(k)}</span><span class="${v<0?'neg':'pos'}">${sg(v)}</span></div>`);
+  const fl={loseDex:'Loses Dex bonus to AC',flatFooted:'Flat-footed: loses Dex to AC, no attacks of opportunity',dexZero:'Dex treated as 0',strZero:'Str treated as 0',halfSpeed:'Half speed',prone:'+4 AC vs ranged, −4 AC vs melee',quarry:'Critical threats against the quarry confirm automatically',falcon:'Bow threatens on 19–20 (×3)',gravity:'Arrows deal damage one size larger'};
+  Object.keys(M.flags).forEach(f=>rows.push(`<div><span>${fl[f]||f}</span><span></span></div>`));
+  if(S.cond.batfly)rows.push(`<div><span>Fly speed</span><span class="pos">60 ft.</span></div>`);
+  return rows.join('')||'<p class="muted">No active effects. Every value is at its base.</p>';
+}
+function pConditions(){
+  return `<section class="panel"><header><h2>Conditions</h2><button class="btn" data-act="clearCond" style="margin-left:auto">Clear all</button></header>
+   <p class="muted" style="margin:0">Tap a card to toggle it. Scores, AC, saves, skills and attacks on every tab update right away. Changed values turn red (worse) or blue (better). Only one favored enemy and one favored terrain at a time.</p></section>
+  <div class="cols" style="grid-template-columns:minmax(0,2.2fr) minmax(min(100%,260px),1fr)">
+   <div class="page" style="margin:0">
+    <section class="panel"><header><h2>Favored Enemies &amp; Terrains</h2></header><div class="condgrid">${condCards(BUFFS.filter(b=>b.grp||b.id==='quarry'),S.cond)}</div></section>
+    <section class="panel"><header><h2>Buffs, Spells &amp; Situations</h2></header><div class="condgrid">${condCards(BUFFS.filter(b=>!b.grp&&b.id!=='quarry'),S.cond)}</div></section>
+    <section class="panel"><header><h2>Conditions</h2></header><div class="condgrid">${condCards(CONDS,S.cond)}</div></section>
+   </div>
+   <section class="panel" style="position:sticky;top:60px"><header><h2>Net Effect</h2></header>
+    <div class="row"><span class="lbl">Negative levels</span><b>Immune</b><small class="muted">Shield of the Sun</small></div>
+    <div class="net">${netSummary()}</div>
+    <p class="note">Same-type bonuses don’t stack: Inspire Courage and Heroism are different types, so both count, but Heroism and Good Hope are both morale.</p>
+   </section></div>`;
+}
+
+function pGear(){
+  const C=compute(true);
+  const str=C.ab.str.sc;const heavy=str<=0?0:str<30?HEAVY[str]:(k=>HEAVY[str-10*k]*Math.pow(4,k))(Math.floor((str-20)/10));
+  const sizeMul=[.125,.25,.5,.75,1,2,4,8,16][C.si];const H=heavy*sizeMul,Lt=Math.floor(H/3),Md=Math.floor(H*2/3);
+  const coinWt=(n(S.coins.pp)+n(S.coins.gp)+n(S.coins.sp)+n(S.coins.cp))/50;
+  const inBag=g=>/^\s*in bag/i.test(g.loc||'');
+  const wt=S.gear.filter(g=>!inBag(g)).reduce((a,g)=>a+n(g.wt),0)+(S.coinsCarried?coinWt:0);
+  const load=wt<=Lt?'Light':wt<=Md?'Medium':wt<=H?'Heavy':'Overloaded';
+  const arm=k=>`<div class="grid2">${field('Name',txt(`${k}.name`))}${field('AC bonus',num(`${k}.bonus`))}${k==='armor'?field('Max Dex',num(`${k}.maxDex`,{label:'Max Dex (blank = none)'})):''}${field('Check penalty',num(`${k}.acp`))}${k==='armor'?field('Speed in armor',num(`${k}.speed`,{rr:1,label:'Speed in armor (0 = normal)'})):''}</div>`;
+  const pots=S.potions||[];const mxHp=hpMaxNow();
+  const row=(k,nm,mx,lab,ds,ctl)=>`<tr><td class="l"><b>${nm}</b></td><td class="nowrap">${lab}${mx?`<br>${pips(k,mx)}`:''}</td><td class="l"><small>${ds}</small></td><td>${ctl||''}</td></tr>`;
+  const items=`<section class="panel"><header><h2>Magic Items</h2><span class="muted">Filled pips are spent</span></header>
+   <div class="scroll"><table class="geartbl" style="min-width:520px"><colgroup><col style="width:28%"><col style="width:6.5em"><col><col style="width:9.5em"></colgroup>
+   <thead><tr><th class="l">Item</th><th>Uses</th><th class="l">Effect</th><th></th></tr></thead><tbody>
+   ${[row('bat','Cloak of the Bat',1,'1/day','+5 competence on Stealth (in skill Misc). Holding its edges she flies 60 ft. (good) for up to 7 minutes, with +7 on Fly checks, or she turns into a bat.',S.cond.batfly?`<button class="btn" data-act="batOff">Land</button>`:`<button class="btn pri" data-act="bat"${n(S.used.bat)>=1?' disabled':''}>Fly</button>`),
+     row('string','Blazing &amp; Lightning Bowstring',2,'2/day','An arrow deals an extra 1d8 fire or lightning. Tick “Bowstring” in Full Attack.'),
+     row('','Bracers of Archery',0,'Always','+2 damage with ranged attacks (already on the bow).'),
+     row('','Glove of Missile Snaring',0,'1/round','She can catch one ranged attack aimed at her, as long as one hand is free.'),
+     row('','Ring of Animal Friendship',0,'—','She casts charm animal (Will DC 14).'),
+     row('','Animal Call',0,'Always','+2 on Survival checks to track animals.'),
+     row('','Earring of Whisper',0,'At will','Communication, as the message cantrip.'),
+     row('','Bag of Holding (type III)',0,'—','Holds up to 1,000 lb. in 150 cubic ft. and always weighs 35 lb. Give items the location “In bag” to leave them out of her load.')].join('')}
+   </tbody></table></div></section>`;
+  return `<section class="panel"><header><h2>Healing Potions</h2><span class="muted">HP ${n(S.hp.cur)} / ${mxHp} · roll the dice, type the total, press Drink</span></header>
+   <div class="scroll"><table class="pots"><thead><tr><th class="l">Potion</th><th>Heals</th><th>Qty</th><th>Dice total</th><th></th><th></th></tr></thead><tbody>
+   ${pots.map((p,i)=>{const dl=diceIn(p.dice),lo=dl.reduce((a,[c])=>a+c,0),hi=dl.reduce((a,[c,s])=>a+c*s,0);
+     return `<tr><td class="l">${txt(`potions.${i}.name`,{w:'100%',label:'Potion name'})}</td>
+      <td class="nowrap">${txt(`potions.${i}.dice`,{w:'3.6em',rr:1,label:'Healing dice'})} + ${num(`potions.${i}.bonus`,{w:'3.2em',rr:1,label:'Healing bonus'})}</td>
+      <td>${num(`potions.${i}.qty`,{w:'3.4em',rr:1,label:'Quantity'})}</td>
+      <td><input type="number" id="pot-roll-${i}" data-cap="${hi}" min="${lo}" max="${hi}" placeholder="${lo}–${hi}" style="width:5em" aria-label="${esc(p.name)} dice total"></td>
+      <td><button class="btn pri" data-act="potDrink" data-i="${i}"${n(p.qty)<1?' disabled':''}>Drink</button></td>
+      <td><button class="btn x" data-act="potDel" data-i="${i}" aria-label="Remove potion">✕</button></td></tr>`}).join('')||'<tr><td colspan="6" class="muted">No potions.</td></tr>'}
+   </tbody></table></div>
+   <div class="row"><button class="btn" data-act="potAdd">Add potion</button></div>
+   <p class="note">Healing as written on her paper sheet (1d8+1, 2d8+2, 3d8+3).</p>
+  </section>
+  <section class="panel"><header><h2>Other Potions, Acid &amp; Poison</h2><span class="muted">Each press takes one off the count</span></header>
+   <div class="scroll"><table class="geartbl" style="min-width:560px"><colgroup><col style="width:28%"><col style="width:5.5em"><col><col style="width:5.5em"><col class="c-x"></colgroup>
+   <thead><tr><th class="l">Item</th><th>Qty</th><th class="l">Effect</th><th></th><th></th></tr></thead><tbody>
+   ${(S.otherPotions||[]).map((p,i)=>`<tr class="${n(p.qty)<1?'future':''}"><td class="l">${txt(`otherPotions.${i}.name`,{label:'Item name'})}</td>
+     <td>${num(`otherPotions.${i}.qty`,{w:'3.4em',rr:1,label:'Quantity'})}</td>
+     <td class="l">${txt(`otherPotions.${i}.effect`,{label:'Effect'})}</td>
+     <td><button class="btn pri" data-act="opDrink" data-i="${i}"${n(p.qty)<1?' disabled':''}>${esc(p.verb||'Drink')}</button></td>
+     <td><button class="btn x" data-act="opDel" data-i="${i}" aria-label="Remove item">✕</button></td></tr>`).join('')||'<tr><td colspan="5" class="muted">None.</td></tr>'}
+   </tbody></table></div>
+   <div class="row"><button class="btn" data-act="opAdd">Add item</button></div>
+  </section>
+  ${items}
+  <div class="cols">
+   <section class="panel"><header><h2>Armor</h2></header>${arm('armor')}<p class="note">Dragon Breastplate: armor +6, max Dex +3, check −2, resist acid 10. A breastplate is medium armor, which normally slows an elf to 20 ft. and switches off Evasion. Her paper sheet doesn’t slow her, so speed stays 30 ft.; ask the DM.</p></section>
+   <section class="panel"><header><h2>Shield</h2></header>${arm('shield')}<p class="note">+1 light shield: +2 AC and resist acid 10 when strapped on. She can’t shoot a longbow with it on her arm, so it isn’t counted. Set the AC bonus to 2 when she uses it.</p></section>
+  </div>
+  ${acItemsPanel()}
+  ${miPanel(C)}
+  <section class="panel"><header><h2>Equipment</h2><span class="muted">${wt.toFixed(1)} lb. carried · ${load} load</span></header>
+    <div class="scroll"><table class="geartbl"><colgroup><col class="c-item"><col class="c-desc"><col class="c-loc"><col class="c-wt"><col class="c-x"></colgroup>
+    <thead><tr><th class="l">Item</th><th class="l">Description</th><th class="l">Location</th><th>Wt</th><th></th></tr></thead><tbody>
+    ${S.gear.map((g,i)=>`<tr${inBag(g)?' class="future"':''}><td class="l">${txt(`gear.${i}.item`,{w:'100%',label:'Item'})}</td><td class="l">${txt(`gear.${i}.desc`,{w:'100%',label:'Description'})}</td><td class="l">${txt(`gear.${i}.loc`,{w:'100%',label:'Location',rr:1})}</td><td>${num(`gear.${i}.wt`,{step:'0.25',rr:1,label:'Weight'})}</td><td><button class="btn x" data-act="delGear" data-i="${i}" aria-label="Remove item">✕</button></td></tr>`).join('')}
+    </tbody></table></div><div class="row"><button class="btn" data-act="addGear">Add item</button></div></section>
+  <div class="cols">
+   <section class="panel"><header><h2>Carrying &amp; Coin</h2></header>
+    <div class="kv"><label>Light</label><b>up to ${Lt} lb.</b><label>Medium</label><b>${Lt+1}–${Md} lb.</b><label>Heavy</label><b>${Md+1}–${H} lb.</b><label>Lift / drag</label><b>${H*2} / ${H*5} lb.</b></div>
+    ${load!=='Light'?`<p class="note warn">${load} load: max Dex and speed drop, and armor check penalties get worse. Put things in the Bag of Holding (location “In bag”).</p>`:''}
+    <div class="grid2">${field('Platinum',num('coins.pp',{rr:1}))}${field('Gold',num('coins.gp',{rr:1}))}${field('Silver',num('coins.sp',{rr:1}))}${field('Copper',num('coins.cp',{rr:1}))}</div>
+    <label class="row"><input type="checkbox" class="cs" data-p="coinsCarried" ${S.coinsCarried?'checked':''}> <small>She carries the coins herself (${coinWt.toFixed(1)} lb. at 50 coins to the pound)</small></label>
+    ${field('In the bank',txt('bank'))}
+   </section>
+   <section class="panel"><header><h2>Character History</h2></header>${area('history',{rows:9})}</section>
+  </div>
+  <section class="panel"><header><h2>Session Notes</h2></header>${area('notes',{rows:6})}</section>`;
+}
+
+/* ---------- refresh computed outputs ---------- */
+function refresh(){
+  const A=compute(true),B=compute(false);
+  document.querySelectorAll('[data-o]').forEach(el=>{const k=el.dataset.o,a=A.O[k];if(!a)return;el.textContent=a.t;
+    const b=B.O[k];if(b&&typeof a.n==='number'&&a.n!==b.n&&k!=='hp.cur'&&!k.startsWith('sk.spent')&&!k.endsWith('.vp')&&k!=='sizeName'&&k!=='speed'&&!k.startsWith('seq.'))el.dataset.d=a.n<b.n?'down':'up';else delete el.dataset.d;});
+  const sp=document.getElementById('spent');if(sp)sp.classList.toggle('over',A.O['sk.spent'].n>A.O['sk.avail'].n);
+  updRolls(A);
+  const cls=S.classes.filter(c=>n(c.level)>0).map(c=>`${esc(c.name)} ${Math.floor(n(c.level))}`).join(' / ');
+  document.getElementById('subline').innerHTML=`${S.info.nick?`“${esc(S.info.nick)}” · `:''}<b>${esc(S.info.race||'')}</b> ${cls}${S.info.alignment?` · ${esc(S.info.alignment)}`:''}${S.comp.status==='active'&&S.comp.name?` · with ${esc(S.comp.name)}`:''}`;
+  const au=n(S.used.aura)>=1;
+  document.getElementById('quick').innerHTML=
+    (S.fe||[]).map((f,i)=>`<button class="qt dim" data-act="quick" data-id="fe${i}" aria-pressed="${!!S.cond['fe'+i]}" title="Favored enemy: ${sg(n(f.b))} attack, damage and skills against ${esc(f.name)}">${esc(f.name)} ${sg(n(f.b))}</button>`).join('')+
+    `<button class="qt" data-act="quick" data-id="quarry" aria-pressed="${!!S.cond.quarry}" title="${sg(quarryB())} insight attack, crits confirm automatically">Quarry</button>`+
+    `<button class="qt" data-act="quick" data-id="haste" aria-pressed="${!!S.cond.haste}" title="+1 attack, +1 dodge AC and Reflex, +30 ft. speed, an extra arrow">Haste</button>`+
+    `<button class="qt" data-act="quick" data-id="courage" aria-pressed="${!!S.cond.courage}" title="Namfoodle’s Inspire Courage: +4 attack and damage">Inspire Courage +4</button>`+
+    `<button class="qt dawn" data-act="${S.cond.aura?'auraOff':'aura'}" aria-pressed="${!!S.cond.aura}" title="Mantle of the Dawn: 120-ft. revealing daylight, 1/day, 17 minutes"${!S.cond.aura&&au?' disabled':''}>${S.cond.aura?'Aura shining':au?'Aura used':'Revealing Light'}</button>`;
+  const chips=A.M.active.filter(c=>!['quarry','haste','courage','aura'].includes(c.id)&&!/^fe\d$/.test(c.id)).map(c=>`<button class="chip${c.buff?' buff':''}" data-act="tab" data-t="conditions">${cname(c)}</button>`);
+  if((S.mantle||{}).reprieve)chips.push(`<button class="chip" data-act="tab" data-t="mantle">Dawn’s Reprieve spent</button>`);
+  document.getElementById('chips').innerHTML=chips.join('');
+  const mx=A.O['hp.max'].n,cu=A.O['hp.cur'].n;const f=document.getElementById('hpfill');f.style.width=Math.max(0,Math.min(100,cu/Math.max(1,mx)*100))+'%';f.classList.toggle('low',cu<=mx/4);
+}
+
+/* ---------- art ---------- */
+let assets=null;
+const DEFAULT_ART='img/vex.jpg';
+function artSrc(){if(S.art===false)return null;if(!S.art)return DEFAULT_ART;if(S.art.url)return S.art.url;if(S.art.id)return '/_blob/'+S.art.id;return S.art.data||null}
+function renderArt(){
+  const el=document.getElementById('art');const src=artSrc();
+  el.innerHTML=src?`<img src="${esc(src)}" alt="Portrait of ${esc(S.info.name||'Vex’ahlia')} with Shadow"><div class="tools"><button data-act="artPick">Change</button><button data-act="artRemove">Remove</button></div>`
+   :`<button class="pick" data-act="artPick" aria-label="Add character art"></button><div class="ph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-9 8"/></svg><span>Add character art</span><small>Click or drop an image</small></div>`;
+}
+function shrink(file,max,q){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',q))};im.onerror=rej;im.src=r.result};r.onerror=rej;r.readAsDataURL(file)})}
+const OK_TYPES=['image/png','image/jpeg','image/gif','image/webp'];
+async function setArt(file){
+  if(!file||!/^image\//.test(file.type)){setStatus('Choose an image file (PNG, JPG, GIF or WebP).');return}
+  setStatus('Adding art…');
+  try{
+    if(assets){let blob=file;
+      if(!OK_TYPES.includes(file.type)||file.size>19e6){const d=await shrink(file,1600,.88);blob=await (await fetch(d)).blob();}
+      const r=await assets.upload(blob,{type:blob.type||'image/jpeg'});const old=S.art&&S.art.id;S.art={id:r.id};
+      if(old&&old!==r.id)assets.delete(old).catch(()=>{});
+    } else { let d=await shrink(file,700,.82); if(d.length>180000)d=await shrink(file,480,.75); S.art={data:d}; }
+    renderArt();scheduleSave(true);
+  }catch(e){setStatus(e&&e.code==='too_large'?'That image is too large. Choose one under 20 MB.':'Couldn’t add that image. Try a PNG or JPG.')}
+}
+
+/* ---------- link to the DM's party sheet: HP, daily uses, spell slots and a short log ---------- */
+function dayLog(txt){(S.sdLog=S.sdLog||[]).push({t:new Date().toISOString(),txt});if(S.sdLog.length>60)S.sdLog=S.sdLog.slice(-60)}
+function spellDescFor(nm){if(nm===AURA)return AURA_DESC;for(const l in S.spells||{}){const x=(S.spells[l]||[]).find(p=>p.n===nm);if(x&&(x.d||rsDesc(nm)))return x.d||rsDesc(nm)}return rsDesc(nm)}
+function castDurs(log){const o={};log.forEach(e=>{const m=String(e.txt).match(/^Cast (.+?)(?: \(|$)/);const d=m&&spellDescFor(m[1]);if(d)o[m[1]]=d});return o}
+function dmReport(){
+  const C=compute(true),sp=(S.special||[]).findIndex(x=>/wisdom of the forest/i.test(x.name||''));
+  const powers=[['aura',AURA,Math.min(1,n(S.used.aura)),1,''],['storm','Storm Arrow',Math.min(1,n(S.used.storm)),1,''],['string','Bowstring (+1d8)',Math.min(2,n(S.used.string)),2,''],['bat','Cloak of the Bat flight',Math.min(1,n(S.used.bat)),1,'']];
+  if(sp>=0&&n(S.special[sp].uses))powers.push(['special.'+sp,'Wisdom of the Forest',Math.min(n(S.special[sp].uses),n(S.used['special.'+sp])),n(S.special[sp].uses),'']);
+  const am=ammoSel();
+  return {t:'saviors-hero',v:1,id:'vex',name:S.info.name||'Vex’ahlia',at:new Date().toISOString(),
+    hp:{cur:n(S.hp.cur),max:hpMaxNow(),temp:n(S.hp.temp),nl:n(S.hp.nl),neg:0},
+    powers,powersTitle:'ranger powers',
+    note:[S.cond.aura?'Revealing Light shining (120 ft.)':'',S.cond.batfly?'flying (Cloak of the Bat, 60 ft.)':'',(S.mantle||{}).reprieve?'Dawn’s Reprieve spent':'Dawn’s Reprieve ready',`arrows: ${am.name.toLowerCase()}`].filter(Boolean).join(' · '),
+    slots:[1,2,3,4].map(l=>{const si=slotInfo(l,C);return {s:l,total:si.total,used:Math.min(si.total,prepOf(l).filter(x=>x.c).length),dc:C.O['dc.'+l].n}}).filter(x=>x.total>0),
+    comp:{name:S.comp.name||'Shadow',kind:'wolf companion',status:S.comp.status||'active',hp:n(S.comp.hp),max:n(S.comp.hpMax)},
+    log:(S.sdLog||[]).slice(-25),cl:casterLevel(),durs:castDurs((S.sdLog||[]).slice(-25))};
+}
+/* everything the DM's party sheet shows live: defenses, saves, speed and active conditions */
+function liveStats(){
+  const A=compute(true),o=k=>A.O[k]?A.O[k].n:null,t=k=>A.O[k]?A.O[k].t:'';
+  return {ac:o('ac.total'),touch:o('ac.touch'),ff:o('ac.ff'),fort:o('sv.fort'),ref:o('sv.ref'),will:o('sv.will'),
+    rv:3,init:t('init'),speed:t('speed'),cmb:t('cmb'),cmd:t('cmd'),perception:t('sk.perception'),neg:0,
+    level:A.L.total,classes:S.classes.filter(c=>n(c.level)>0).map(c=>`${c.name} ${Math.floor(n(c.level))}`).join(' / '),
+    conds:A.M.active.map(c=>({id:c.id,n:String(cname(c)),buff:!!c.buff})),cids:ALLC.map(c=>c.id)};
+}
+/* damage and healing the DM sends from the party sheet: party/hp holds {heroId:[{at,amt,type,heal,src}]}, the newest few each.
+   Each one applies once (S.dmHpAt keeps the newest time applied), with this sheet's own resistances and temp HP. */
+const RESIST={acid:10,negative:10};
+function dmHit(c){
+  const a=Math.max(0,Math.floor(n(c.amt)));
+  if(c.heal){const mx=hpMaxNow(),bf=n(S.hp.cur);S.hp.cur=Math.min(mx,bf+a);S.hp.nl=Math.max(0,n(S.hp.nl)-a);
+    const t=`${c.src||'Healed'} +${S.hp.cur-bf}`;hpLog(t+' (from the DM)');return t}
+  const type=c.type==='untyped'||c.type==='physical'||!c.type?'':String(c.type);let d=a,r='';
+  if(RESIST[type]){d=Math.max(0,a-RESIST[type]);r=`, resisted ${Math.min(a,RESIST[type])} (${type==='acid'?'breastplate':'Mantle'})`}
+  const tmp=n(S.hp.temp),use=Math.min(tmp,d);S.hp.temp=tmp-use;S.hp.cur=n(S.hp.cur)-(d-use);
+  const t=`${a} ${type?type+' ':''}damage${r}: took ${d}`+(use?` (${use} from temp HP)`:'');hpLog(t+' (from the DM)');return t;
+}
+function watchDmHp(db){
+  db.doc('party/hp').onSnapshot(s=>{
+    const list=(((s.exists&&s.data())||{})['vex']||[]).filter(c=>c&&c.at&&c.at>(S.dmHpAt||'')).sort((x,y)=>x.at<y.at?-1:1);
+    if(!list.length)return;
+    const msg=list.map(c=>{S.dmHpAt=c.at;return dmHit(c)});
+    render();setStatus(`From the DM: ${msg.join('; ')}`);scheduleSave(true);
+  },()=>{});
+}
+/* conditions the DM sets on the party sheet: party/conds holds {heroId:{condition:{on,at}}}. Each change applies once
+   (S.dmCond keeps its time), so the player can still change it here afterwards. */
+function watchDmConds(db){
+  db.doc('party/conds').onSnapshot(s=>{
+    const mine=((s.exists&&s.data())||{})['vex']||{},seen=S.dmCond||(S.dmCond={}),msg=[];let ch=false;
+    Object.keys(mine).forEach(k=>{const v=mine[k]||{},at=String(v.at||''),c=ALLC.find(x=>x.id===k);
+      if(!c||!at||at<=(seen[k]||''))return;seen[k]=at;ch=true;
+      if(!!S.cond[k]!==!!v.on){setCond(k,!!v.on);msg.push((v.on?'':'removed ')+String(cname(c)).toLowerCase())}});
+    if(!ch)return;
+    render();if(msg.length)setStatus(`The DM set: ${msg.join(', ')}`);scheduleSave(true);
+  },()=>{});
+}
+/* a long rest called from the DM's party sheet: applied once per call, same as pressing Long rest here */
+function watchPartyRest(db){
+  db.doc('party/rest').onSnapshot(s=>{
+    if(!s.exists)return;const at=String((s.data()||{}).at||'');
+    if(!at||at<=(S.lastPartyRest||'2026-10-11'))return;
+    S.lastPartyRest=at;const h=longRest(true);hpLog(`Long rest (called by the DM), healed ${h}`);
+    render();setStatus(`Long rest from the DM: healed ${h} HP, daily uses and spells reset`);scheduleSave(true);
+  },()=>{});
+}
+function pushLink(){const rep=Object.assign(dmReport(),{live:liveStats(),restAt:S.lastPartyRest||''});try{localStorage.setItem('saviors-link-vex',JSON.stringify(rep))}catch(e){}if(window.sheetsReport)window.sheetsReport('vex',rep)}
+function dmPanel(){
+  const L=(S.sdLog||[]).slice(-12).reverse();
+  return `<section class="panel" id="dmlink"><header><h2>Daily Log &amp; DM Link</h2><span class="muted">HP, spells and daily powers, for the DM’s party sheet</span></header>
+   <p class="note" style="margin:0">Live: HP, AC, saves, conditions, spell slots and daily uses reach the DM’s party sheet a few seconds after each change. When the DM calls a long rest from the party sheet, it’s applied here too.</p>
+   ${L.length?`<div class="hplog">${L.map(e=>`<div><span>${esc(e.txt)}</span><b>${esc(new Date(e.t).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}))}</b></div>`).join('')}<button class="btn x" data-act="sdLogClear">Clear log</button></div>`:'<p class="muted" style="margin:0">Spells, Mantle powers and other daily uses show up here.</p>'}
+  </section>`;
+}
+/* ---------- persistence ---------- */
+let dbRef=null,statusText='',saveTimer=null,saving=false,dirty=false,readOnly=false;
+function setStatus(t){statusText=t;const el=document.getElementById('status');if(el)el.textContent=t}
+function scheduleSave(now){if(readOnly)return;dirty=true;setStatus('Unsaved changes');clearTimeout(saveTimer);saveTimer=setTimeout(flush,now?50:700)}
+async function flush(){
+  if(saving||!dirty)return;saving=true;dirty=false;setStatus('Saving…');
+  const data=clone(S);pushLink();
+  try{
+    if(dbRef){await dbRef.set(data);setStatus('Saved');}
+    else{setStatus(ls.set('vex-sheet',JSON.stringify(data))?'Saved in this browser':'Not saved: storage is blocked here');}
+  }catch(e){
+    if(e&&e.code==='invalid_argument'){readOnly=true;setStatus('View only: changes aren’t saved');}
+    else if(e&&e.code==='unavailable'){dirty=true;setStatus('Connection hiccup, retrying…');setTimeout(flush,1500+Math.random()*1000);}
+    else{dirty=true;setStatus('Not saved. Edit any field to try again.');}
+  }
+  saving=false;if(dirty&&!readOnly)flush();
+}
+const newId=()=>'w'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+function load(d){
+  const s=merge(DEFAULT,d||{});
+  s.attacks.forEach(a=>{if(!a.id)a.id=newId()});
+  [1,2,3,4].forEach(l=>{if(!Array.isArray(s.spells[l]))s.spells[l]=[]});
+  s.neg=0;
+  return s;
+}
+async function boot(){
+  const local=ls.get('vex-sheet');if(local){try{S=load(JSON.parse(local))}catch(e){}}
+  render();setStatus('Loading…');
+  const cl=window.claude;
+  if(!cl||!cl.use){document.getElementById('backup').hidden=false;setStatus(local?'Saved in this browser':'Edits save in this browser');return}
+  try{
+    const [db,as]=await Promise.all([cl.use('db'),cl.use('assets').catch(()=>null)]);assets=as;
+    if(db){dbRef=db.doc('sheets/vex');const snap=await dbRef.get();
+      if(snap.exists&&!dirty){S=load(clone(snap.data()));render();}
+      setStatus(dirty?'Unsaved changes':'Saved');if(dirty)flush();watchPartyRest(db);watchDmConds(db);watchDmHp(db);pushLink();}
+    else{document.getElementById('backup').hidden=false;setStatus('Edits save in this browser');}
+  }catch(e){setStatus('Couldn’t load saved sheet; showing local copy')}
+}
+
+/* level up: snapshot before/after so the summary lists exactly what changed */
+let lastSummary='';
+function snap(){const C=compute(false);return{lvl:C.L.total,bab:C.bab,base:{...C.base},avail:C.O['sk.avail'].n,hp:hpBase(),
+  slots:[1,2,3,4].map(l=>slotInfo(l,C).total),ab:autoAbilities(C.L).map(a=>a.name),L:C.L}}
+function levelUp(){
+  const $=id=>document.getElementById(id);const v=$('lu-cls').value,how=($('lu-hp')||{}).value||'avg',roll=n(($('lu-roll')||{}).value),fcb=$('lu-fcb').value;
+  if(how==='roll'&&!(roll>=1)){setStatus('Enter the hit die roll first.');$('lu-roll').focus();return}
+  const before=snap();let idx,added=false;
+  if(v.startsWith('row:'))idx=+v.slice(4);
+  else{added=true;S.classes.push(v.startsWith('preset:')?Object.assign({preset:v.slice(7),level:0},clone(PRESETS[v.slice(7)])):{preset:'Custom',level:0,name:'New class',hd:8,bab:'3/4',fort:'poor',ref:'poor',will:'good',prestige:false,sp:2,skills:''});idx=S.classes.length-1}
+  const c=S.classes[idx];c.level=Math.floor(n(c.level))+1;
+  const hd=Math.max(1,n(c.hd)||8);const die=how==='max'?hd:how==='roll'?Math.min(hd,Math.floor(roll)):avgHD(hd);
+  if(fcb==='hp')S.fcbHp=n(S.fcbHp)+1; if(fcb==='skill')S.fcbSkill=n(S.fcbSkill)+1;
+  let gain=0;
+  if(S.hp.mode!=='auto'){gain=Math.max(1,die+conMod())+(fcb==='hp'?1:0);S.hp.max=n(S.hp.max)+gain;}
+  const after=snap();const delta=after.hp-before.hp;S.hp.cur=n(S.hp.cur)+delta;
+  (S.levelLog=S.levelLog||[]).push({row:idx,added,gain,delta,fcb});
+  const li=[];const ch=(a,b)=>a===b?`${sg(b)} (no change)`:`${sg(a)} → <b>${sg(b)}</b>`;
+  li.push(`Hit points ${before.hp} → <b>${after.hp}</b> (+${delta}${S.hp.mode!=='auto'?`: ${how==='avg'?'average':how==='max'?'max':'rolled'} ${die} + Con ${sg(conMod())}${fcb==='hp'?' + 1 favored class':''}`:''})`);
+  li.push(`Base attack ${ch(before.bab,after.bab)}`);
+  li.push(`Base saves: Fort ${ch(before.base.fort,after.base.fort)}, Ref ${ch(before.base.ref,after.base.ref)}, Will ${ch(before.base.will,after.base.will)}`);
+  li.push(`Skill ranks to spend: <b>+${after.avail-before.avail}</b> (max ranks per skill is now ${after.lvl})`);
+  if(after.slots.join()!==before.slots.join())li.push(`Spells per day ${before.slots.filter(Boolean).join(' / ')||'none'} → <b>${after.slots.filter(Boolean).join(' / ')}</b>`);
+  const r=after.L.ranger;if(r>before.L.ranger){
+    if(r%5===0)li.push('<b>New favored enemy</b>, and +2 to one of the others (Class Abilities tab)');
+    if(r>=3&&(r-3)%5===0)li.push('<b>New favored terrain</b>, and +2 to one of the others');
+    if([2,6,10,14,18].includes(r))li.push('<b>Choose an archery combat style feat</b>');
+    li.push(`${esc(S.comp.name||'Her companion')} becomes a level ${Math.max(1,r-3)} companion`);}
+  const gained=after.ab.filter(x=>!before.ab.includes(x));if(gained.length)li.push(`New: <b>${gained.map(esc).join(', ')}</b>`);
+  if(after.lvl%2===1)li.push(`<b>Choose a feat</b> (character level ${after.lvl})`);
+  if(after.lvl%4===0)li.push('<b>+1 to an ability score</b> (every 4th character level)');
+  lastSummary=`<div class="summary"><h3>Level ${after.lvl}: ${esc(c.name)} ${c.level}</h3><ul>${li.map(x=>`<li>${x}</li>`).join('')}</ul></div>`;
+}
+function undoLevel(){
+  const e=(S.levelLog||[]).pop();if(!e)return;const c=S.classes[e.row];if(!c)return;
+  c.level=Math.max(0,Math.floor(n(c.level))-1);
+  if(S.hp.mode!=='auto')S.hp.max=n(S.hp.max)-e.gain;
+  S.hp.cur=n(S.hp.cur)-e.delta;
+  if(e.fcb==='hp')S.fcbHp=Math.max(0,n(S.fcbHp)-1); if(e.fcb==='skill')S.fcbSkill=Math.max(0,n(S.fcbSkill)-1);
+  if(e.added&&c.level<=0)S.classes.splice(e.row,1);
+  lastSummary=`<div class="summary"><h3>Removed the last level</h3><p class="muted">Back to character level ${levels().total}.</p></div>`;
+}
+
+function hpLog(txt){(S.hpLog=S.hpLog||[]).push({txt,cur:n(S.hp.cur)});if(S.hpLog.length>12)S.hpLog=S.hpLog.slice(-12)}
+
+/* attack & damage roll helper: rolls live only in this view (not saved).
+   Weapon dice and bonuses multiply on a crit; extra dice (fire, holy, arrows) go in their own box and don't. */
+const rolls={};
+function threatFrom(crit){const m=String(crit||'').match(/(\d+)\s*[–-]\s*20/);return m?+m[1]:20}
+function diceIn(str){return [...String(str||'').matchAll(/(\d*)d(\d+)/g)].map(m=>[+(m[1]||1),+m[2]])}
+function rollInfo(key,C){
+  if(key[0]==='t'){const x=(C.seq||[])[+key.slice(1)];return x?{hit:x.hit,db:x.db,dmgT:x.dmg,crit:x.crit}:null}
+  const i=+key.slice(1),a=S.attacks[i];if(!a||!C.O[`atk.${i}.hit`])return null;const it=n((rolls[key]||{}).it);
+  return{hit:C.O[`atk.${i}.hit`].n-5*it,db:C.O[`atk.${i}.dmg`].n,dmgT:C.O[`atk.${i}.dmg`].t,crit:C.O[`atk.${i}.hit`].crit||a.crit};
+}
+/* weapon dice = the first dice in the damage text; everything after is extra */
+function diceRange(info){const list=diceIn(info.dmgT),w=list.slice(0,1),x=list.slice(1);const rg=l=>({min:l.reduce((a,[c])=>a+c,0),max:l.reduce((a,[c,s])=>a+c*s,0),txt:l.map(([c,s])=>`${c}d${s}`).join(' + ')});return{w:rg(w),x:rg(x),hasX:x.length>0}}
+function rollBox(key,its){const r=rolls[key]||{};const C=compute(true),info=rollInfo(key,C),hasX=info&&diceRange(info).hasX;
+  return `<div class="roll" data-rk="${key}">
+   ${its&&its.length>1?`<select data-roll="${key}.it" aria-label="Which attack">${its.map((l,k)=>`<option value="${k}"${n(r.it)===k?' selected':''}>${ORD[k]} attack ${l}</option>`).join('')}</select>`:''}
+   <span class="rgrp"><label class="rf">d20 <input type="number" min="1" max="20" data-roll="${key}.d20" value="${r.d20??''}" aria-label="d20 roll"></label><span class="rres" id="ra-${key}"></span></span>
+   <label class="rf critbox"><input type="checkbox" class="cs" data-roll="${key}.crit" ${r.crit?'checked':''}> Crit</label>
+   <span class="rgrp"><label class="rf">Weapon die <input type="number" min="0" data-roll="${key}.dmg" value="${r.dmg??''}" aria-label="Weapon damage die rolled"></label>${hasX?`<label class="rf">Extra dice <input type="number" min="0" data-roll="${key}.xd" value="${r.xd??''}" aria-label="Total of the extra damage dice"></label>`:''}<span class="rres" id="rd-${key}"></span></span>
+  </div>`}
+function updRolls(C){
+  const roundDmg={};
+  document.querySelectorAll('[data-rk]').forEach(el=>{const k=el.dataset.rk,info=rollInfo(k,C);if(!info)return;const r=rolls[k]||{};
+    const A=document.getElementById('ra-'+k),D=document.getElementById('rd-'+k);
+    const auto=!!(C.M.flags.quarry);
+    if(n(r.d20)>=1){const d=Math.floor(n(r.d20)),th=threatFrom(info.crit),h=rowHit(k,C);
+      A.innerHTML=`= <b>${d+info.hit}</b> to hit${h===true?' <em class="crit">HIT</em>':h===false?' <em class="miss">MISS</em>':''}${d===20?` <em class="crit">natural 20, threat${auto?': quarry, it’s a crit':': roll to confirm'}</em>`:d===1?' <em class="miss">natural 1</em>':d>=th?` <em class="crit">threat${auto?': quarry, it’s a crit':': roll to confirm'}</em>`:''}`;}
+    else A.innerHTML=`<span class="muted">${sg(info.hit)}</span>`;
+    const mult=r.crit?critMult(info.crit):1,rg=diceRange(info);
+    const di=el.querySelector(`[data-roll="${k}.dmg"]`);if(di){di.max=rg.w.max;di.min=rg.w.min;di.title=`${rg.w.txt}: ${rg.w.min}–${rg.w.max}`}
+    const xi=el.querySelector(`[data-roll="${k}.xd"]`);if(xi){xi.max=rg.x.max;xi.min=rg.x.min;xi.title=`${rg.x.txt}: ${rg.x.min}–${rg.x.max}`}
+    if(r.dmg!==''&&r.dmg!=null){const wd=Math.floor(n(r.dmg)),xd=r.xd!==''&&r.xd!=null?Math.floor(n(r.xd)):0;roundDmg[k]=Math.max(1,(wd+info.db)*mult+xd);
+      D.innerHTML=`= <b>${roundDmg[k]}</b> damage${r.crit?' <em class="crit">critical</em>':''} <small class="muted">((${wd} ${sg(info.db)})${mult>1?` ×${mult}`:''}${xd?` + ${xd} extra`:rg.hasX?' + extra dice not entered':''})</small>${r.capped?` <small class="miss">${esc(r.capped)}</small>`:''}`;}
+    else D.innerHTML=`<span class="muted">${esc(info.dmgT)}${r.crit?` · crit: (die ${sg(info.db)}) ×${critMult(info.crit)}, extra dice once`:''}</span>`;});
+  roundTotals(C,roundDmg);
+}
+/* round total: adds the damage of every arrow that has damage entered and isn't marked MISS */
+function roundTotals(C,roundDmg){
+  ['t'].forEach(p=>{const box=document.getElementById('rt-'+p);if(!box)return;const parts=[];let sum=0,miss=0;
+    document.querySelectorAll(`[data-rk^="${p}"]`).forEach(el=>{const k=el.dataset.rk;if(rowHit(k,C)===false){miss++;return}if(roundDmg[k]==null)return;
+      parts.push(`#${+k.slice(1)+1} ${roundDmg[k]}`);sum+=roundDmg[k];});
+    box.innerHTML=`<span class="lbl">Round total</span>`+(parts.length
+      ?` <b class="rtot">${sum}</b> damage from ${parts.length} hit${parts.length>1?'s':''} <small class="muted">(${parts.join(' + ')})${miss?` · ${miss} miss${miss>1?'es':''} not counted`:''}</small>`
+      :` <span class="muted">Type the damage for each arrow that hits and the total adds up here. Arrows marked MISS are left out.</span>`);});
+}
+/* true = hit, false = miss, null = unknown (no d20 yet, or no target AC entered) */
+function rowHit(k,C){const info=rollInfo(k,C),r=rolls[k]||{};if(!info||!(n(r.d20)>=1))return null;const d=Math.floor(n(r.d20));
+  if(d===1)return false;if(d===20)return true;if(rolls.ac===''||rolls.ac==null)return null;return d+info.hit>=n(rolls.ac)}
+function critMult(c){const m=String(c||'').match(/[×x]\s*(\d)/i);return m?+m[1]:2}
+
+/* golden rays for the Mantle */
+function rays(x,y,count){if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  for(let i=0;i<(count||14);i++){const p=document.createElement('div');p.className='fx-ray';p.style.left=x+'px';p.style.top=y+'px';
+    p.style.setProperty('--a',(i/(count||14)*360+Math.random()*10).toFixed(0)+'deg');p.style.animationDelay=(Math.random()*.15)+'s';document.body.appendChild(p);setTimeout(()=>p.remove(),1700)}}
+function burstAt(b){if(!b)return;const rc=b.getBoundingClientRect();rays(rc.left+rc.width/2,rc.top+rc.height/2,16)}
+
+/* long rest: heals character level + Con mod, clears nonlethal, resets daily uses and spell slots (hero points kept) */
+function restHeal(){return Math.max(1,levels().total+conMod())}
+function longRest(heal){
+  let h=0;
+  if(heal){const mx=hpMaxNow();const before=n(S.hp.cur);S.hp.cur=Math.min(mx,before+restHeal());h=S.hp.cur-before;S.hp.nl=0;}
+  const keep={};Object.keys(S.used).forEach(k=>{if(k==='hero'||/^w\./.test(k))keep[k]=S.used[k]});S.used=keep;
+  S.cond.aura=false;S.cond.batfly=false;S.fa.storm=false;S.fa.string=false;
+  [1,2,3,4].forEach(l=>prepOf(l).forEach(x=>x.c=false));
+  dayLog('Rested: spell slots, Revealing Light, Storm Arrow, the bowstring, the Cloak of the Bat and Wisdom of the Forest reset');
+  return h;
+}
+function castSpell(l,i,btn){
+  const x=prepOf(l)[i];if(!x||x.c)return;const si=slotInfo(l,compute(true)),used=prepOf(l).filter(p=>p.c).length;
+  if(used>=si.total){setStatus(`No ${ORD[l-1]}-level slots left today.`);return}
+  if(!String(x.n||'').trim()){setStatus('Name the spell first.');return}
+  x.c=true;dayLog(`Cast ${x.n}`);const fx=SPELL_FX[x.n];
+  if(fx){castTargets(x.n,fx,x.d||rsDesc(x.n));return}
+  if(btn)burstAt(btn);render();
+}
+
+/* ---------- events ---------- */
+document.addEventListener('input',e=>{const t=e.target;
+  if(t.dataset&&t.dataset.cap){const v=Math.floor(n(t.value)),c=n(t.dataset.cap);if(t.value!==''&&v>c)t.value=c;return;}
+  if(t.dataset&&t.dataset.roll){const [k,f]=t.dataset.roll.split('.');
+    if(!f){rolls[k]=t.type==='checkbox'?t.checked:(t.value===''?'':n(t.value));document.querySelectorAll(`[data-roll="${k}"]`).forEach(x=>{if(x!==t){if(x.type==='checkbox')x.checked=t.checked;else x.value=t.value}});
+      updRolls(compute(true));return;}
+    const r=rolls[k]=rolls[k]||{};
+    if(t.type==='checkbox')r[f]=t.checked;
+    else{let v=t.value===''?'':Math.floor(n(t.value));
+      if(v!==''){const info=rollInfo(k,compute(true));let lo=1,hi=Infinity,lab='';
+        if(f==='d20'){hi=20}
+        else if((f==='dmg'||f==='xd')&&info){const rg=diceRange(info)[f==='dmg'?'w':'x'];lo=rg.min;hi=rg.max;lab=rg.txt}
+        if(hi!==Infinity&&v>hi){if(f!=='d20')r.capped=`${lab} can only roll ${lo}–${hi}`;v=hi;t.value=hi;}
+        else if(f!=='d20')r.capped=v<lo?`${lab} rolls at least ${lo}`:'';}
+      r[f]=v;}
+    updRolls(compute(true));return;}
+  const p=t.dataset&&t.dataset.p;if(!p)return;
+  let v=t.type==='checkbox'?t.checked:t.type==='number'?(t.value===''?'':n(t.value)):t.value;setP(p,v);
+  if(t.tagName==='SELECT'&&/classes\.\d+\.preset/.test(p)&&PRESETS[v]){const i=+p.split('.')[1];Object.assign(S.classes[i],clone(PRESETS[v]),{preset:v,level:S.classes[i].level});}
+  /* Storm Arrow and the bowstring spend a daily use when ticked */
+  if(p==='fa.storm'&&v){if(n(S.used.storm)<1){S.used.storm=1;dayLog('Storm Arrow: the first arrow splits into three');}}
+  if(p==='fa.string'&&v){const u=n(S.used.string);if(u<2){S.used.string=u+1;dayLog(`Bowstring: +1d8 ${S.fa.stringType||'fire'} (${2-S.used.string} left)`);}}
+  if(t.type==='checkbox'||t.tagName==='SELECT'){render()}else refresh();
+  scheduleSave();});
+document.addEventListener('change',e=>{const t=e.target;
+  if(t.dataset&&t.dataset.p&&t.hasAttribute('data-rr')&&t.tagName==='INPUT'&&t.type!=='checkbox'){const f=t.id;render();const el=document.getElementById(f);if(el)el.focus({preventScroll:true});}});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,i=+b.dataset.i,l=+b.dataset.l;
+  const amt=id=>Math.max(0,Math.floor(n((document.getElementById(id)||{}).value)));
+  const takeDmg=d=>{const tmp=n(S.hp.temp),use=Math.min(tmp,d);S.hp.temp=tmp-use;S.hp.cur=n(S.hp.cur)-(d-use);return use};
+  const afterHit=()=>{if(n(S.hp.cur)<=-n(S.ab.con.base)&&!(S.mantle||{}).reprieve)setTimeout(()=>setStatus(`Down to ${n(S.hp.cur)} HP: that kills her, unless she uses the Dawn’s Reprieve (Overview tab)`),700);else if(n(S.hp.cur)<=0)setTimeout(()=>setStatus(`Down to ${n(S.hp.cur)} HP`),700)};
+  switch(a){
+   case 'tab':tab=b.dataset.t;ls.set('vex-tab',tab);render();window.scrollTo({top:Math.min(window.scrollY,document.getElementById('tabs').offsetTop),behavior:'instant'});return;
+   case 'addClass':S.classes.push(Object.assign({preset:'Custom',level:1},{name:'New class',hd:8,bab:'3/4',fort:'poor',ref:'poor',will:'good',prestige:false,sp:2,skills:''}));render();break;
+   case 'delClass':S.classes.splice(i,1);render();break;
+   case 'addAtk':S.attacks.push({id:newId(),name:'',kind:'ranged',abil:'dex',enh:0,misc:0,dice:'1d8',dmgAbil:'none',dmgMisc:0,extra:'',crit:'×3',range:'',type:'',uses:0,notes:'',desc:''});render();break;
+   case 'delAtk':S.attacks.splice(i,1);render();break;
+   case 'mvAtk':{const j=i+n(b.dataset.d);if(j<0||j>=S.attacks.length)return;const t=S.attacks[i];S.attacks[i]=S.attacks[j];S.attacks[j]=t;render();break;}
+   case 'addItem':S[b.dataset.k].push({name:'',desc:'',uses:0});render();break;
+   case 'delItem':S[b.dataset.k].splice(i,1);render();break;
+   case 'addGear':S.gear.push({item:'',desc:'',loc:'',wt:0});render();break;
+   case 'delGear':S.gear.splice(i,1);render();break;
+   case 'use':{const k=b.dataset.k,u=n(S.used[k]);S.used[k]=(i===u-1)?u-1:i+1;
+     const sp=(S.special||[]).findIndex(x=>/wisdom of the forest/i.test(x.name||''));
+     const nm={aura:AURA,storm:'Storm Arrow',string:'Bowstring',bat:'Cloak of the Bat',['special.'+sp]:'Wisdom of the Forest'}[k];
+     if(nm)dayLog(S.used[k]>u?`Used ${nm}`:k==='aura'?`Undid ${AURA}`:`Undid ${nm}`);
+     if(k==='aura'&&!S.used[k])S.cond.aura=false;
+     if(k==='storm'&&!S.used[k])S.fa.storm=false;
+     if(k==='bat'&&!S.used[k])S.cond.batfly=false;
+     render();break;}
+   /* Mantle of the Dawn */
+   case 'aura':{if(n(S.used.aura)>=1)return;S.used.aura=1;S.cond.aura=true;dayLog(`Cast ${AURA}`);burstAt(b);render();break;}
+   case 'auraOff':S.cond.aura=false;dayLog(`${AURA} faded`);render();break;
+   case 'reprieve':{if((S.mantle||{}).reprieve)return;
+     if(!confirm('Use the Dawn’s Reprieve? It only comes back if the Dawnfather restores it.'))return;
+     const mx=hpMaxNow(),h=Math.floor(mx/2);S.mantle.reprieve=true;S.hp.cur=Math.max(n(S.hp.cur),h);S.hp.nl=0;
+     ['blinded','stunned','paralyzed'].forEach(k=>S.cond[k]=false);S.neg=0;
+     const r6=dice(6,6),r17=dice(17,6);
+     S.mantle.last=`Sunburst (Reflex DC 25, 80 ft.): <b>${r6}</b> to each enemy (${Math.floor(r6/2)} on a save, and blinded on a failed save), <b>${r17}</b> to undead (${Math.floor(r17/2)} on a save). Undead harmed by bright light are destroyed if they fail.`;
+     hpLog(`Dawn’s Reprieve: denied death, healed to ${S.hp.cur}`);dayLog(`Dawn’s Reprieve: denied death, back to ${S.hp.cur} HP; sunburst ${r6} (undead ${r17})`);
+     burstAt(b);const ar=document.getElementById('art').getBoundingClientRect();setTimeout(()=>rays(ar.left+ar.width/2,ar.top+ar.height*.4,22),200);
+     tab='mantle';ls.set('vex-tab',tab);render();break;}
+   case 'reprieveBack':S.mantle.reprieve=false;S.mantle.last='';dayLog('The Dawnfather restored the Dawn’s Reprieve');render();break;
+   case 'stormGo':{if(n(S.used.storm)>=1&&!S.fa.storm)return;if(!S.fa.storm){S.fa.storm=true;if(n(S.used.storm)<1){S.used.storm=1;dayLog('Storm Arrow: the first arrow splits into three');}}tab='attacks';ls.set('vex-tab',tab);render();break;}
+   case 'bat':{if(n(S.used.bat)>=1)return;S.used.bat=1;S.cond.batfly=true;dayLog('Cloak of the Bat: flying, 60 ft. for up to 7 minutes');render();break;}
+   case 'batOff':S.cond.batfly=false;dayLog('Cloak of the Bat: landed');render();break;
+   /* spells */
+   case 'spAdd':(S.spells[l]=S.spells[l]||[]).push({n:'',c:false,d:''});render();{const el=document.getElementById(`i-spells_${l}_${S.spells[l].length-1}_n`);if(el)el.focus()}return;
+   case 'spDel':S.spells[l].splice(i,1);render();break;
+   case 'spCast':castSpell(l,i,b);break;
+   case 'spUncast':{const x=prepOf(l)[i];if(!x)return;x.c=false;dayLog(`Undid cast: ${x.n}`);const fx=SPELL_FX[x.n];if(fx)S.cond[fx]=false;render();break;}
+   case 'spRest':[1,2,3,4].forEach(k=>prepOf(k).forEach(x=>x.c=false));dayLog('Prepared spells again');render();break;
+   /* arrows */
+   case 'spendArrows':{const C=compute(true),fa=C.fa;if(!fa)return;const am=fa.ammo;if(am.idx==null){setStatus('Sunlight arrows cost nothing.');return}
+     const x=S.ammo[am.idx];const take=Math.min(n(x.left),fa.arrows);x.left=n(x.left)-take;setStatus(`${x.name}: ${take} fired, ${x.left} left`);render();break;}
+   case 'ammo':{const x=S.ammo[i];if(!x)return;x.left=Math.max(0,n(x.left)+n(b.dataset.d));render();break;}
+   case 'ammoAdd':(S.ammo=S.ammo||[]).push({name:'',max:20,left:20,extra:'',notes:''});render();break;
+   case 'ammoDel':S.ammo.splice(i,1);if(S.fa.ammo&&S.fa.ammo!=='sun')S.fa.ammo='sun';render();break;
+   case 'ammoRefill':(S.ammo||[]).forEach(x=>x.left=n(x.max));render();break;
+   /* favored enemies and terrains */
+   case 'favDef':S.favDef=String(i);render();break;
+   case 'feAdd':if((S.fe||[]).length<4)S.fe.push({name:'',b:2});render();break;
+   case 'feDel':S.fe.splice(i,1);['fe0','fe1','fe2','fe3'].forEach(k=>S.cond[k]=false);if(n(S.favDef)>=S.fe.length)S.favDef='0';render();break;
+   case 'ftAdd':if((S.ft||[]).length<3)S.ft.push({name:'',b:2});render();break;
+   case 'ftDel':S.ft.splice(i,1);['ft0','ft1','ft2'].forEach(k=>S.cond[k]=false);render();break;
+   /* companion */
+   case 'cdmg':S.comp.hp=n(S.comp.hp)-amt('chpamt');render();break;
+   case 'cdmgRes':S.comp.hp=n(S.comp.hp)-Math.max(0,amt('chpamt')-15);render();break;
+   case 'cheal':S.comp.hp=Math.min(n(S.comp.hpMax),n(S.comp.hp)+amt('chpamt'));render();break;
+   case 'cfull':S.comp.hp=n(S.comp.hpMax);render();break;
+   case 'trAdd':(S.comp.tricks=S.comp.tricks||[]).push({n:'',dc:15});render();break;
+   case 'trDel':S.comp.tricks.splice(i,1);render();break;
+   case 'crowHit':S.crow.hp=Math.max(-10,n(S.crow.hp)-1);render();break;
+   case 'crowFull':S.crow.hp=n(S.crow.hpMax);render();break;
+   case 'sdLogClear':S.sdLog=[];render();break;
+   case 'rest':longRest(false);render();break;
+   case 'addNote':setP(b.dataset.k,' ');render();{const el=document.getElementById('i-'+b.dataset.k.replace(/\W/g,'_'));if(el){el.value='';el.focus()}}break;
+   case 'levelUp':levelUp();render();break;
+   case 'undoLevel':undoLevel();render();break;
+   case 'quick':{const id=b.dataset.id;setCond(id,!S.cond[id]);render();break;}
+   case 'dmg':{const d=amt('hpamt');if(!d)return;const use=takeDmg(d);hpLog(`Took ${d} damage`+(use?` (${use} from temp HP)`:''));afterHit();render();break;}
+   case 'dmgRes':{const d=amt('hpamt');if(!d)return;const ty=b.dataset.v,h=Math.max(0,d-10),use=takeDmg(h);hpLog(`Took ${h} (${d} ${ty} − 10 resisted)`+(use?` (${use} from temp HP)`:''));afterHit();render();break;}
+   case 'clearLog':S.hpLog=[];render();break;
+   case 'exportSheet':{const blob=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});const u=URL.createObjectURL(blob);const x=document.createElement('a');
+     x.href=u;x.download=`${(S.info.name||'character').replace(/\W+/g,'-')}-backup-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(x);x.click();x.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);setStatus('Backup downloaded');return;}
+   case 'importSheet':document.getElementById('importfile').click();return;
+   case 'miAdd':(S.mitems=S.mitems||[]).push({name:'',slot:'Slotless',target:'dex',bonus:2,type:'enh',on:true});render();break;
+   case 'miDel':S.mitems.splice(i,1);render();break;
+   case 'acAdd':(S.acItems=S.acItems||[]).push({name:'',slot:'Ring',type:'deflection',bonus:1,on:true});render();break;
+   case 'acDel':S.acItems.splice(i,1);render();break;
+   case 'potDrink':{const p=(S.potions||[])[i];if(!p||n(p.qty)<1)return;const dl=diceIn(p.dice),lo=dl.reduce((a,[c])=>a+c,0),hi=dl.reduce((a,[c,s])=>a+c*s,0);
+     const el=document.getElementById('pot-roll-'+i);const x=Math.floor(n((el||{}).value));
+     if(!(x>=lo&&x<=hi)){setStatus(`Type the ${p.dice} total (${lo}–${hi}).`);if(el)el.focus();return}
+     const am=x+n(p.bonus),mx=hpMaxNow(),bf=n(S.hp.cur);S.hp.cur=Math.min(mx,bf+am);const h=S.hp.cur-bf;
+     p.qty=n(p.qty)-1;hpLog(`Drank ${p.name}: ${x}+${n(p.bonus)} = ${am}, healed ${h}`);setTimeout(()=>setStatus(`${p.name}: healed ${h} HP`),800);render();break;}
+   case 'potAdd':(S.potions=S.potions||[]).push({name:'Cure Light Wounds',dice:'1d8',bonus:1,qty:1});render();break;
+   case 'potDel':S.potions.splice(i,1);render();break;
+   case 'opDrink':{const p=(S.otherPotions||[])[i];if(!p||n(p.qty)<1)return;p.qty=n(p.qty)-1;if(p.on)S.cond[p.on]=true;
+     const vb=p.verb==='Apply'?'Applied':p.verb==='Throw'?'Threw':'Drank';
+     dayLog(`${vb} ${p.name}`);setStatus(`${vb} ${p.name}: ${p.qty} left`);render();break;}
+   case 'opAdd':(S.otherPotions=S.otherPotions||[]).push({name:'',qty:1,effect:'',on:'',verb:'Drink'});render();break;
+   case 'opDel':S.otherPotions.splice(i,1);render();break;
+   case 'clearRolls':Object.keys(rolls).forEach(k=>{if(k!=='ac')delete rolls[k]});render();return;
+   case 'heal':{const mx=hpMaxNow();if(!amt('hpamt'))return;const bf=n(S.hp.cur);S.hp.cur=Math.min(mx,n(S.hp.cur)+amt('hpamt'));hpLog(`Healed ${S.hp.cur-bf}`);S.hp.nl=Math.max(0,n(S.hp.nl)-amt('hpamt'));render();break;}
+   case 'full':{const h=longRest(true);hpLog(`Long rest, healed ${h}`);setTimeout(()=>setStatus(`Long rest: healed ${h} HP, daily uses and spells reset`),800);render();break;}
+   case 'cond':{const id=b.dataset.id;setCond(id,!S.cond[id]);render();break;}
+   case 'clearCond':S.cond={};S.neg=0;render();break;
+   case 'artPick':document.getElementById('artfile').click();return;
+   case 'artRemove':{const old=S.art&&S.art.id;S.art=false;if(old&&assets)assets.delete(old).catch(()=>{});renderArt();break;}
+   default:return;
+  }
+  scheduleSave();});
+document.getElementById('artfile').addEventListener('change',e=>{const f=e.target.files[0];e.target.value='';if(f)setArt(f)});
+document.getElementById('importfile').addEventListener('change',e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+  const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d||!d.info||!d.classes)throw 0;S=load(d);render();scheduleSave(true);setStatus('Backup restored')}
+    catch(err){setStatus('That file isn’t a character sheet backup.')}};r.readAsText(f)});
+const artEl=document.getElementById('art');
+artEl.addEventListener('dragover',e=>{e.preventDefault();artEl.classList.add('drag')});
+artEl.addEventListener('dragleave',()=>artEl.classList.remove('drag'));
+artEl.addEventListener('drop',e=>{e.preventDefault();artEl.classList.remove('drag');const f=e.dataTransfer.files[0];if(f)setArt(f)});
+
+boot();
+})();
+</script>
+
+<script src="js/intro.js" data-intro="vex"></script>
+</body>
+</html>
