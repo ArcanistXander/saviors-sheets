@@ -569,7 +569,6 @@ const DEFAULT={
   tricks:[{n:'Attack',dc:20},{n:'Come',dc:15},{n:'Defend',dc:20},{n:'Guard',dc:20},{n:'Heel',dc:15},{n:'Seek',dc:15},{n:'Work',dc:15}],
   gear:'Blue Dragon Armour (hide barding): +4 AC, max Dex +4, armor check −3, resist electricity 15.',
   notes:'Level 14 companion (ranger 17 − 3): 12 HD, base attack +9, base saves Fort +8 / Ref +8 / Will +4, natural armor +12 (wolf +2, Large +2, level +8), Str/Dex +4, 12 skill ranks (Perception 7, Stealth 3, Intimidate 2), 6 feats, 5 bonus tricks.\nSpecial: link, share spells, evasion, devotion (+4 morale on Will saves against enchantment), multiattack (a second bite at −5), 3 ability score increases (Con, Str, Dex).\nTrip: when his bite hits, he can try to trip as a free action (CMB +18) without provoking.\nLarge: −1 AC and attack, +1 CMB and CMD, takes up 10 × 10 ft. She gets +4 on Handle Animal checks with him. Tricks: Core Rulebook p. 97. Wolf companion: p. 54. Paper margin: “Short rest = (9/9)”.'},
- crow:{hp:3,hpMax:3,ac:15,perception:'+8',melee:'+5 (1d4−2)',tricks:'Come, Retrieve Item',notes:'Flies.'},
  gear:[
   {item:'Dragon Breastplate',desc:'Armor +6, max Dex +3, check −2. Resist acid 10.',loc:'Body',wt:30},
   {item:'+1 light shield',desc:'+2 AC when strapped on. Resist acid 10 (doesn’t stack with the breastplate).',loc:'Back',wt:6},
@@ -1077,9 +1076,9 @@ function castTargets(nm,selfId,desc){
   window.ttAskTargets(nm,{all:/,\s*mass\b|\bburst\b|\ballies\b/i.test(nm+' '+(desc||''))}).then(done);
 }
 
-/* ---------- Shadow, her wolf companion, and the crow ---------- */
+/* ---------- Shadow, her wolf companion ---------- */
 function pCompanion(){
-  const c=S.comp,w=S.crow,hp=n(c.hp),mx=n(c.hpMax),r=levels().ranger;
+  const c=S.comp,hp=n(c.hp),mx=n(c.hpMax),r=levels().ranger;
   const tr=c.tricks||[];
   return `<div class="cols">
    <section class="panel"><header><h2>${esc(c.name||'Companion')}</h2><span class="muted">${esc(c.kind||'')} · ${esc(c.size||'')}</span></header>
@@ -1109,11 +1108,6 @@ function pCompanion(){
    ${field('Feats',area('comp.feats',{rows:2}))}
    ${field('Armor &amp; gear',txt('comp.gear',{w:'100%'}))}
    ${field('Notes',area('comp.notes',{rows:3}))}
-  </section>
-  <section class="panel"><header><h2>The Crow</h2><span class="muted">From the portrait box on the companion sheet</span></header>
-   <div class="row"><span class="lbl">HP</span><b>${n(w.hp)} / ${n(w.hpMax)}</b><button class="btn" data-act="crowHit">−1 HP</button><button class="btn" data-act="crowFull">Full</button></div>
-   <div class="grid2">${field('AC',num('crow.ac'))}${field('Max HP',num('crow.hpMax',{rr:1}))}${field('Perception',txt('crow.perception'))}${field('Melee',txt('crow.melee'))}</div>
-   ${field('Tricks',txt('crow.tricks',{w:'100%'}))}${field('Notes',txt('crow.notes',{w:'100%'}))}
   </section>`;
 }
 
@@ -1456,7 +1450,7 @@ function load(d){
   const s=merge(DEFAULT,d||{});
   s.attacks.forEach(a=>{if(!a.id)a.id=newId()});
   [1,2,3,4].forEach(l=>{if(!Array.isArray(s.spells[l]))s.spells[l]=[]});
-  s.neg=0;
+  s.neg=0;delete s.crow;   // the crow on her companion sheet is portrait art, not a companion
   return s;
 }
 async function boot(){
@@ -1684,8 +1678,6 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(
    case 'cfull':S.comp.hp=n(S.comp.hpMax);render();break;
    case 'trAdd':(S.comp.tricks=S.comp.tricks||[]).push({n:'',dc:15});render();break;
    case 'trDel':S.comp.tricks.splice(i,1);render();break;
-   case 'crowHit':S.crow.hp=Math.max(-10,n(S.crow.hp)-1);render();break;
-   case 'crowFull':S.crow.hp=n(S.crow.hpMax);render();break;
    case 'sdLogClear':S.sdLog=[];render();break;
    case 'rest':longRest(false);render();break;
    case 'addNote':setP(b.dataset.k,' ');render();{const el=document.getElementById('i-'+b.dataset.k.replace(/\W/g,'_'));if(el){el.value='';el.focus()}}break;
