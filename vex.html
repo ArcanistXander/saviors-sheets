@@ -501,12 +501,12 @@ const DEFAULT={
  ab:{str:{base:10,temp:0},dex:{base:20,temp:0},con:{base:13,temp:0},int:{base:10,temp:0},wis:{base:12,temp:0},cha:{base:14,temp:0}},
  hp:{mode:'manual',max:115,cur:115,temp:0,nl:0,misc:0,conAdj:0},
  ac:{natural:0,deflection:0,dodge:1,misc:0},
- armor:{name:'Dragon Breastplate',bonus:6,maxDex:3,acp:2,fail:25,wt:30,speed:0},
+ armor:{name:'Dawnforged Dragonscale (+3 breastplate, light)',bonus:9,maxDex:6,acp:0,fail:15,wt:15,speed:0},
  shield:{name:'+1 light shield (stowed while she shoots)',bonus:0,acp:0,fail:0,wt:6},
  init:{misc:0}, speedMisc:0,
  saves:{fort:{magic:0,misc:0,temp:0},ref:{magic:0,misc:0,temp:0},will:{magic:0,misc:0,temp:0}},
- saveNotes:'Endurance: +4 on Fortitude saves and checks against nonlethal damage from hunger, thirst, heat, cold, running, forced marches and suffocation.\nElven immunities: immune to magic sleep; +2 on saves against enchantment spells and effects.\nEvasion and Improved Evasion: no damage on a successful Reflex save against a half-damage effect, and only half on a failed one.\nShield of the Sun (Mantle of the Dawn): resist negative energy 10; immune to energy drain and negative levels.',
- resist:'Acid 10 (Dragon Breastplate) · Negative energy 10 (Mantle of the Dawn)', dr:'', sr:'',
+ saveNotes:'Endurance: +4 on Fortitude saves and checks against nonlethal damage from hunger, thirst, heat, cold, running, forced marches and suffocation.\nElven immunities: immune to magic sleep; +2 on saves against enchantment spells and effects.\nEvasion and Improved Evasion: no damage on a successful Reflex save against a half-damage effect, and only half on a failed one.\nModerate fortification (Dawnforged Dragonscale): 50% chance to ignore a critical hit or sneak attack.\nShield of the Sun (Mantle of the Dawn): resist negative energy 10; immune to energy drain and negative levels.',
+ resist:'Acid 10 (Dawnforged Dragonscale) · Negative energy 10 (Mantle of the Dawn)', dr:'', sr:'',
  cmbAbil:'str', cmbMisc:0, cmdMisc:0,
  skills:{acrobatics:sk(7),bluff:sk(4),climb:sk(9),escape:sk(7),handle:sk(8),heal:sk(2),kDun:sk(4),kNat:sk(6),linguistics:sk(4),
   perception:sk(16,2),ride:sk(7),spellcraft:sk(2),stealth:sk(3,5),survival:sk(14),swim:sk(6)},
@@ -570,8 +570,8 @@ const DEFAULT={
   gear:'Blue Dragon Armour (hide barding): +4 AC, max Dex +4, armor check −3, resist electricity 15.',
   notes:'Level 14 companion (ranger 17 − 3): 12 HD, base attack +9, base saves Fort +8 / Ref +8 / Will +4, natural armor +12 (wolf +2, Large +2, level +8), Str/Dex +4, 12 skill ranks (Perception 7, Stealth 3, Intimidate 2), 6 feats, 5 bonus tricks.\nSpecial: link, share spells, evasion, devotion (+4 morale on Will saves against enchantment), multiattack (a second bite at −5), 3 ability score increases (Con, Str, Dex).\nTrip: when his bite hits, he can try to trip as a free action (CMB +18) without provoking.\nLarge: −1 AC and attack, +1 CMB and CMD, takes up 10 × 10 ft. She gets +4 on Handle Animal checks with him. Tricks: Core Rulebook p. 97. Wolf companion: p. 54. Paper margin: “Short rest = (9/9)”.'},
  gear:[
-  {item:'Dragon Breastplate',desc:'Armor +6, max Dex +3, check −2. Resist acid 10.',loc:'Body',wt:30},
-  {item:'+1 light shield',desc:'+2 AC when strapped on. Resist acid 10 (doesn’t stack with the breastplate).',loc:'Back',wt:6},
+  {item:'Dawnforged Dragonscale',desc:'Her breastplate, reforged in sunlight. Armor +9, max Dex +6, no check penalty, light. Resist acid 10, moderate fortification, Dawn’s Glare (Mantle tab).',loc:'Body',wt:15},
+  {item:'+1 light shield',desc:'+2 AC when strapped on. Resist acid 10 (doesn’t stack with the armor).',loc:'Back',wt:6},
   {item:'Ring of Protection +2',desc:'Deflection +2.',loc:'Ring',wt:0},
   {item:'Sky Sentinel Bow',desc:'+2 longbow. Storm Arrow 1/day (Mantle tab).',loc:'Hands',wt:3},
   {item:'Blazing & Lightning Bowstring',desc:'2/day: +1d8 fire or lightning on an arrow.',loc:'Bow',wt:0},
@@ -686,7 +686,7 @@ function compute(useC){
   const iter=[];for(let b=bab,i=0;i<4&&(i===0||b>=1);i++,b-=5)iter.push(b);
   put('bab.iter',bab,false,iter.map(sg).join('/'));
   put('lvl',L.total);
-  // AC: the breastplate caps Dex at +3; rangers have no uncanny dodge, so flat-footed drops Dex
+  // AC: the armor caps Dex at +6; rangers have no uncanny dodge, so flat-footed drops Dex
   const IT=acItemBonuses();
   const armorB=Math.max(n(S.armor.bonus),IT.armor||0), shieldB=Math.max(n(S.shield.bonus),IT.shield||0);
   const natT=n(S.ac.natural)+(IT.natural||0)+M.g('acNat'),defT=Math.max(n(S.ac.deflection)+(IT.deflection||0),M.g('acDefl')),othT=(IT.insight||0)+(IT.luck||0)+(IT.sacred||0)+(IT.profane||0);
@@ -801,7 +801,7 @@ function autoAbilities(L){
     add('Ranger',4,'Spells','',`Divine spells from the ranger list, prepared from Wisdom. Caster level ${out('cl')}; save DC 10 + spell level ${sg(Math.floor((n(S.ab.wis.base)+n(S.ab.wis.temp)-10)/2))} (Spells tab).`);}
   if(r>=7)add('Ranger',7,'Woodland Stride','Ex','Moves through natural undergrowth at full speed without taking damage. Magically altered plants still hinder her.');
   if(r>=8)add('Ranger',8,'Swift Tracker','Ex','Moves at full speed while following tracks without a penalty, and at double speed with only −10 (instead of −20).');
-  if(r>=9)add('Ranger',9,'Evasion','Ex','No damage on a successful Reflex save against a half-damage effect. Only in light armor or none: check with the DM whether the Dragon Breastplate counts as light.');
+  if(r>=9)add('Ranger',9,'Evasion','Ex','No damage on a successful Reflex save against a half-damage effect. Only in light armor or none: the Dawnforged Dragonscale counts as light.');
   if(r>=11)add('Ranger',11,'Quarry','Ex',`Standard action: mark one creature in sight as her quarry. She can take 10 on Survival to track it while moving at normal speed, gets ${sg(quarryB())} insight on attack rolls against it, and every critical threat against it is confirmed. One quarry at a time; a new one after the first dies or 1 hour passes.`);
   if(r>=12)add('Ranger',12,'Camouflage','Ex','Can use Stealth in any of her favored terrains, even without cover or concealment.');
   if(r>=16)add('Ranger',16,'Improved Evasion','Ex','On a failed Reflex save against a half-damage effect she takes only half. Light armor or none (see Evasion).');
@@ -870,7 +870,7 @@ function pOverview(){
     ${field('Max HP comes from',sel('hp.mode',[['manual','The number I enter'],['auto','Classes (average HP per level)']],{label:'HP mode'}))}
     ${S.hp.mode==='auto'?`<p class="note">1st level: max hit die. Later levels: average (d10 = 6). Plus Con ${sg(conMod())} per level and ${n(S.fcbHp)} favored-class HP.</p>`:''}
     <div class="grid2"><div class="field"><span class="lbl">Max HP</span><b style="font-size:1.3rem" data-o="hp.max"></b><small class="muted" data-o="hp.why"></small></div>${S.hp.mode==='auto'?`<div class="field"><span class="lbl">Base max HP</span><b>${hpBase()}</b></div>${field('Bonus HP',num('hp.misc',{rr:1,label:'Bonus HP'}))}`:field('Base max HP',num('hp.max',{label:'Base max HP'}))}${field('Current HP',num('hp.cur',{label:'Current HP'}))}${field('Temp HP',num('hp.temp',{label:'Temp HP'}))}${field('Nonlethal',num('hp.nl',{label:'Nonlethal'}))}</div>
-    <div class="hpctl"><input type="number" id="hpamt" value="" placeholder="amt" aria-label="Amount"><button class="btn" data-act="dmg">Damage</button><button class="btn" data-act="dmgRes" data-v="acid" title="Acid: the Dragon Breastplate resists 10">Acid (−10)</button><button class="btn" data-act="dmgRes" data-v="negative" title="Negative energy: the Mantle resists 10">Negative (−10)</button><button class="btn" data-act="heal">Heal</button><button class="btn" data-act="full">Long rest (+${restHeal()} HP)</button></div>
+    <div class="hpctl"><input type="number" id="hpamt" value="" placeholder="amt" aria-label="Amount"><button class="btn" data-act="dmg">Damage</button><button class="btn" data-act="dmgRes" data-v="acid" title="Acid: the Dawnforged Dragonscale resists 10">Acid (−10)</button><button class="btn" data-act="dmgRes" data-v="negative" title="Negative energy: the Mantle resists 10">Negative (−10)</button><button class="btn" data-act="heal">Heal</button><button class="btn" data-act="full">Long rest (+${restHeal()} HP)</button></div>
     ${downBox()}
     ${(S.hpLog||[]).length?`<div class="hplog"><span class="lbl">Recent</span>${S.hpLog.slice(-6).reverse().map(e=>`<div><span>${esc(e.txt)}</span><b>${e.cur} HP</b></div>`).join('')}<button class="btn x" data-act="clearLog">Clear log</button></div>`:''}
     <p class="note">Max HP is 115 at level 17 (her paper sheet, at 16, says 107). Long rest heals level + Con modifier (${levels().total} + ${conMod()}), clears nonlethal damage, resets daily uses (Aura of the Revealing Light, Storm Arrow, the bowstring, the Cloak of the Bat, Wisdom of the Forest) and gives back her spell slots. Damage uses temp HP first.</p>
@@ -883,7 +883,7 @@ function pOverview(){
     <div class="acedit">${field('Extra natural',num('ac.natural'))}${field('Extra deflection',num('ac.deflection'))}${field('Dodge',num('ac.dodge'))}${field('Misc',num('ac.misc'))}</div>
    </div>
    <div class="acparts" aria-label="AC breakdown"><span><small>Base</small><b>10</b></span><span><small>Armor</small><b data-o="ac.armor"></b></span><span><small>Shield</small><b data-o="ac.shield"></b></span><span><small>Dex</small><b data-o="ac.dex"></b></span><span><small>Natural</small><b data-o="ac.nat"></b></span><span><small>Deflection</small><b data-o="ac.defl"></b></span><span><small>Dodge</small><b data-o="ac.dodgeT"></b></span><span><small>Size</small><b data-o="size"></b></span><span><small>Other</small><b data-o="ac.oth"></b></span><span><small>Conditions</small><b data-o="ac.cond"></b></span></div>
-   <p class="note">Paper sheet: AC 22, touch 16, flat-footed 18, and 26 against dragons. The breastplate caps her Dex bonus to AC at +3. ${fd?`Against ${esc(String(fd.name).toLowerCase())} (Favored Defense): <b data-o="ac.vsFav"></b>.`:''} ${S.cond.prone?`Prone: AC <b data-o="ac.vsMelee"></b> vs melee, <b data-o="ac.vsRanged"></b> vs ranged.`:''}</p>
+   <p class="note">Dawnforged Dragonscale: armor +9 (breastplate +6, enhancement +3), and its max Dex of +6 lets all of her Dex count. Moderate fortification: 50% chance to ignore a critical hit or sneak attack (Mantle tab). Her old paper sheet: AC 22, touch 16, flat-footed 18. ${fd?`Against ${esc(String(fd.name).toLowerCase())} (Favored Defense): <b data-o="ac.vsFav"></b>.`:''} ${S.cond.prone?`Prone: AC <b data-o="ac.vsMelee"></b> vs melee, <b data-o="ac.vsRanged"></b> vs ranged.`:''}</p>
   </section>
   <section class="panel"><header><h2>Combat</h2></header>
    <div class="ctiles">
@@ -897,7 +897,7 @@ function pOverview(){
     <div class="ctile"><span class="lbl">Spells</span><b class="v">CL ${out('cl')}</b><small class="muted">DC ${out('dc.1')}–${out('dc.4')}</small></div>
     <div class="ctile"><span class="lbl">Size</span>${sel('info.size',SIZES,{label:'Size'})}<small class="muted">Medium: no modifiers</small></div>
    </div>
-   <p class="note">Paper sheet (level 16): BAB 16/11/6/1, CMB 16, CMD 34. At 17 every attack is one higher. CMD uses her full Dex (+5); the breastplate’s cap only applies to AC.</p>
+   <p class="note">Paper sheet (level 16): BAB 16/11/6/1, CMB 16, CMD 34. At 17 every attack is one higher. CMD uses her full Dex (+5).</p>
   </section>
   <section class="panel"><header><h2>Identity</h2></header>
    <div class="grid2">
@@ -947,8 +947,8 @@ function pSkills(){
   return `<section class="panel"><header><h2>Skills</h2>
     <span class="counter">Ranks spent <b id="spent" data-o="sk.spent"></b> of <b data-o="sk.avail"></b> · max ${out('lvl')} per skill</span></header>
    <div class="scroll"><table class="skilltbl"><thead><tr><th>Class</th><th class="l">Skill</th><th>Key</th><th>Total</th><th></th><th>Ability</th><th></th><th>Ranks</th><th></th><th>Class</th><th></th><th>Misc</th><th></th><th title="Armor check penalty, size and conditions">Other</th></tr></thead><tbody>${rows}</tbody></table></div>
-   <p class="note">These are the ranks from her level 16 paper sheet (99 spent). Level 17 adds 6 more; spread them however you like. Misc holds Keen Senses (+2 Perception) and the Cloak of the Bat (+5 Stealth). “Other” holds the breastplate’s −2 armor check penalty and conditions. Favored enemy and favored terrain bonuses join in when you turn them on.</p>
-   <p class="note">From the paper sheet: “Prof (Ride)” is the Ride skill (7 ranks). Its totals left out the armor check penalty, so Acrobatics, Climb, Escape Artist, Ride, Stealth and Swim run 2 lower here. Handle Animal on paper adds +3 class and +2 Cha. Wild empathy is d20 <b data-o="empathy"></b>.</p>
+   <p class="note">These are the ranks from her level 16 paper sheet (99 spent). Level 17 adds 6 more; spread them however you like. Misc holds Keen Senses (+2 Perception) and the Cloak of the Bat (+5 Stealth). “Other” holds conditions (the Dawnforged Dragonscale has no armor check penalty). Favored enemy and favored terrain bonuses join in when you turn them on.</p>
+   <p class="note">From the paper sheet: “Prof (Ride)” is the Ride skill (7 ranks). Handle Animal on paper adds +3 class and +2 Cha. Wild empathy is d20 <b data-o="empathy"></b>.</p>
   </section>`;
 }
 
@@ -967,6 +967,7 @@ function pSaves(){
    </section>
    <section class="panel"><header><h2>Defenses</h2></header>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--dawn-soft);border-radius:var(--r);padding:8px 10px;font-size:.9rem"><b>Shield of the Sun:</b> resist negative energy 10, immune to energy drain and negative levels. <button class="btn" data-act="tab" data-t="mantle">Mantle</button></div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--dawn-soft);border-radius:var(--r);padding:8px 10px;font-size:.9rem"><b>Dawnforged Dragonscale:</b> resist acid 10, moderate fortification (50% to ignore a crit or sneak attack). <button class="btn" data-act="fort">Roll fortification</button></div>
     ${field('Resistances',txt('resist'))}<div class="grid2">${field('DR',txt('dr'))}${field('SR',txt('sr'))}</div>
     ${field('Conditional modifiers',area('saveNotes',{rows:6}))}
    </section></div>`;
@@ -1137,7 +1138,21 @@ function pMantle(){
    <div class="wpow"><div><span class="nm">Blazing &amp; Lightning Bowstring</span> <small class="muted">2/day</small> ${pips('string',2)}</div><span class="muted">${Math.max(0,2-str)} left</span>
     <div class="ds">Twice a day an arrow deals an extra 1d8 fire or lightning. Tick “Bowstring” in Full Attack to add it to the first arrow.</div></div>
   </section>`;
-  return mantle+`<div class="cols">${bow}${dmPanel()}</div>`;
+  const gl=n(S.used.glare)>=1;
+  const armor=`<section class="panel mantle"><header><h2>Dawnforged Dragonscale</h2><span class="muted">Her breastplate, reforged in sunlight</span><span class="tag">Light armor</span></header>
+   <div class="kv"><label>Armor</label><b>+3 breastplate: armor +9, max Dex +6, no armor check penalty</b><label>AC now</label><b><span data-o="ac.total"></span> · touch <span data-o="ac.touch"></span> · flat-footed <span data-o="ac.ff"></span></b></div>
+   <div class="wpow"><div><span class="nm">Sunforged</span> <small class="muted">passive</small></div><span></span>
+    <div class="ds">The dragon scales are tempered in the Dawnfather’s fire, like mithral: max Dex +6, no armor check penalty, and it counts as light armor. Her speed stays 30 ft., and Evasion, Improved Evasion and her archery style all work.</div></div>
+   <div class="wpow"><div><span class="nm">Dragon hide</span> <small class="muted">passive</small></div><span></span>
+    <div class="ds">Resist acid 10, kept from the original dragon hide. The Acid (−10) button on the Overview tab takes it off.</div></div>
+   <div class="wpow"><div><span class="nm">Moderate Fortification</span> <small class="muted">passive · 50%</small></div><button class="btn" data-act="fort">Roll for a crit or sneak attack</button>
+    <div class="ds">When a critical hit or sneak attack lands on her, there’s a 50% chance it’s negated and the damage is rolled normally.</div>
+    ${S.fortLast?`<p class="note" style="grid-column:1/-1;margin:0">${S.fortLast}</p>`:''}</div>
+   <div class="wpow"><div><span class="nm">Dawn’s Glare</span> <small class="muted">1/day · immediate action</small> ${pips('glare',1)}</div>
+    <button class="btn pri" data-act="glare"${gl?' disabled':''}>${gl?'Used today':'Flare'}</button>
+    <div class="ds">When an enemy within 30 ft. attacks her, the armor flares with light. The attacker makes a DC 24 Fortitude save or is blinded for 1 round, which gives its attacks a 50% miss chance. As with her aura, she can make the light harmless to allies.</div></div>
+  </section>`;
+  return mantle+armor+`<div class="cols">${bow}${dmPanel()}</div>`;
 }
 
 function acItemsPanel(){
@@ -1285,7 +1300,7 @@ function pGear(){
   </section>
   ${items}
   <div class="cols">
-   <section class="panel"><header><h2>Armor</h2></header>${arm('armor')}<p class="note">Dragon Breastplate: armor +6, max Dex +3, check −2, resist acid 10. A breastplate is medium armor, which normally slows an elf to 20 ft. and switches off Evasion. Her paper sheet doesn’t slow her, so speed stays 30 ft.; ask the DM.</p></section>
+   <section class="panel"><header><h2>Armor</h2></header>${arm('armor')}<p class="note">Dawnforged Dragonscale: her breastplate, reforged in sunlight. +3 enhancement (armor +9), and sunforged like mithral: max Dex +6, no armor check penalty, counts as light armor, so her speed stays 30 ft. and Evasion works. Resist acid 10, moderate fortification and Dawn’s Glare are on the Mantle tab.</p></section>
    <section class="panel"><header><h2>Shield</h2></header>${arm('shield')}<p class="note">+1 light shield: +2 AC and resist acid 10 when strapped on. She can’t shoot a longbow with it on her arm, so it isn’t counted. Set the AC bonus to 2 when she uses it.</p></section>
   </div>
   ${acItemsPanel()}
@@ -1360,7 +1375,7 @@ function spellDescFor(nm){if(nm===AURA)return AURA_DESC;for(const l in S.spells|
 function castDurs(log){const o={};log.forEach(e=>{const m=String(e.txt).match(/^Cast (.+?)(?: \(|$)/);const d=m&&spellDescFor(m[1]);if(d)o[m[1]]=d});return o}
 function dmReport(){
   const C=compute(true),sp=(S.special||[]).findIndex(x=>/wisdom of the forest/i.test(x.name||''));
-  const powers=[['aura',AURA,Math.min(1,n(S.used.aura)),1,''],['storm','Storm Arrow',Math.min(1,n(S.used.storm)),1,''],['string','Bowstring (+1d8)',Math.min(2,n(S.used.string)),2,''],['bat','Cloak of the Bat flight',Math.min(1,n(S.used.bat)),1,'']];
+  const powers=[['aura',AURA,Math.min(1,n(S.used.aura)),1,''],['glare','Dawn’s Glare',Math.min(1,n(S.used.glare)),1,''],['storm','Storm Arrow',Math.min(1,n(S.used.storm)),1,''],['string','Bowstring (+1d8)',Math.min(2,n(S.used.string)),2,''],['bat','Cloak of the Bat flight',Math.min(1,n(S.used.bat)),1,'']];
   if(sp>=0&&n(S.special[sp].uses))powers.push(['special.'+sp,'Wisdom of the Forest',Math.min(n(S.special[sp].uses),n(S.used['special.'+sp])),n(S.special[sp].uses),'']);
   const am=ammoSel();
   return {t:'saviors-hero',v:1,id:'vex',name:S.info.name||'Vex’ahlia',at:new Date().toISOString(),
@@ -1387,7 +1402,7 @@ function dmHit(c){
   if(c.heal){const mx=hpMaxNow(),bf=n(S.hp.cur);S.hp.cur=Math.min(mx,bf+a);S.hp.nl=Math.max(0,n(S.hp.nl)-a);
     const t=`${c.src||'Healed'} +${S.hp.cur-bf}`;hpLog(t+' (from the DM)');return t}
   const type=c.type==='untyped'||c.type==='physical'||!c.type?'':String(c.type);let d=a,r='';
-  if(RESIST[type]){d=Math.max(0,a-RESIST[type]);r=`, resisted ${Math.min(a,RESIST[type])} (${type==='acid'?'breastplate':'Mantle'})`}
+  if(RESIST[type]){d=Math.max(0,a-RESIST[type]);r=`, resisted ${Math.min(a,RESIST[type])} (${type==='acid'?'Dawnforged Dragonscale':'Mantle'})`}
   const tmp=n(S.hp.temp),use=Math.min(tmp,d);S.hp.temp=tmp-use;S.hp.cur=n(S.hp.cur)-(d-use);
   const t=`${a} ${type?type+' ':''}damage${r}: took ${d}`+(use?` (${use} from temp HP)`:'');hpLog(t+' (from the DM)');return t;
 }
@@ -1451,6 +1466,12 @@ function load(d){
   s.attacks.forEach(a=>{if(!a.id)a.id=newId()});
   [1,2,3,4].forEach(l=>{if(!Array.isArray(s.spells[l]))s.spells[l]=[]});
   s.neg=0;delete s.crow;   // the crow on her companion sheet is portrait art, not a companion
+  /* the Dragon Breastplate was reforged into the Dawnforged Dragonscale: swap it in on sheets saved before that */
+  if(/dragon breastplate/i.test(s.armor.name||'')){
+    s.armor=clone(DEFAULT.armor);
+    s.resist=String(s.resist||'').replace(/Dragon Breastplate/g,'Dawnforged Dragonscale');
+    const g=s.gear.findIndex(x=>/dragon breastplate/i.test(x.item||''));if(g>=0)s.gear[g]=clone(DEFAULT.gear[0]);
+    if(!/fortification/i.test(s.saveNotes||''))s.saveNotes=String(s.saveNotes||'')+'\nModerate fortification (Dawnforged Dragonscale): 50% chance to ignore a critical hit or sneak attack.';}
   return s;
 }
 async function boot(){
@@ -1575,7 +1596,7 @@ function longRest(heal){
   const keep={};Object.keys(S.used).forEach(k=>{if(k==='hero'||/^w\./.test(k))keep[k]=S.used[k]});S.used=keep;
   S.cond.aura=false;S.cond.batfly=false;S.fa.storm=false;S.fa.string=false;
   [1,2,3,4].forEach(l=>prepOf(l).forEach(x=>x.c=false));
-  dayLog('Rested: spell slots, Revealing Light, Storm Arrow, the bowstring, the Cloak of the Bat and Wisdom of the Forest reset');
+  dayLog('Rested: spell slots, Revealing Light, Dawn’s Glare, Storm Arrow, the bowstring, the Cloak of the Bat and Wisdom of the Forest reset');
   return h;
 }
 function castSpell(l,i,btn){
@@ -1630,7 +1651,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(
    case 'delGear':S.gear.splice(i,1);render();break;
    case 'use':{const k=b.dataset.k,u=n(S.used[k]);S.used[k]=(i===u-1)?u-1:i+1;
      const sp=(S.special||[]).findIndex(x=>/wisdom of the forest/i.test(x.name||''));
-     const nm={aura:AURA,storm:'Storm Arrow',string:'Bowstring',bat:'Cloak of the Bat',['special.'+sp]:'Wisdom of the Forest'}[k];
+     const nm={aura:AURA,glare:'Dawn’s Glare',storm:'Storm Arrow',string:'Bowstring',bat:'Cloak of the Bat',['special.'+sp]:'Wisdom of the Forest'}[k];
      if(nm)dayLog(S.used[k]>u?`Used ${nm}`:k==='aura'?`Undid ${AURA}`:`Undid ${nm}`);
      if(k==='aura'&&!S.used[k])S.cond.aura=false;
      if(k==='storm'&&!S.used[k])S.fa.storm=false;
@@ -1650,6 +1671,8 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(
      tab='mantle';ls.set('vex-tab',tab);render();break;}
    case 'reprieveBack':S.mantle.reprieve=false;S.mantle.last='';dayLog('The Dawnfather restored the Dawn’s Reprieve');render();break;
    case 'stormGo':{if(n(S.used.storm)>=1&&!S.fa.storm)return;if(!S.fa.storm){S.fa.storm=true;if(n(S.used.storm)<1){S.used.storm=1;dayLog('Storm Arrow: the first arrow splits into three');}}tab='attacks';ls.set('vex-tab',tab);render();break;}
+   case 'glare':{if(n(S.used.glare)>=1)return;S.used.glare=1;dayLog('Dawn’s Glare: the attacker saves (Fortitude DC 24) or is blinded for 1 round');burstAt(b);render();break;}
+   case 'fort':{const r=1+Math.floor(Math.random()*100),ok=r<=50;S.fortLast=`d% <b>${r}</b>: ${ok?'<b>negated</b>. Roll the damage as a normal hit, with no sneak attack dice.':'it lands. Take the full critical or sneak attack damage.'}`;dayLog(`Fortification: ${r}, ${ok?'negated the crit or sneak attack':'the crit or sneak attack lands'}`);render();break;}
    case 'bat':{if(n(S.used.bat)>=1)return;S.used.bat=1;S.cond.batfly=true;dayLog('Cloak of the Bat: flying, 60 ft. for up to 7 minutes');render();break;}
    case 'batOff':S.cond.batfly=false;dayLog('Cloak of the Bat: landed');render();break;
    /* spells */
