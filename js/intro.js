@@ -1,5 +1,5 @@
 /* Opening flourish for each character sheet: a ~5 s canvas overlay played once per page load.
-   <script src="js/intro.js" data-intro="drax|ensley|sinafey|namfoodle|lork|vex"></script>
+   <script src="js/intro.js" data-intro="drax|ensley|sinafey|namfoodle|lork|vex|owlbear"></script>
    The canvas ignores the pointer, so the sheet stays usable underneath; any click or key fades it out early. */
 (function(){
   'use strict';
@@ -418,6 +418,83 @@
     }};
   }
 
+  /* =====================================================================
+     OWLBEAR MAN — the owl signal: a searchlight throws his emblem onto the clouds,
+     its eyes flare amber, and two Owlbear-arangs whirl out and back while feathers fall
+     ===================================================================== */
+  function owlbear(){
+    var sigAt=0,eyeAt=1100,arangs=[],flash=0;
+    /* the emblem: a round head with ear tufts, a plump body and fanned feather wings (rounded feathers, so it
+       doesn't read as a bat), with the eyes and beak cut out so the light shines through */
+    var EYE_Y=-28,OY=122;
+    var owl=sprite(340,250,function(g){
+      g.translate(170,OY);g.fillStyle='#000';
+      function wing(){
+        g.beginPath();g.ellipse(-62,-4,58,34,-.3,0,7);g.fill();                         // coverts
+        for(var k=0;k<7;k++){var a=-.62+k*.27,len=70+(k<3?18:0)-k*3;                    // flight feathers, fanned
+          g.save();g.translate(-44-Math.cos(a)*len,4+Math.sin(a)*len);g.rotate(-a);g.beginPath();g.ellipse(0,0,len*.62,11,0,0,7);g.fill();g.restore()}
+      }
+      wing();g.save();g.scale(-1,1);wing();g.restore();
+      g.beginPath();g.ellipse(0,44,44,62,0,0,7);g.fill();                              // body
+      g.beginPath();g.arc(0,-26,42,0,7);g.fill();                                       // head
+      [-1,1].forEach(function(d){g.beginPath();g.moveTo(d*22,-58);g.lineTo(d*44,-84);g.lineTo(d*38,-48);g.closePath();g.fill()});   // ear tufts
+      g.beginPath();g.moveTo(-18,100);g.lineTo(0,118);g.lineTo(18,100);g.closePath();g.fill();   // tail
+      g.globalCompositeOperation='destination-out';
+      [-1,1].forEach(function(d){g.beginPath();g.arc(d*17,EYE_Y,12,0,7);g.fill()});
+      g.beginPath();g.moveTo(-6,-14);g.lineTo(6,-14);g.lineTo(0,2);g.closePath();g.fill();   // beak
+    });
+    /* a brass -arang: a swept crescent with owl-wing notches */
+    var arang=sprite(140,70,function(g){
+      g.translate(70,40);
+      var gr=g.createLinearGradient(-60,-20,60,20);gr.addColorStop(0,'#7a5418');gr.addColorStop(.5,'#f0c66a');gr.addColorStop(1,'#7a5418');
+      g.fillStyle=gr;g.shadowColor='rgba(240,190,90,.9)';g.shadowBlur=12;
+      g.beginPath();g.moveTo(-62,12);g.quadraticCurveTo(0,-46,62,12);g.lineTo(48,6);g.lineTo(40,14);g.quadraticCurveTo(0,-16,-40,14);g.lineTo(-48,6);g.closePath();g.fill();
+    });
+    var feather=sprite(30,110,function(g){
+      g.translate(15,0);
+      g.beginPath();g.moveTo(0,3);g.bezierCurveTo(12,24,11,80,1,107);g.lineTo(-1,107);g.bezierCurveTo(-11,80,-12,24,0,3);g.closePath();
+      var gr=g.createLinearGradient(0,0,0,110);gr.addColorStop(0,'#cdbb98');gr.addColorStop(1,'#5d4a32');g.fillStyle=gr;g.fill();
+      g.strokeStyle='rgba(40,30,20,.55)';g.lineWidth=2;
+      for(var y=18;y<100;y+=14){g.beginPath();g.moveTo(-10,y);g.lineTo(10,y+5);g.stroke()}   // barring
+    });
+    function throwArang(t,k){arangs.push({born:t,len:k?1500:1700,rx:W*(k?.36:.44),ry:H*(k?.16:.22),cy:H*(k?.7:.62),dir:k?-1:1})}
+    var plan=[{at:0,fn:function(t){sigAt=t}},{at:eyeAt,fn:function(t){flash=.25;shake(4,240,t)}},
+      {at:1400,fn:function(t){throwArang(t,0)}},{at:2300,fn:function(t){throwArang(t,1)}}];
+    for(var f=300;f<3600;f+=110)plan.push({at:f,fn:function(){
+      emit({x:rnd(.03,.97)*W,y:-30,vx:rnd(-15,15),vy:rnd(45,95)*S,age:0,life:rnd(2400,3300),sz:rnd(.18,.32)*S,ph:rnd(0,6),sw:rnd(.8,1.5),
+        draw:function(p,k){var a=k<.08?k/.08:k>.8?(1-k)/.2:1;
+          cx.save();cx.globalAlpha=a*.9;cx.translate(p.x+Math.sin(p.age/430*p.sw+p.ph)*36*S,p.y);cx.rotate(Math.sin(p.age/540*p.sw+p.ph)*.9+.3);
+          cx.drawImage(feather,-15*p.sz*1.6,-55*p.sz*1.6,30*p.sz*1.6,110*p.sz*1.6);cx.restore()}})}});
+
+    return {plan:plan,dim:'rgba(8,9,16,0.55)',draw:function(t,dt){
+      var age=t-sigAt,p=easeOut(age/900),R=Math.min(W,H)*.2*(.6+.4*p),sx=W/2,sy=H*.28;
+      /* the searchlight beam, from below the screen up to the clouds */
+      cx.save();cx.globalAlpha=.22*p;
+      var bg=cx.createLinearGradient(W*.42,H,sx,sy);bg.addColorStop(0,'rgba(255,236,170,.9)');bg.addColorStop(1,'rgba(255,236,170,.25)');
+      cx.fillStyle=bg;cx.beginPath();cx.moveTo(W*.4,H+20);cx.lineTo(W*.46,H+20);cx.lineTo(sx+R*.95,sy);cx.lineTo(sx-R*.95,sy);cx.closePath();cx.fill();cx.restore();
+      /* the lit disc on the clouds, with the owl in silhouette */
+      var dg=cx.createRadialGradient(sx,sy,0,sx,sy,R*1.15);
+      dg.addColorStop(0,'rgba(255,240,190,'+(.85*p)+')');dg.addColorStop(.8,'rgba(250,220,140,'+(.6*p)+')');dg.addColorStop(1,'rgba(250,220,140,0)');
+      cx.fillStyle=dg;cx.beginPath();cx.arc(sx,sy,R*1.15,0,7);cx.fill();
+      var ow=R*1.75,oh=ow*250/340;cx.save();cx.globalAlpha=.88*p;cx.drawImage(owl,sx-ow/2,sy-oh*.52,ow,oh);cx.restore();
+      /* the eyes flare amber, then settle to a glow */
+      if(t>=eyeAt){var e=t-eyeAt,glow=e<300?e/300:Math.max(.45,1-(e-300)/1400);
+        [-1,1].forEach(function(d){var ex=sx+d*17*ow/340,ey=sy-oh*.52+(OY+EYE_Y)*oh/250,er=12*ow/340;
+          var eg=cx.createRadialGradient(ex,ey,0,ex,ey,er*3);eg.addColorStop(0,'rgba(255,200,80,'+glow+')');eg.addColorStop(.35,'rgba(240,160,40,'+(glow*.7)+')');eg.addColorStop(1,'rgba(240,160,40,0)');
+          cx.fillStyle=eg;cx.beginPath();cx.arc(ex,ey,er*3,0,7);cx.fill();});}
+      /* drifting cloud wisps across the light */
+      cx.save();cx.globalAlpha=.18*p;cx.fillStyle='#1a1c28';
+      for(var c=0;c<4;c++){var cxp=((t/40+c*W/3.2)%(W+400))-200;cx.beginPath();cx.ellipse(cxp,sy-R*.6+c*R*.4,R*.9,R*.16,0,0,7);cx.fill()}
+      cx.restore();
+      /* the -arangs: out along an ellipse and back to his hand */
+      for(var j=arangs.length-1;j>=0;j--){var a=arangs[j],s=(t-a.born)/a.len;if(s>1){arangs.splice(j,1);continue}
+        var th=s*Math.PI*2,x=W/2-a.dir*Math.cos(th)*a.rx,y=a.cy-Math.sin(th)*a.ry,sc=S*(.8+.35*Math.sin(th));
+        cx.save();cx.translate(x,y);cx.rotate(t/45*a.dir);cx.drawImage(arang,-70*sc,-40*sc,140*sc,70*sc);cx.restore();
+        emit({x:x,y:y,vx:rnd(-40,40),vy:rnd(-40,40),age:0,life:300,draw:function(q,k){cx.globalAlpha=(1-k)*.8;cx.fillStyle='#f0c66a';cx.fillRect(q.x,q.y,2*S,2*S);cx.globalAlpha=1}});}
+      if(flash>.005){cx.fillStyle='rgba(255,220,150,'+flash+')';cx.fillRect(0,0,W,H);flash*=Math.pow(.86,dt/16)}
+    }};
+  }
+
   /* shared: expanding shockwave rings */
   function drawRings(rings,t){
     for(var i=rings.length-1;i>=0;i--){var r=rings[i],age=t-r.born;if(age<0)continue;if(age>r.life){rings.splice(i,1);continue}
@@ -425,7 +502,7 @@
   }
 
   /* ---------- run ---------- */
-  var scenes={drax:drax,ensley:ensley,sinafey:sinafey,namfoodle:namfoodle,lork:lork,vex:vex};
+  var scenes={drax:drax,ensley:ensley,sinafey:sinafey,namfoodle:namfoodle,lork:lork,vex:vex,owlbear:owlbear};
   if(!scenes[theme])return;
   function start(){
     size();document.body.appendChild(cv);
