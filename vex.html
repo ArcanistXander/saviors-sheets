@@ -90,6 +90,9 @@ details.more summary{cursor:pointer;color:var(--accent);font-size:.88rem}
 .pots td{vertical-align:middle}
 .pots td:first-child{min-width:16em}
 .nowrap{white-space:nowrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{border:0;background:var(--surface);padding:5px 14px;color:var(--muted)}
+.seg button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink)}
 .geartbl{table-layout:fixed;min-width:640px}
 .geartbl .c-item{width:36%}.geartbl .c-desc{width:40%}.geartbl .c-loc{width:14%}.geartbl .c-wt{width:5.5em}.geartbl .c-x{width:2.5em}
 .geartbl td input[type=text]{width:100%}
@@ -592,6 +595,8 @@ const DEFAULT={
   {item:'Map of Belhaim',desc:'',loc:'',wt:0},
   {item:'Map of Tal’Dorei',desc:'',loc:'',wt:0},
  ],
+ /* her Bag of Holding (type III on the paper sheet); each item belongs to one table (cat) */
+ boh:{type:'III',notes:'',items:[]},
  coins:{pp:51,gp:1589,sp:287,cp:820}, bank:'Ruby worth 100 gp',
  notes:'',
  traits:'',
@@ -1251,13 +1256,60 @@ function pConditions(){
    </section></div>`;
 }
 
+/* ---------- gear: two sub-tabs, what she wears and carries, and her Bag of Holding sorted into tables (as on Namfoodle's sheet) ---------- */
+let gearSub=(v=>['on','bag'].includes(v)?v:'on')(ls.get('vex-gearsub'));
+const BOH_CATS=[['wear','Wearable Items','Rings, amulets, cloaks and other things you put on'],['weapon','Weapons & Ammunition',''],['alch','Alchemical Items','Thrown flasks, oils, acid'],['armor','Armor & Shields',''],['wondrous','Wondrous Items & Curios','Magic items you use rather than wear, and odd finds'],['books','Books, Maps & Documents',''],['supplies','Supplies & Provisions','Food, water, light and travel gear'],['other','Other','']];
+const HIDE_EMPTY=['alch','armor','other'];
+const BOH_TYPES=[['I','Type I: holds 250 lb.'],['II','Type II: holds 500 lb.'],['III','Type III: holds 1,000 lb.'],['IV','Type IV: holds 1,500 lb.']];
+const BOH_LIM={I:250,II:500,III:1000,IV:1500},BOH_WT={I:15,II:25,III:35,IV:60};
+const inBagLoc=loc=>/^\s*in (?:the |her )?bag/i.test(loc||'');
+/* which table an item goes to, guessed from its name */
+function bohCat(nm){nm=String(nm||'').toLowerCase();
+  if(/map|book|journal|letter|note|scroll|diary|document/.test(nm))return 'books';
+  if(/arrow|bolt|bow|sword|dagger|axe|spear|blade|knife/.test(nm))return 'weapon';
+  if(/armor|armour|shield|breastplate|barding|scale|mail|plate/.test(nm))return 'armor';
+  if(/acid|oil|flask|tanglefoot|alchemist|sunrod|tindertwig|poison/.test(nm))return 'alch';
+  if(/ring|amulet|cloak|boots|crown|bracer|belt|glove|earring|circlet|necklace/.test(nm))return 'wear';
+  if(/torch|rope|water|ration|flint|bedroll|backpack|food|tent|blanket|lantern|pot|kit|candle|chalk|soap/.test(nm))return 'supplies';
+  return 'other';}
+function bohData(){const b=S.boh=S.boh||clone(DEFAULT.boh);b.items=b.items||[];return b}
+/* move one gear row into the bag, or one bag item back out to her equipment */
+function toBag(i){const g=S.gear[i];if(!g)return;S.gear.splice(i,1);bohData().items.push({cat:bohCat(g.item),item:g.item||'',qty:1,desc:g.desc||'',wt:n(g.wt)});dayLog(`Put ${g.item||'an item'} in the Bag of Holding`)}
+function fromBag(i){const B=bohData(),x=B.items[i];if(!x)return;B.items.splice(i,1);S.gear.push({item:x.item+(n(x.qty)>1?` (${n(x.qty)})`:''),desc:x.desc||'',loc:'',wt:n(x.wt)});dayLog(`Took ${x.item||'an item'} out of the Bag of Holding`)}
 function pGear(){
+  const seg=[['on','On Vex’ahlia'],['bag','Bag of Holding']];
+  const B=bohData(),sub={on:'What she wears and carries',bag:`Type ${B.type} · ${B.items.length} item${B.items.length===1?'':'s'} inside, sorted by kind`}[gearSub];
+  return `<div class="row" style="justify-content:space-between"><div class="seg" role="group" aria-label="Gear sections">${seg.map(([k,l])=>`<button data-act="gearSub" data-v="${k}" aria-pressed="${gearSub===k}">${l}</button>`).join('')}</div><span class="muted">${sub}</span></div>`
+    +(gearSub==='bag'?pBag():pOnHer());
+}
+function bohTables(items){
+  return BOH_CATS.map(([k,t,hint])=>{const rows=items.map((x,i)=>[x,i]).filter(([x])=>(BOH_CATS.some(c=>c[0]===x.cat)?x.cat:'other')===k);
+    if(HIDE_EMPTY.includes(k)&&!rows.length)return '';
+    return `<section class="panel"><header><h2>${t}</h2><span class="muted">${rows.length} item${rows.length===1?'':'s'}${hint?` · ${hint}`:''}</span></header>
+     <div class="scroll"><table class="geartbl" style="min-width:700px"><colgroup><col style="width:26%"><col style="width:5em"><col><col style="width:5em"><col style="width:10.5em"><col style="width:6.5em"><col class="c-x"></colgroup>
+     <thead><tr><th class="l">Item</th><th>Qty</th><th class="l">Notes</th><th>Wt</th><th class="l">Move to</th><th></th><th></th></tr></thead><tbody>
+     ${rows.map(([x,i])=>`<tr><td class="l">${txt(`boh.items.${i}.item`,{label:'Item'})}</td><td>${num(`boh.items.${i}.qty`,{w:'3.6em',label:'Quantity'})}</td><td class="l">${txt(`boh.items.${i}.desc`,{label:'Notes'})}</td>
+       <td>${num(`boh.items.${i}.wt`,{w:'3.8em',step:'0.25',rr:1,label:'Weight'})}</td><td class="l">${sel(`boh.items.${i}.cat`,BOH_CATS.map(c=>[c[0],c[1]]),{label:'Move to table'})}</td>
+       <td><button class="btn" data-act="fromBag" data-i="${i}" title="Take it out: it goes back to her equipment">Take out</button></td><td><button class="btn x" data-act="bohDel" data-i="${i}" aria-label="Remove ${esc(x.item||'item')}">✕</button></td></tr>`).join('')||`<tr><td colspan="7" class="muted">Nothing here yet.</td></tr>`}
+     </tbody></table></div><div class="row"><button class="btn" data-act="bohAdd" data-k="${k}">Add to ${t}</button></div></section>`}).join('');
+}
+function pBag(){
+  const B=bohData(),tot=B.items.reduce((a,x)=>a+n(x.wt),0),lim=BOH_LIM[B.type];
+  return `<section class="panel"><header><h2>Bag of Holding</h2><span class="muted">Hers · always weighs ${BOH_WT[B.type]||35} lb. on her back, however full</span></header>
+    <div class="row" style="align-items:end">${field('Bag type',sel('boh.type',BOH_TYPES,{label:'Bag of Holding type'}))}
+     <div class="field"><span class="lbl">Weight inside</span><b style="font-size:1.2rem">${Math.round(tot*100)/100} lb.${lim?` <span class="muted" style="font-size:.95rem">of ${lim.toLocaleString()}</span>`:''}</b><div class="hpbar"><i style="width:${lim?Math.min(100,tot/lim*100):0}%"${lim&&tot>lim?' class="low"':''}></i></div></div></div>
+    ${lim&&tot>lim?`<p class="note warn">That’s more than a type ${B.type} bag holds (${lim.toLocaleString()} lb.).</p>`:''}
+    <p class="note">Nothing in the bag counts toward her load. Taking something out is a move action. Never put the bag inside a portable hole or another extradimensional space. Her paper sheet says “Bag of Holding (lvl 3)”, so type III. To put something in, press “Bag” beside it on the On Vex’ahlia sub-tab, or set its location to “In bag”.</p>
+  </section>
+  ${bohTables(B.items)}
+  <section class="panel"><header><h2>Bag Notes</h2></header>${area('boh.notes',{rows:3,label:'Bag notes'})}</section>`;
+}
+function pOnHer(){
   const C=compute(true);
   const str=C.ab.str.sc;const heavy=str<=0?0:str<30?HEAVY[str]:(k=>HEAVY[str-10*k]*Math.pow(4,k))(Math.floor((str-20)/10));
   const sizeMul=[.125,.25,.5,.75,1,2,4,8,16][C.si];const H=heavy*sizeMul,Lt=Math.floor(H/3),Md=Math.floor(H*2/3);
   const coinWt=(n(S.coins.pp)+n(S.coins.gp)+n(S.coins.sp)+n(S.coins.cp))/50;
-  const inBag=g=>/^\s*in bag/i.test(g.loc||'');
-  const wt=S.gear.filter(g=>!inBag(g)).reduce((a,g)=>a+n(g.wt),0)+(S.coinsCarried?coinWt:0);
+  const wt=S.gear.reduce((a,g)=>a+n(g.wt),0)+(S.coinsCarried?coinWt:0);
   const load=wt<=Lt?'Light':wt<=Md?'Medium':wt<=H?'Heavy':'Overloaded';
   const arm=k=>`<div class="grid2">${field('Name',txt(`${k}.name`))}${field('AC bonus',num(`${k}.bonus`))}${k==='armor'?field('Max Dex',num(`${k}.maxDex`,{label:'Max Dex (blank = none)'})):''}${field('Check penalty',num(`${k}.acp`))}${k==='armor'?field('Speed in armor',num(`${k}.speed`,{rr:1,label:'Speed in armor (0 = normal)'})):''}</div>`;
   const pots=S.potions||[];const mxHp=hpMaxNow();
@@ -1272,7 +1324,7 @@ function pGear(){
      row('','Ring of Animal Friendship',0,'—','She casts charm animal (Will DC 14).'),
      row('','Animal Call',0,'Always','+2 on Survival checks to track animals.'),
      row('','Earring of Whisper',0,'At will','Communication, as the message cantrip.'),
-     row('','Bag of Holding (type III)',0,'—','Holds up to 1,000 lb. in 150 cubic ft. and always weighs 35 lb. Give items the location “In bag” to leave them out of her load.')].join('')}
+     row('','Bag of Holding (type III)',0,'—',`Holds up to 1,000 lb. in 150 cubic ft. and always weighs 35 lb. ${bohData().items.length} item${bohData().items.length===1?'':'s'} inside.`,`<button class="btn" data-act="gearSub" data-v="bag">Open</button>`)].join('')}
    </tbody></table></div></section>`;
   return `<section class="panel"><header><h2>Healing Potions</h2><span class="muted">HP ${n(S.hp.cur)} / ${mxHp} · roll the dice, type the total, press Drink</span></header>
    <div class="scroll"><table class="pots"><thead><tr><th class="l">Potion</th><th>Heals</th><th>Qty</th><th>Dice total</th><th></th><th></th></tr></thead><tbody>
@@ -1306,10 +1358,10 @@ function pGear(){
   ${acItemsPanel()}
   ${miPanel(C)}
   <section class="panel"><header><h2>Equipment</h2><span class="muted">${wt.toFixed(1)} lb. carried · ${load} load</span></header>
-    <div class="scroll"><table class="geartbl"><colgroup><col class="c-item"><col class="c-desc"><col class="c-loc"><col class="c-wt"><col class="c-x"></colgroup>
-    <thead><tr><th class="l">Item</th><th class="l">Description</th><th class="l">Location</th><th>Wt</th><th></th></tr></thead><tbody>
-    ${S.gear.map((g,i)=>`<tr${inBag(g)?' class="future"':''}><td class="l">${txt(`gear.${i}.item`,{w:'100%',label:'Item'})}</td><td class="l">${txt(`gear.${i}.desc`,{w:'100%',label:'Description'})}</td><td class="l">${txt(`gear.${i}.loc`,{w:'100%',label:'Location',rr:1})}</td><td>${num(`gear.${i}.wt`,{step:'0.25',rr:1,label:'Weight'})}</td><td><button class="btn x" data-act="delGear" data-i="${i}" aria-label="Remove item">✕</button></td></tr>`).join('')}
-    </tbody></table></div><div class="row"><button class="btn" data-act="addGear">Add item</button></div></section>
+    <div class="scroll"><table class="geartbl"><colgroup><col class="c-item"><col class="c-desc"><col class="c-loc"><col class="c-wt"><col style="width:4.6em"><col class="c-x"></colgroup>
+    <thead><tr><th class="l">Item</th><th class="l">Description</th><th class="l">Location</th><th>Wt</th><th></th><th></th></tr></thead><tbody>
+    ${S.gear.map((g,i)=>`<tr><td class="l">${txt(`gear.${i}.item`,{w:'100%',label:'Item'})}</td><td class="l">${txt(`gear.${i}.desc`,{w:'100%',label:'Description'})}</td><td class="l">${txt(`gear.${i}.loc`,{w:'100%',label:'Location',rr:1})}</td><td>${num(`gear.${i}.wt`,{step:'0.25',rr:1,label:'Weight'})}</td><td>${/bag of holding/i.test(g.item||'')?'':`<button class="btn" data-act="toBag" data-i="${i}" title="Put it in the Bag of Holding">Bag</button>`}</td><td><button class="btn x" data-act="delGear" data-i="${i}" aria-label="Remove item">✕</button></td></tr>`).join('')}
+    </tbody></table></div><div class="row"><button class="btn" data-act="addGear">Add item</button><button class="btn" data-act="gearSub" data-v="bag">Open the Bag of Holding (${bohData().items.length})</button></div></section>
   <div class="cols">
    <section class="panel"><header><h2>Carrying &amp; Coin</h2></header>
     <div class="kv"><label>Light</label><b>up to ${Lt} lb.</b><label>Medium</label><b>${Lt+1}–${Md} lb.</b><label>Heavy</label><b>${Md+1}–${H} lb.</b><label>Lift / drag</label><b>${H*2} / ${H*5} lb.</b></div>
@@ -1472,6 +1524,9 @@ function load(d){
     s.resist=String(s.resist||'').replace(/Dragon Breastplate/g,'Dawnforged Dragonscale');
     const g=s.gear.findIndex(x=>/dragon breastplate/i.test(x.item||''));if(g>=0)s.gear[g]=clone(DEFAULT.gear[0]);
     if(!/fortification/i.test(s.saveNotes||''))s.saveNotes=String(s.saveNotes||'')+'\nModerate fortification (Dawnforged Dragonscale): 50% chance to ignore a critical hit or sneak attack.';}
+  /* the Bag of Holding got its own sub-tab: equipment whose location says “in bag” moves into it */
+  s.boh=s.boh||clone(DEFAULT.boh);s.boh.items=s.boh.items||[];
+  s.gear=s.gear.filter(g=>{if(!inBagLoc(g.loc))return true;s.boh.items.push({cat:bohCat(g.item),item:g.item||'',qty:1,desc:g.desc||'',wt:n(g.wt)});return false});
   return s;
 }
 async function boot(){
@@ -1633,6 +1688,8 @@ document.addEventListener('input',e=>{const t=e.target;
   if(t.type==='checkbox'||t.tagName==='SELECT'){render()}else refresh();
   scheduleSave();});
 document.addEventListener('change',e=>{const t=e.target;
+  /* a location of “In bag” puts the item in the Bag of Holding */
+  const gm=t.dataset&&/^gear\.(\d+)\.loc$/.exec(t.dataset.p||'');if(gm&&inBagLoc(t.value)){toBag(+gm[1]);render();setStatus('Moved into the Bag of Holding (Gear & Notes › Bag of Holding)');scheduleSave();return;}
   if(t.dataset&&t.dataset.p&&t.hasAttribute('data-rr')&&t.tagName==='INPUT'&&t.type!=='checkbox'){const f=t.id;render();const el=document.getElementById(f);if(el)el.focus({preventScroll:true});}});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,i=+b.dataset.i,l=+b.dataset.l;
   const amt=id=>Math.max(0,Math.floor(n((document.getElementById(id)||{}).value)));
@@ -1647,6 +1704,11 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(
    case 'mvAtk':{const j=i+n(b.dataset.d);if(j<0||j>=S.attacks.length)return;const t=S.attacks[i];S.attacks[i]=S.attacks[j];S.attacks[j]=t;render();break;}
    case 'addItem':S[b.dataset.k].push({name:'',desc:'',uses:0});render();break;
    case 'delItem':S[b.dataset.k].splice(i,1);render();break;
+   case 'gearSub':gearSub=['on','bag'].includes(b.dataset.v)?b.dataset.v:'on';ls.set('vex-gearsub',gearSub);if(tab!=='gear'){tab='gear';ls.set('vex-tab',tab)}render();window.scrollTo({top:Math.min(window.scrollY,document.getElementById('tabs').offsetTop),behavior:'instant'});return;
+   case 'toBag':toBag(i);render();break;
+   case 'fromBag':fromBag(i);render();break;
+   case 'bohAdd':{const L=bohData().items;L.push({cat:b.dataset.k||'other',item:'',qty:1,desc:'',wt:0});render();const el=document.getElementById(`i-boh_items_${L.length-1}_item`);if(el)el.focus();break;}
+   case 'bohDel':{const L=bohData().items,x=L[i];if(!x)return;if(String(x.item||'').trim()&&!confirm(`Remove “${x.item}” for good?`))return;L.splice(i,1);render();break;}
    case 'addGear':S.gear.push({item:'',desc:'',loc:'',wt:0});render();break;
    case 'delGear':S.gear.splice(i,1);render();break;
    case 'use':{const k=b.dataset.k,u=n(S.used[k]);S.used[k]=(i===u-1)?u-1:i+1;
