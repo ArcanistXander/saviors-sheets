@@ -480,7 +480,7 @@ function setCond(id,on){const c=ALLC.find(x=>x.id===id);if(on&&c&&c.grp)ALLC.for
 /* ---------- default state: Owlbear Man's paper sheet (level 17) ---------- */
 const sk=(r,m=0,sub='')=>({ranks:r,misc:m,sub});
 const DEFAULT={
- v:1, levelLog:[],
+ v:2, levelLog:[],
  acItems:[{name:'Ring of Protection +4',slot:'Ring',type:'deflection',bonus:4,on:true}],
  /* the belt is worn here so Bull's Strength and Bear's Endurance don't stack with it; his paper's Str 20 and Con 20 include it */
  mitems:[{name:'Belt of Physical Might +4 (Str)',slot:'Belt',target:'str',bonus:4,type:'enh',on:true},{name:'Belt of Physical Might +4 (Con)',slot:'Belt',target:'con',bonus:4,type:'enh',on:true}],
@@ -502,16 +502,17 @@ const DEFAULT={
  armor:{name:'Mithral chain',bonus:8,maxDex:4,acp:0,fail:0,wt:0,speed:0},
  shield:{name:'',bonus:0,acp:0,fail:0,wt:0},
  init:{misc:0}, speedMisc:0,
- /* his paper's base saves are Fort +10, Ref +8, Will +6; the class tables give +12/+12/+5, so misc holds the difference */
- saves:{fort:{magic:3,misc:-2,temp:0},ref:{magic:3,misc:-4,temp:0},will:{magic:3,misc:1,temp:0}},
+ /* base saves from the class tables (+12/+12/+5); his paper had +10/+8/+6 */
+ saves:{fort:{magic:3,misc:0,temp:0},ref:{magic:3,misc:0,temp:0},will:{magic:3,misc:0,temp:0}},
  saveNotes:'Cloak of Resistance +3: in Magic.\nAlchemist 10: immune to poison (core rules; not written on his paper sheet).',
  resist:'', dr:'', sr:'',
- cmbAbil:'str', cmbMisc:0, cmdMisc:-5, grapMisc:2,
- skills:{acrobatics:sk(16),climb:sk(2),craft1:sk(13,11,'alchemy'),disable:sk(17,4),disguise:sk(10),escape:sk(5),heal:sk(10),intimidate:sk(17,4),
-  kEng:sk(17,5),kLoc:sk(17,2),perception:sk(17),sense:sk(15),sleight:sk(14),stealth:sk(17,3),survival:sk(12),swim:sk(2),umd:sk(12)},
+ cmbAbil:'str', cmbMisc:0, cmdMisc:0, grapMisc:2,
+ /* his paper has only totals; these ranks keep its priorities, scaled down to the 136 he has */
+ skills:{acrobatics:sk(10),climb:sk(1),craft1:sk(8,11,'alchemy'),disable:sk(11),disguise:sk(6),escape:sk(3),heal:sk(6),intimidate:sk(11),
+  kEng:sk(11),kLoc:sk(11),perception:sk(11),sense:sk(10),sleight:sk(9),stealth:sk(11),survival:sk(8),swim:sk(1),umd:sk(8)},
  attacks:[
-  {id:'knuckles',name:'Keen Bear Knuckles',kind:'melee',abil:'str',enh:2,misc:0,dice:'1d10',dmgAbil:'str',dmgMisc:-2,extra:'',crit:'19–20/×2',range:'',type:'B',uses:0,sa:true,
-   notes:'+2 keen. Paper sheet: 21/16/11, d10+5. The +2 enhancement would normally add to damage too (d10+7); misc dmg −2 keeps the paper’s number until the DM says otherwise.',desc:''},
+  {id:'knuckles',name:'Keen Bear Knuckles',kind:'melee',abil:'str',enh:2,misc:0,dice:'1d10',dmgAbil:'str',dmgMisc:0,extra:'',crit:'19–20/×2',range:'',type:'B',uses:0,sa:true,
+   notes:'+2 keen. The +2 enhancement adds to attack and damage. His paper sheet had d10+5.',desc:''},
   {id:'arang',name:'Owlbear-arang',kind:'ranged',abil:'dex',enh:5,misc:1,dice:'1d10',dmgAbil:'str',dmgMisc:0,extra:'',crit:'×2',range:'20 ft. thrown',type:'',uses:0,sa:true,
    notes:'+5 returning: it flies back to his hand. Weapon Focus +1 is in misc. Point Blank Shot adds +1 within 30 ft. (not counted). Paper sheet: 24/19/14, d10+10.',desc:''},
   {id:'shower',name:'Startoss Shower',kind:'ranged',abil:'dex',enh:5,misc:1,dice:'1d10',dmgAbil:'str',dmgMisc:4,extra:'',crit:'×2',range:'20 ft. thrown',type:'',uses:0,sa:true,once:true,
@@ -547,7 +548,7 @@ const DEFAULT={
  ],
  ov:{},
  formulae:{1:['Shield','Heightened Awareness','Long Arm','True Strike'],2:['Alchemical Allocation','See Invisibility','Barkskin'],3:['Displacement','Fly','Heroism'],4:['Echolocation','Freedom of Movement','Death Ward']},
- spells:{1:[],2:[],3:[],4:[]}, spOv:{2:6,4:3},
+ spells:{1:[],2:[],3:[],4:[]}, spOv:{},
  mutKind:'str', mflexFeats:'',
  used:{hero:0}, cond:{}, neg:0,
  /* the tumor familiar: a tiny mechanical robin */
@@ -574,8 +575,9 @@ const DEFAULT={
  history:'Owlbear Man is the masked identity of Lord Aris Thorne.',
  art:null
 };
-/* prepared at the start: one of each formula in his book; the rest of the slots are left for him to fill */
-[1,2,3,4].forEach(l=>DEFAULT.spells[l]=DEFAULT.formulae[l].map(nm=>({n:nm,c:false,d:''})));
+/* prepared at the start: one of each formula in his book, as many as fit (6/5/5/2); the rest of the slots are left for him to fill */
+const SLOTS17=[6,5,5,2];
+[1,2,3,4].forEach(l=>DEFAULT.spells[l]=DEFAULT.formulae[l].slice(0,SLOTS17[l-1]).map(nm=>({n:nm,c:false,d:''})));
 
 /* ---------- state + helpers ---------- */
 const clone=o=>JSON.parse(JSON.stringify(o));
@@ -867,7 +869,7 @@ function pOverview(){
     <div class="ctile"><span class="lbl">Extracts</span><b class="v">CL ${out('cl')}</b><small class="muted">DC ${out('dc.1')}–${out('dc.4')}</small></div>
     <div class="ctile"><span class="lbl">Size</span>${sel('info.size',SIZES,{label:'Size'})}<small class="muted">${C.M.flags.enlarge?'Enlarged: one size up':'Medium: no modifiers'}</small></div>
    </div>
-   <p class="note">Paper sheet: melee +19, ranged +18, CMB +19 (+21 to grapple), CMD 32 (34 against grapples). The paper’s CMD leaves out his Strength; under the Core Rulebook it would be 37, so CMD misc holds −5 to keep the paper’s number. Ask the DM which to use.</p>
+   <p class="note">CMD is 10 + base attack + Str + Dex + deflection: 37 (39 against grapples). His paper sheet said 32, leaving out his Strength. Paper sheet: melee +19, ranged +18, CMB +19 (+21 to grapple).</p>
   </section>
   <section class="panel"><header><h2>Identity</h2></header>
    <div class="grid2">
@@ -889,9 +891,10 @@ function pOverview(){
    </div>
    ${lastSummary||`<div class="summary"><h3>Level 17, from his paper sheet</h3><ul>
     <li>Brawler 6 / Alchemist 11. Hit points <b>138</b>, base attack <b>+14/+9/+4</b>.</li>
-    <li>Base saves on the paper are Fort +10, Ref +8, Will +6. The class tables give +12 / +12 / +5, so the misc boxes on the Saving Throws tab hold the difference. Ask the DM which is right.</li>
-    <li>Extracts per day 6 / 6 / 5 / 3, as on the paper. The alchemist table with Int 16 gives 6 / 5 / 5 / 2 (Alchemy tab, slot overrides).</li>
-    <li>His paper sheet only has skill totals. The ranks on the Skills tab reproduce them, but add up to more than he has; redo them when you can.</li></ul></div>`}
+    <li>Saves from the class tables: Fort <b>+20</b>, Ref <b>+19</b>, Will <b>+10</b> (his paper had +18 / +15 / +11).</li>
+    <li>CMD <b>37</b> with his Strength (paper: 32). Keen Bear Knuckles <b>d10+7</b> (paper: d10+5).</li>
+    <li>Extracts per day <b>6 / 5 / 5 / 2</b> from the alchemist table and Int 16 (paper: 6 / 6 / 5 / 3).</li>
+    <li>Skill ranks rebuilt to fit his <b>136</b> (Skills tab).</li></ul></div>`}
   </section>
   <section class="panel"><header><h2>Classes &amp; Levels</h2><span class="muted">Pick a preset to fill in hit die, BAB, saves, skill points and class skills</span></header>
    <div class="scroll"><table><thead><tr><th class="l">Preset</th><th class="l">Name</th><th>Level</th><th>HD</th><th>BAB</th><th>Fort</th><th>Ref</th><th>Will</th><th>Prestige</th><th>Skills/lvl</th><th></th></tr></thead><tbody>${cls}</tbody></table></div>
@@ -914,7 +917,7 @@ function pSkills(){
   return `<section class="panel"><header><h2>Skills</h2>
     <span class="counter">Ranks spent <b id="spent" data-o="sk.spent"></b> of <b data-o="sk.avail"></b> · max ${out('lvl')} per skill</span></header>
    <div class="scroll"><table class="skilltbl"><thead><tr><th>Class</th><th class="l">Skill</th><th>Key</th><th>Total</th><th></th><th>Ability</th><th></th><th>Ranks</th><th></th><th>Class</th><th></th><th>Misc</th><th></th><th title="Armor check penalty, size and conditions">Other</th></tr></thead><tbody>${rows}</tbody></table></div>
-   <p class="note warn">His paper sheet lists only skill totals (Acrobatics 23, Climb 10, Craft (alchemy) 30, Disable Device 28, Disguise 10, Escape Artist 12, Heal 15, Intimidate 24, Knowledge (engineering) 25, Knowledge (local) 25, Perception 22, Sense Motive 20, Sleight of Hand 21, Stealth 24, Survival 17, Swim 10, Use Magic Device 15). The ranks here are filled in to match them, with the rest in Misc where a skill would need more than 17 ranks, and they add up to more than his ${out('sk.avail')} ranks. Redo them when you have his real ranks or bonuses.</p>
+   <p class="note">His paper sheet lists only skill totals (Acrobatics 23, Climb 10, Craft (alchemy) 30, Disable Device 28, Disguise 10, Escape Artist 12, Heal 15, Intimidate 24, Knowledge (engineering) 25, Knowledge (local) 25, Perception 22, Sense Motive 20, Sleight of Hand 21, Stealth 24, Survival 17, Swim 10, Use Magic Device 15). Those totals need 213 ranks and he has ${out('sk.avail')}, so every skill’s ranks were scaled down by the same share: his priorities stay the same, and the totals come out lower than on paper. Move ranks around as you like, up to 17 in a skill.</p>
    <p class="note">Craft (alchemy) misc holds +11 from Alchemy (his alchemist level). Ranks available: 4 + Int per level in both classes, plus 1 per level from the human Skilled trait. The mutagen’s −2 Int lowers his Int-based skills by 1 while it lasts.</p>
   </section>`;
 }
@@ -926,7 +929,7 @@ function pSaves(){
    <div class="scroll"><table><thead><tr><th class="l">Save</th><th>Total</th><th></th><th>Base</th><th></th><th>Ability</th><th></th><th>Magic</th><th></th><th>Misc</th><th></th><th>Temp</th><th></th><th>Conditions</th></tr></thead><tbody>
    ${['fort','ref','will'].map(s=>`<tr><td class="l"><b>${nm[s][0]}</b> <span class="muted">(${nm[s][1]})</span></td><td class="tot" data-o="sv.${s}"></td><td class="op">=</td><td data-o="sv.${s}.base"></td><td class="op">+</td><td data-o="sv.${s}.ab"></td><td class="op">+</td><td>${num(`saves.${s}.magic`,{label:nm[s][0]+' magic'})}</td><td class="op">+</td><td>${num(`saves.${s}.misc`,{label:nm[s][0]+' misc'})}</td><td class="op">+</td><td>${num(`saves.${s}.temp`,{label:nm[s][0]+' temp'})}</td><td class="op">+</td><td data-o="sv.${s}.cond"></td></tr>`).join('')}
    </tbody></table></div>
-   <p class="note warn">Paper sheet: Fort +18, Ref +15, Will +11, from base saves of +10 / +8 / +6. Brawler and alchemist both have good Fortitude and Reflex, so the class tables give +12 / +12 / +5. Misc holds −2 / −4 / +1 to keep the paper’s totals. Set misc to 0 if the DM goes with the tables (Fort +20, Ref +19, Will +10).</p></section>
+   <p class="note">Brawler and alchemist both have good Fortitude and Reflex, so the class tables give base saves of +12 / +12 / +5. His paper sheet had +10 / +8 / +6 (Fort +18, Ref +15, Will +11).</p></section>
   <div class="cols">
    <section class="panel"><header><h2>Base Save by Class</h2></header>
     <div class="scroll"><table><thead><tr><th class="l">Class</th><th>Fort</th><th>Ref</th><th>Will</th></tr></thead><tbody>${breakdown}</tbody></table></div>
@@ -1024,7 +1027,7 @@ function pAlchemy(){
       <input type="text" list="ex-${l}" id="fadd-${l}" placeholder="Add a formula" aria-label="Add a ${ORD[l-1]}-level formula" style="width:11em"><button class="btn" data-act="fAdd" data-l="${l}">Add</button></div></div>`}).join('')}
   </section>`;
   return `${lists}<section class="panel"><header><h2>Alchemy</h2><span class="muted">Caster level ${cl} (alchemist ${levels().alch}) · Intelligence ${C.ab.int.sc} (${sg(C.ab.int.mod)})</span><button class="btn" data-act="spRest" style="margin-left:auto">Brew again (new day)</button></header>
-   <p class="note" style="margin:0">Each morning he brews his extracts. Press Drink when one is used. With Infusion an ally can drink it too, so the sheet asks who drinks it and the DM’s tracker times it. Shield, Barkskin, Heroism, Fly, Displacement and the other buffs switch on here when he drinks them himself. Paper sheet: 6 / 6 / 5 / 3 a day.</p>
+   <p class="note" style="margin:0">Each morning he brews his extracts. Press Drink when one is used. With Infusion an ally can drink it too, so the sheet asks who drinks it and the DM’s tracker times it. Shield, Barkskin, Heroism, Fly, Displacement and the other buffs switch on here when he drinks them himself. 6 / 5 / 5 / 2 a day from the alchemist table and Int 16 (his paper sheet said 6 / 6 / 5 / 3).</p>
   </section>${mut}<div class="cols">${panels}</div>${book}<div class="cols">${robinPanel()}${dmPanel()}</div>`;
 }
 function castTargets(nm,selfId,desc){
@@ -1325,8 +1328,23 @@ async function flush(){
   saving=false;if(dirty&&!readOnly)flush();
 }
 const newId=()=>'w'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+/* version 2 moves from his paper's numbers to the rules (saves, CMD, knuckle damage, extracts per day, skill ranks).
+   A sheet saved under version 1 changes only where it still holds the old paper value, so later edits stay. */
+const V1_SKILLS={acrobatics:[16,0],climb:[2,0],craft1:[13,11],disable:[17,4],disguise:[10,0],escape:[5,0],heal:[10,0],intimidate:[17,4],
+ kEng:[17,5],kLoc:[17,2],perception:[17,0],sense:[15,0],sleight:[14,0],stealth:[17,3],survival:[12,0],swim:[2,0],umd:[12,0]};
+function toV2(s){
+  [['fort',-2],['ref',-4],['will',1]].forEach(([k,v])=>{if(n(s.saves[k].misc)===v)s.saves[k].misc=0});
+  if(n(s.cmdMisc)===-5)s.cmdMisc=0;
+  const kn=s.attacks.find(a=>a.id==='knuckles');if(kn&&n(kn.dmgMisc)===-2){kn.dmgMisc=0;kn.notes=DEFAULT.attacks[0].notes}
+  if(n((s.spOv||{})[2])===6)s.spOv[2]='';if(n((s.spOv||{})[4])===3)s.spOv[4]='';
+  const P=s.spells[4]||[];if(P.length===3&&P.every((x,i)=>!x.c&&x.n===DEFAULT.formulae[4][i]))P.pop();
+  Object.keys(V1_SKILLS).forEach(k=>{const x=s.skills[k],[r,m]=V1_SKILLS[k],d=DEFAULT.skills[k];
+    if(x&&n(x.ranks)===r&&n(x.misc)===m){x.ranks=d.ranks;x.misc=d.misc}});
+  s.v=2;
+}
 function load(d){
   const s=merge(DEFAULT,d||{});
+  if(d&&n(d.v)<2)toV2(s);
   s.attacks.forEach(a=>{if(!a.id)a.id=newId()});
   [1,2,3,4,5,6].forEach(l=>{if(!Array.isArray(s.spells[l]))s.spells[l]=[];if(!Array.isArray(s.formulae[l]))s.formulae[l]=[]});
   return s;
