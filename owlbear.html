@@ -435,12 +435,14 @@ const CONDS=[
  {id:'stunned',n:'Stunned',e:'Drops what he holds, can’t act, −2 AC and loses Dex to AC.',fx:[['ac',-2]],fl:['loseDex']},
 ];
 const sneakDice=()=>Math.floor((levels().alch+1)/2);
+/* Strangle (strangler brawler): extra sneak attack dice against a foe he's grappling; 2d6 at brawler 6 */
+const strangleDice=()=>{const b=levels().brawler;return b>=15?4:b>=8?3:b>=2?2:b>=1?1:0};
 /* sec: which group the card sits in on the Conditions tab */
 const BUFFS=[
  {id:'mutagen',sec:'alc',n:()=>`Mutagen (${MUT_KINDS[mutKind()][0]})`,e:()=>{const m=MUT_KINDS[mutKind()];return `+4 alchemical bonus to ${m[0]}, +2 natural armor, −2 ${m[3]}. ${10*levels().alch} minutes (10 per alchemist level).`},
   fx:()=>{const m=MUT_KINDS[mutKind()];return [[m[1],4,'alchemical'],['acNat',2,'mutagen'],[m[2],-2,'mutagen']]}},
- {id:'sneak',n:()=>`Sneak attack (+${sneakDice()}d6)`,e:()=>`The foe is flanked or denied its Dex bonus: +${sneakDice()}d6 on his knuckles, -arang and grapple gun (thrown or fired from within 30 ft.).`,fl:['sneak']},
- {id:'grapfoe',n:'His foe is grappled',e:'His paper sheet: sneak attack deals +2d6 more against a grappled foe (the Owlbear Hug’s 8d6).',fl:['grapfoe']},
+ {id:'sneak',n:()=>`Sneak attack (+${sneakDice()}d6)`,e:()=>`The foe is flanked or denied its Dex bonus: +${sneakDice()}d6 on his knuckles, -arang and grapnel (thrown or fired from within 30 ft.). Bleeding Attack: the target also bleeds 1 a round per die.`,fl:['sneak']},
+ {id:'grapfoe',n:()=>`Grappling his foe (Strangle +${strangleDice()}d6)`,e:()=>`Strangle: +${strangleDice()}d6 more sneak attack against a foe he’s grappling (the Owlbear Hug’s 8d6), and he counts as flanking it.`,fl:['grapfoe']},
  {id:'flanking',n:'Flanking (Dirty Fighting)',e:'His paper sheet: Dirty Fighting makes his flanking bonus +4 on melee attacks.',fx:[['atkMelee',4,'flank']]},
  {id:'mflex',n:()=>`Martial Flexibility${String(S.mflexFeats||'').trim()?`: ${S.mflexFeats}`:''}`,e:'Two combat feats he doesn’t have, for 1 minute. Write which ones on the Class Abilities tab.'},
  {id:'haste',n:'Haste',e:'+1 attack, +1 dodge AC and Reflex, +30 ft. speed, one extra attack on a full attack.',fx:[['atk',1,'haste'],['acDodge',1,'dodge'],['ref',1,'dodge'],['speed',30,'enh']]},
@@ -480,66 +482,68 @@ function setCond(id,on){const c=ALLC.find(x=>x.id===id);if(on&&c&&c.grp)ALLC.for
 /* ---------- default state: Owlbear Man's paper sheet (level 17) ---------- */
 const sk=(r,m=0,sub='')=>({ranks:r,misc:m,sub});
 const DEFAULT={
- v:2, levelLog:[],
+ v:3, levelLog:[],
  acItems:[{name:'Ring of Protection +4',slot:'Ring',type:'deflection',bonus:4,on:true}],
- /* the belt is worn here so Bull's Strength and Bear's Endurance don't stack with it; his paper's Str 20 and Con 20 include it */
+ /* the belt is worn here so Bull's Strength and Bear's Endurance don't stack with it; his Str 20 and Con 20 include it */
  mitems:[{name:'Belt of Physical Might +4 (Str)',slot:'Belt',target:'str',bonus:4,type:'enh',on:true},{name:'Belt of Physical Might +4 (Con)',slot:'Belt',target:'con',bonus:4,type:'enh',on:true}],
  potions:[{name:'Superior healing potion',dice:'8d8',bonus:8,qty:4},{name:'Moderate healing potion',dice:'4d8',bonus:4,qty:4},{name:'Cure Serious Wounds',dice:'3d8',bonus:5,qty:10}],
  belt:[
-  {name:'Banshee-arang',qty:6,desc:'Thrown: 4d6 sonic damage. Fortitude DC 18 or stunned.',verb:'Throw'},
-  {name:'Cryoresin',qty:5,desc:'Reflex DC 20 or restrained in frozen resin (the resin has 30 HP).',verb:'Throw'},
+  {name:'Banshee-arang',qty:6,desc:'Sonic burst: 4d6 sonic damage. Fortitude DC 18 or stunned and deafened.',verb:'Throw'},
+  {name:'Cryoresin',qty:5,desc:'Reflex DC 20 or glued to the floor (a flier plummets). The resin has 30 HP.',verb:'Throw'},
   {name:'Glareshell',qty:4,desc:'Flashbang: Fortitude DC 20 or blinded for 1d4 rounds.',verb:'Throw'},
-  {name:'Smoke pellets',qty:15,desc:'A fog cloud fills a 10-ft. cube for 1d4 rounds.',verb:'Throw'},
-  {name:'Trueform Darts',qty:3,desc:'20-ft. range. Will DC 25 or the target is stuck in its natural form (no shapechanging).',verb:'Throw'},
-  {name:'Lead-lined Net',qty:1,desc:'Thrown over a foe, it stops spells with somatic components. Kept in his bag.',verb:'Throw'}],
+  {name:'Smoke pellets',qty:15,desc:'An instant fog cloud fills a 10-ft. cube for 1d4 rounds, cover for Stealth.',verb:'Throw'},
+  {name:'Trueform Darts',qty:3,desc:'Ranged touch, thrown, 20 ft. Will DC 25 or the target reverts to its natural form and can’t use wild shape, beast shape or any polymorph for 11 rounds.',verb:'Throw'},
+  {name:'Lead-lined Net',qty:1,desc:'No spells with somatic components inside the net. Kept in his bag.',verb:'Throw'}],
  info:{name:'Owlbear Man',alias:'Lord Aris Thorne',player:'Austin',race:'Human',alignment:'Lawful Neutral',deity:'',size:'Medium',gender:'Male',age:'',height:'6′6½″',weight:'220 lb.',hair:'',eyes:'',speed:30,
-  languages:'Common, Thieves’ Cant',xp:'DM says when',campaign:'Tal’Dorei Campaign',homeland:''},
- classes:[Object.assign({preset:'Brawler',level:6},PRESETS.Brawler),Object.assign({preset:'Alchemist',level:11},PRESETS.Alchemist)],
+  languages:'Common, Thieves’ Cant',xp:'DM says when',campaign:'Tal’Dorei Campaign',homeland:'',role:'Tactical infiltrator, anti-mage lockdown, ricochet striker'},
+ /* the strangler archetype adds Stealth to the brawler's class skills */
+ classes:[Object.assign({preset:'Brawler',level:6},PRESETS.Brawler,{name:'Brawler (Strangler)',skills:PRESETS.Brawler.skills+', Stealth'}),Object.assign({preset:'Alchemist',level:11},PRESETS.Alchemist,{name:'Alchemist (Vivisectionist)'})],
  fcbHp:0, fcbSkill:0, raceSkill:17,
  ab:{str:{base:16,temp:0},dex:{base:18,temp:0},con:{base:16,temp:0},int:{base:16,temp:0},wis:{base:14,temp:0},cha:{base:10,temp:0}},
- hp:{mode:'manual',max:138,cur:138,temp:0,nl:0,misc:0,conAdj:0},
+ /* 6d10 + 11d8 + Con at the standard average (max on the first die): 180 */
+ hp:{mode:'auto',max:138,cur:180,temp:0,nl:0,misc:0,conAdj:0},
  ac:{natural:0,deflection:0,dodge:0,misc:0},
- armor:{name:'Mithral chain',bonus:8,maxDex:4,acp:0,fail:0,wt:0,speed:0},
+ armor:{name:'Owlbear Suit (+4 shadow slick mithral chain shirt)',bonus:8,maxDex:6,acp:0,fail:10,wt:0,speed:0},
  shield:{name:'',bonus:0,acp:0,fail:0,wt:0},
  init:{misc:0}, speedMisc:0,
  /* base saves from the class tables (+12/+12/+5); his paper had +10/+8/+6 */
  saves:{fort:{magic:3,misc:0,temp:0},ref:{magic:3,misc:0,temp:0},will:{magic:3,misc:0,temp:0}},
- saveNotes:'Cloak of Resistance +3: in Magic.\nAlchemist 10: immune to poison (core rules; not written on his paper sheet).',
+ saveNotes:'Cloak of Resistance +3: in Magic.\nPreserve Organs (discovery): 25% chance to negate a critical hit or sneak attack (roll it on the Saving Throws tab).\nAlchemist 10: immune to poison (core rules).',
  resist:'', dr:'', sr:'',
  cmbAbil:'str', cmbMisc:0, cmdMisc:0, grapMisc:2,
- /* his paper has only totals; these ranks keep its priorities, scaled down to the 136 he has */
- skills:{acrobatics:sk(10),climb:sk(1),craft1:sk(8,11,'alchemy'),disable:sk(11),disguise:sk(6),escape:sk(3),heal:sk(6),intimidate:sk(11),
-  kEng:sk(11),kLoc:sk(11),perception:sk(11),sense:sk(10),sleight:sk(9),stealth:sk(11),survival:sk(8),swim:sk(1),umd:sk(8)},
+ /* his paper has only totals; these ranks keep its priorities, scaled down to the 136 he has. The Owlbear Suit's +5 is in Stealth and Escape Artist misc */
+ skills:{acrobatics:sk(10),climb:sk(1),craft1:sk(8,11,'alchemy'),disable:sk(11),disguise:sk(6),escape:sk(3,5),heal:sk(6),intimidate:sk(11),
+  kEng:sk(11),kLoc:sk(11),perception:sk(11),sense:sk(10),sleight:sk(9),stealth:sk(11,5),survival:sk(8),swim:sk(1),umd:sk(8)},
  attacks:[
   {id:'knuckles',name:'Keen Bear Knuckles',kind:'melee',abil:'str',enh:2,misc:0,dice:'1d10',dmgAbil:'str',dmgMisc:0,extra:'',crit:'19–20/×2',range:'',type:'B',uses:0,sa:true,
-   notes:'+2 keen. The +2 enhancement adds to attack and damage. His paper sheet had d10+5.',desc:''},
-  {id:'arang',name:'Owlbear-arang',kind:'ranged',abil:'dex',enh:5,misc:1,dice:'1d10',dmgAbil:'str',dmgMisc:0,extra:'',crit:'×2',range:'20 ft. thrown',type:'',uses:0,sa:true,
-   notes:'+5 returning: it flies back to his hand. Weapon Focus +1 is in misc. Point Blank Shot adds +1 within 30 ft. (not counted). Paper sheet: 24/19/14, d10+10.',desc:''},
-  {id:'shower',name:'Startoss Shower',kind:'ranged',abil:'dex',enh:5,misc:1,dice:'1d10',dmgAbil:'str',dmgMisc:4,extra:'',crit:'×2',range:'20 ft. thrown',type:'',uses:0,sa:true,once:true,
-   notes:'One Owlbear-arang throw that ricochets: Startoss Comet carries it to a second foe, Startoss Shower to a third and fourth. Each target gets its own attack roll. Paper sheet: +24, d10+14, up to 4 targets.',desc:''},
+   notes:'+2 keen gauntlets. The +2 enhancement adds to attack and damage (the official build lists d10+5, d10+7 with the mutagen).',desc:''},
+  {id:'arang',name:'Owlbear-arang',kind:'ranged',abil:'dex',enh:5,misc:1,dice:'1d10',dmgAbil:'str',dmgMisc:0,extra:'',crit:'×2',range:'20 ft. thrown',type:'S',uses:0,sa:true,
+   notes:'+5 returning impact heavy flying blade: it flies back to his hand. Weapon Focus +1 is in misc. Point Blank Shot adds +1 within 30 ft. (not counted).',desc:''},
+  {id:'shower',name:'Startoss Shower',kind:'ranged',abil:'dex',enh:5,misc:1,dice:'1d10',dmgAbil:'str',dmgMisc:6,extra:'',crit:'×2',range:'20 ft. thrown',type:'S',uses:0,sa:true,once:true,
+   notes:'Standard action: one Owlbear-arang throw at +24. On a hit it deals its damage (and sneak attack) and ricochets to a 2nd, 3rd and 4th target within one range increment, each with its own attack roll. +6 damage on every hit from the Startoss feats (in misc dmg).',desc:''},
   {id:'hug',name:'Owlbear Hug',kind:'melee',abil:'str',enh:0,misc:0,dice:'8d6',dmgAbil:'none',dmgMisc:0,extra:'',crit:'—',range:'',type:'grapple',uses:0,once:true,grap:true,
-   notes:'A grapple check (CMB vs grapple, with Improved Grapple’s +2). Paper sheet: +21, +8d6 (his sneak attack 6d6 and +2d6 against a grappled foe). Greater Grapple lets him keep the grapple as a move action, so he can squeeze twice a round.',desc:''},
-  {id:'gun',name:'MW Grapple Gun',kind:'ranged',abil:'dex',enh:0,misc:1,dice:'1d6',dmgAbil:'none',dmgMisc:1,extra:'',crit:'×2',range:'30 ft.',type:'',uses:0,sa:true,
-   notes:'Masterwork (+1 attack, in misc). Paper sheet: d6+1. A target it hits is tethered and he can drag or reposition it; DC 25 Escape Artist or Strength check to break free.',desc:''},
-  {id:'bands',name:'Iron Bands',kind:'ranged',abil:'dex',enh:0,misc:0,dice:'',dmgAbil:'none',dmgMisc:0,extra:'restrained (DC 30 Escape Artist)',crit:'—',range:'15 ft.',type:'touch',uses:1,once:true,
-   notes:'Paper sheet: +18, range 15 ft. The target is restrained until it escapes (DC 30 Escape Artist). Iron bands of binding work once a day (core rules).',desc:''},
+   notes:'A grapple check (CMB vs grapple, with Improved Grapple’s +2). When he maintains the grapple or pins, it automatically deals +8d6 sneak attack: 6d6 vivisectionist and 2d6 Strangle. Greater Grapple lets him maintain as a move action, so he can squeeze twice a round.',desc:''},
+  {id:'gun',name:'Masterwork Grapnel',kind:'ranged',abil:'dex',enh:0,misc:1,dice:'1d6',dmgAbil:'none',dmgMisc:0,extra:'',crit:'×2',range:'30 ft.',type:'',uses:0,sa:true,
+   notes:'Masterwork (+1 attack, in misc). Hardness 10, 20 HP. A target it hits is tethered to him and open to drag or reposition; DC 25 Acrobatics or Strength check to escape.',desc:''},
+  {id:'bands',name:'Iron Bands of Bilarro',kind:'ranged',abil:'dex',enh:0,misc:0,dice:'',dmgAbil:'none',dmgMisc:0,extra:'restrained and helpless (DC 20 Str or DC 30 Escape Artist)',crit:'—',range:'15 ft.',type:'touch',uses:1,once:true,
+   notes:'Standard action, ranged touch. On a hit the target is restrained and helpless until it breaks free (DC 20 Strength or DC 30 Escape Artist). Once a day (core rules).',desc:''},
  ],
- atkNotes:'Sneak attack: +6d6 within 30 ft. against a flanked or flat-footed foe, +2d6 more if it’s grappled (paper sheet). Turn it on at the top of the sheet.\nCombat Reflexes: 5 attacks of opportunity a round (1 + Dex).\nPrecise Shot: no −4 for throwing into melee.\nQuick Draw: draws an -arang as a free action, so he throws his full number of attacks.\nRanged Trip: he can trip with a thrown weapon.\nImproved Grapple: +2 on grapple checks and to CMD against grapples, no attack of opportunity. Greater Grapple: maintain as a move action.',
+ atkNotes:'Sneak attack: +6d6 within 30 ft. against a flanked or flat-footed foe, +2d6 more (Strangle) against a foe he’s grappling. Bleeding Attack: every sneak attack also bleeds 1 a round per sneak attack die. Turn it on at the top of the sheet.\nCombat Reflexes: 5 attacks of opportunity a round (1 + Dex).\nPrecise Shot: no −4 for throwing into melee.\nQuick Draw: draws weapons and gadgets as a free action.\nRanged Trip: he can trip with a ranged attack.\nImproved Grapple: +2 on grapple checks and to CMD against grapples, no attack of opportunity. Greater Grapple: maintain as a move action.',
  feats:[
-  {name:'Point Blank Shot',desc:'+1 on attack and damage rolls with ranged attacks within 30 ft. (not in the paper’s totals).'},
+  {name:'Point Blank Shot',desc:'+1 on attack and damage rolls with ranged attacks within 30 ft. (not in the totals).'},
   {name:'Precise Shot',desc:'No −4 penalty for throwing or shooting into melee.'},
-  {name:'Weapon Focus (Owlbear-arang)',desc:'+1 on attack rolls with it (counted in its misc).'},
-  {name:'Quick Draw',desc:'Draw a weapon as a free action. With thrown weapons he gets his full number of attacks.'},
-  {name:'Startoss Style',desc:'Paper sheet: +2 damage with thrown weapons.'},
-  {name:'Startoss Comet',desc:'Paper sheet: ricochet. A thrown attack bounces on to a second target.'},
-  {name:'Startoss Shower',desc:'Paper sheet: the ricochet carries on to a 3rd and 4th target (Startoss Shower on the Attacks tab).'},
+  {name:'Weapon Focus (heavy flying blade)',desc:'+1 on attack rolls with the Owlbear-arang (counted in its misc).'},
+  {name:'Quick Draw',desc:'Draw weapons and gadgets as a free action.'},
+  {name:'Startoss Style',desc:'+2 damage with a thrown weapon.'},
+  {name:'Startoss Comet',desc:'The thrown weapon ricochets to a 2nd target.'},
+  {name:'Startoss Shower',desc:'The ricochet carries on to a 3rd and 4th target (Startoss Shower on the Attacks tab: +6 damage on every hit from the style feats).'},
   {name:'Improved Grapple',desc:'+2 on checks to grapple and to CMD against grapples. Grappling doesn’t provoke attacks of opportunity.'},
-  {name:'Greater Grapple',desc:'Maintaining a grapple is a move action, so he can make two grapple checks a round. Under the Core Rulebook it adds another +2 on grapple checks, which his paper sheet doesn’t count.'},
-  {name:'Ranged Trip',desc:'Paper sheet: he can trip with a thrown weapon.'},
-  {name:'Dirty Fighting',desc:'Paper sheet: +4 flank bonus (the Flanking card at the top uses it).'},
-  {name:'Combat Reflexes',desc:'1 + Dex extra attacks of opportunity: 5 a round. Paper sheet: “+4 Attack of opp.”'},
+  {name:'Greater Grapple',desc:'Maintaining a grapple is a move action, so he can make two grapple checks a round. Under the Core Rulebook it adds another +2 on grapple checks, which isn’t counted here.'},
+  {name:'Ranged Trip',desc:'He can make trip attempts with ranged attacks.'},
+  {name:'Dirty Fighting',desc:'Counts as having Int 13 and Combat Expertise for combat maneuver prerequisites, and raises his flanking bonus (the Flanking button at the top uses +4).'},
+  {name:'Combat Reflexes',desc:'Extra attacks of opportunity equal to his Dex modifier: 5 a round.'},
  ],
- profs:'Brawler: simple weapons, handaxe, short sword and the close weapon group; light armor and shields (not tower shields). Alchemist: simple weapons and bombs; light armor. Mithral chain counts as light armor.',
+ profs:'Brawler: simple weapons, handaxe, short sword and the close weapon group; light armor and shields (not tower shields). Alchemist: simple weapons and bombs; light armor. The mithral chain shirt is light armor.',
  special:[],
  racial:[
   {name:'Bonus Feat',desc:'One extra feat at 1st level.',uses:0},
@@ -551,15 +555,15 @@ const DEFAULT={
  spells:{1:[],2:[],3:[],4:[]}, spOv:{},
  mutKind:'str', mflexFeats:'',
  used:{hero:0}, cond:{}, neg:0,
- /* the tumor familiar: a tiny mechanical robin */
- comp:{name:'Robin',kind:'Tumor familiar (tiny mechanical robin)',attached:true,hp:69,hpMax:69,
-  notes:'From his paper sheet: when attached to him it gains fast healing 5. It scouts for him and delivers his touch spells.'},
+ /* the tumor familiar: a tiny mechanical, alchemical bat */
+ comp:{name:'Bat',kind:'Tumor familiar (tiny mechanical, alchemical bat)',attached:true,hp:90,hpMax:90,
+  notes:'Gains fast healing 5 while attached to him. It scouts for him and delivers his touch-range extracts.'},
  gear:[
-  {item:'Mithral chain',desc:'Armor +8, max Dex +4. Counts as light armor.',loc:'Body',wt:0},
-  {item:'Keen Bear Knuckles',desc:'+2 keen. d10, threat 19–20.',loc:'Hands',wt:0},
-  {item:'Owlbear-arang',desc:'+5 returning. d10, 20 ft.',loc:'Belt',wt:0},
-  {item:'MW Grapple Gun',desc:'d6+1, 30 ft. Tethers what it hits.',loc:'Belt',wt:0},
-  {item:'Iron Bands',desc:'Restrains a target (DC 30 Escape Artist), 15 ft.',loc:'Belt',wt:0},
+  {item:'Owlbear Suit',desc:'+4 shadow slick mithral chain shirt: armor +8, max Dex +6, light. +5 competence on Stealth and Escape Artist.',loc:'Body',wt:0},
+  {item:'Keen Bear Knuckles',desc:'+2 keen gauntlets. d10, threat 19–20.',loc:'Hands',wt:0},
+  {item:'Owlbear-arang',desc:'+5 returning impact heavy flying blade. d10, 20 ft.',loc:'Belt',wt:0},
+  {item:'Masterwork Grapnel',desc:'d6, 30 ft. Hardness 10, 20 HP. Tethers what it hits.',loc:'Belt',wt:0},
+  {item:'Iron Bands of Bilarro',desc:'Ranged touch: restrained and helpless (DC 20 Str or DC 30 Escape Artist).',loc:'Belt',wt:0},
   {item:'Ring of Protection +4',desc:'+4 deflection to AC.',loc:'Ring',wt:0},
   {item:'Cloak of Resistance +3',desc:'+3 on saves.',loc:'Shoulders',wt:0},
   {item:'Belt of Physical Might +4',desc:'+4 Strength and Constitution.',loc:'Waist',wt:0},
@@ -570,7 +574,7 @@ const DEFAULT={
   {item:'Travel gear',desc:'',loc:'',wt:0},
  ],
  coins:{pp:800,gp:4500,sp:0,cp:0}, bank:'50,000 pp and 28,643 gp',
- notes:'His paper sheet’s notes list the table: Lork (Eric, half-orc rogue), Sinafey (Kristin, drow rogue), Drax (Jerami, monk/priest), Ensley (Brandon, pixie druid), Namfoodle (Mike, gnome bard), Vex’ahlia (Rea, elf), and Austin.\nThe portrait box on his paper sheet has “121” written in it.',
+ notes:'His paper sheet’s notes list the table: Lork (Eric, half-orc rogue), Sinafey (Kristin, drow rogue), Drax (Jerami, monk/priest), Ensley (Brandon, pixie druid), Namfoodle (Mike, gnome bard), Vex’ahlia (Rea, elf), and Austin.',
  traits:'',
  history:'Owlbear Man is the masked identity of Lord Aris Thorne.',
  art:null
@@ -722,14 +726,14 @@ function compute(useC){
   const avail=S.classes.reduce((a,c)=>a+Math.max(1,n(c.sp)+intMod)*Math.max(0,Math.floor(n(c.level))),0)+n(S.fcbSkill)+n(S.raceSkill);
   put('sk.spent',spent);put('sk.avail',avail);
   // attacks: sneak attack dice ride along on the weapons that can deliver them
-  const sd=sneakDice()+(M.flags.grapfoe?2:0);
+  const sd=sneakDice()+(M.flags.grapfoe?strangleDice():0);
   const atkCalc=a=>{const am=ab[a.abil==='str'?'str':'dex'].mod;
     const hit=bab+am+szA+n(a.enh)+n(a.misc)+M.g('atk')+(a.kind==='melee'?M.g('atkMelee'):M.g('atkRanged'))+(a.grap?n(S.grapMisc)+M.g('cmb'):0);
     const dmA=String(a.dmgAbil||'str');let da=0;
     if(dmA!=='none'){const sm=dmA.startsWith('dex')?ab.dex.mod:ab.str.mod;const mul=/15$/.test(dmA)?1.5:/05$/.test(dmA)?0.5:1;da=sm>0?Math.floor(sm*mul):sm;}
     const db=n(a.enh)+n(a.dmgMisc)+da+(a.dice?M.g('dmg')+(a.kind==='melee'?M.g('dmgMelee'):M.g('dmgRanged')):0);
     const dc=a.dice||'—';
-    const ex=[String(a.extra||'').trim(),a.sa&&M.flags.sneak&&L.alch?`+${sd}d6 sneak`:''].filter(Boolean).join(' ');
+    const ex=[String(a.extra||'').trim(),a.sa&&M.flags.sneak&&L.alch?`+${sd}d6 sneak (bleed ${sd})`:''].filter(Boolean).join(' ');
     return {hit,db,crit:a.crit,dice:dc,dmg:`${dc}${a.dice&&db?sg(db):''}${ex?' '+ex:''}`};};
   S.attacks.forEach((a,i)=>{const r=atkCalc(a);
     const its=[];for(let b=r.hit,k=0;k<4&&(k===0||bab-5*k>=1)&&!(a.once&&k>0);k++,b-=5)its.push(b);
@@ -750,29 +754,30 @@ function compute(useC){
 function autoAbilities(L){
   const A=[];const add=(cls,lvl,name,ty,ds,o={})=>A.push(Object.assign({cls,lvl,name,ty,ds},o));
   const b=L.brawler,a=L.alch;
-  const unarmed=b>=16?'2d8':b>=12?'2d6':b>=8?'1d10':b>=4?'1d8':'1d6';
   if(b>=1){add('Brawler',1,'Brawler’s Cunning','Ex','His Intelligence counts as 13 for combat feat prerequisites.',{core:1});
     add('Brawler',1,MFLEX,'Ex',`${3+Math.floor(b/2)} times a day. A move action gives him the benefit of two combat feats he doesn’t have for 1 minute (a swift action for one). Use it from the Martial Flexibility panel below.`,{key:'mflex',uses:3+Math.floor(b/2),noPips:1});
     add('Brawler',1,'Martial Training','Ex','His brawler levels count as fighter and monk levels for feats and magic items.',{core:1});
-    add('Brawler',1,'Unarmed Strike','Ex',`Improved Unarmed Strike as a bonus feat; unarmed strikes deal ${unarmed} at brawler ${b}. His paper sheet uses d10 for the Keen Bear Knuckles.`,{core:1});}
-  if(b>=2){add('Brawler',2,'Bonus Combat Feats','',`Combat feats at brawler 2${b>=5?' and 5':''}${b>=8?', 8':''}. Two of his twelve feats.`,{core:1});
-    add('Brawler',2,'Brawler’s Flurry','Ex','On a full attack with unarmed strikes or close weapons he fights as if he had Two-Weapon Fighting: −2 on every attack for one extra attack at his highest bonus. His paper sheet doesn’t list it.',{core:1});}
-  if(b>=3)add('Brawler',3,'Maneuver Training','Ex','+1 on CMB and CMD with one combat maneuver he picks. His paper sheet doesn’t name one.',{core:1});
-  if(b>=4){add('Brawler',4,'AC Bonus','Ex','+1 dodge bonus to AC in light armor or none. His paper sheet’s AC doesn’t include it, so it isn’t counted here.',{core:1});
+    add('Brawler',1,'Strangle','Ex',`Strangler: when he succeeds on a grapple check to damage or pin, he deals +${strangleDice()}d6 sneak attack, counting as flanking. With his vivisectionist sneak attack that’s the Owlbear Hug’s ${sneakDice()+strangleDice()}d6. Replaces Unarmed Strike and Brawler’s Flurry. The archetype also makes Stealth a class skill.`);}
+  if(b>=2)add('Brawler',2,'Bonus Combat Feats','',`Combat feats at brawler 2${b>=5?' and 5':''}${b>=8?', 8':''}. Two of his twelve feats.`,{core:1});
+  if(b>=3)add('Brawler',3,'Maneuver Training','Ex','+1 on CMB and CMD with one combat maneuver he picks. Not named in his build.',{core:1});
+  if(b>=4){add('Brawler',4,'AC Bonus','Ex','+1 dodge bonus to AC in light armor or none. His build’s AC doesn’t include it, so it isn’t counted here.',{core:1});
     add('Brawler',4,'Knockout','Ex',`Once a day, before an unarmed attack roll: if it hits, the target makes a Fortitude save (DC <b data-o="ko"></b>) or falls unconscious for 1d6 rounds.`,{key:'ko',uses:b>=10?2:1,core:1});}
   if(b>=5){add('Brawler',5,'Brawler’s Strike','Ex','His unarmed strikes count as magic for damage reduction.',{core:1});
-    add('Brawler',5,'Close Weapon Mastery','Ex','Close weapons (like the bear knuckles) deal damage as his unarmed strike would at brawler level −4.',{core:1});}
+    add('Brawler',5,'Close Weapon Mastery','Ex','Close weapons (like the bear knuckles) deal damage as an unarmed strike would at brawler level −4.',{core:1});}
   if(a>=1){add('Alchemist',1,'Alchemy','Su',`Extracts: caster level ${a}, save DC 10 + level + Int (Alchemy tab). +${a} on Craft (alchemy) checks (in the skill’s misc), and he can identify a potion by handling it.`);
     add('Alchemist',1,MUTAGEN,'Su',`Brewing takes an hour; drinking is a standard action. +4 alchemical bonus to one physical score, +2 natural armor, −2 to the matching mental score, for ${10*a} minutes. Only one at a time (Alchemy tab).`);
     add('Alchemist',1,'Throw Anything','Ex','Throw Anything as a bonus feat: no penalty for throwing improvised weapons.',{core:1});
-    add('Alchemist',1,'Sneak Attack','Ex',`+<b data-o="sneak"></b> against a flanked or flat-footed foe (within 30 ft. at range). His paper sheet has it in place of bombs, which is the vivisectionist alchemist; +2d6 more against a grappled foe on his paper sheet.`);}
+    add('Alchemist',1,'Sneak Attack','Ex',`Vivisectionist, in place of bombs: +${sneakDice()}d6 against a flanked or flat-footed foe (within 30 ft. at range), +${strangleDice()}d6 more from Strangle against a foe he’s grappling.`);}
   if(a>=2){add('Alchemist',2,'Poison Use','Ex','Never poisons himself by accident when applying poison.',{core:1});
     add('Alchemist',2,a>=10?'Poison Immunity':'Poison Resistance','Ex',a>=10?'Immune to poison (from alchemist 10).':`+${a>=8?6:a>=5?4:2} on saves against poison.`,{core:1});}
   if(a>=3)add('Alchemist',3,'Swift Alchemy','Ex','Crafts alchemical items in half the time, and applies poison as a move action.',{core:1});
   if(a>=6)add('Alchemist',6,'Swift Poisoning','Ex','Applies poison to a weapon as a swift action.',{core:1});
-  if(a>=2){add('Alchemist',2,'Discovery: Tumor Familiar','Su',`<b>${esc((S.comp||{}).name||'Robin')}</b>, a tiny mechanical robin. It can attach to his body or detach as a standard action; attached, it has fast healing 5. It scouts for him and delivers his touch spells (Alchemy tab).`);
-    add('Alchemist',4,'Discovery: Infusion','','His extracts don’t vanish in someone else’s hands: allies can drink them. Drinking one asks whose sheet it goes on.');
-    const nd=Math.floor(a/2);if(nd>2)add('Alchemist',a>=10?10:2*nd,'More Discoveries','',`A discovery at alchemist 2, 4, 6, 8 and 10: ${nd} in all at alchemist ${a}. His paper sheet names Tumor Familiar and Infusion; add the other ${nd-2} below.`);}
+  /* his five discoveries; the order he took them in isn't known */
+  if(a>=2)add('Alchemist',2,'Discovery: Tumor Familiar','Su',`<b>${esc((S.comp||{}).name||'Bat')}</b>, a tiny mechanical, alchemical bat. It can attach to his body or detach as a standard action; attached, it has fast healing 5. It scouts for him and delivers his touch-range extracts (Alchemy tab).`);
+  if(a>=4)add('Alchemist',4,'Discovery: Infusion','','His extracts stay active after they leave his hands, so he can hand out buffs to the party. Drinking one asks whose sheet it goes on.');
+  if(a>=6)add('Alchemist',6,'Discovery: Preserve Organs','Ex','25% chance to negate a critical hit or sneak attack against him; the damage is rolled normally instead. Roll it on the Saving Throws tab.');
+  if(a>=8)add('Alchemist',8,'Discovery: Spontaneous Healing','Su','Free action: fast healing 5, up to 5 rounds a day (the fast healing row on the Overview tab).');
+  if(a>=10)add('Alchemist',10,'Discovery: Bleeding Attack','Ex','His sneak attacks also make the target bleed 1 a round per sneak attack die (6, or 8 while he’s grappling it with Strangle). A DC 15 Heal check or any magical healing stops it.');
   A.forEach(x=>{x.key=x.key||('ab.'+x.name.replace(/\W+/g,''));x.base=x.uses;const o=(S.ov||{})[ok(x.key)];
     if(x.uses&&o&&String(o.uses??'').trim()!=='')x.uses=Math.max(0,Math.floor(n(o.uses)));});
   return A.sort((p,q)=>p.lvl-q.lvl||(p.cls<q.cls?-1:1));
@@ -811,7 +816,7 @@ function downBox(){
 }
 function fhPanel(){
   const u=n(S.used.fh),left=Math.max(0,5-u);
-  return `<div class="fh"><span class="lbl">Fast healing 5</span>${pips('fh',5)}<small class="muted">${left} of 5 rounds left today</small>
+  return `<div class="fh"><span class="lbl">Spontaneous Healing: fast healing 5</span>${pips('fh',5)}<small class="muted">${left} of 5 rounds left today</small>
    <button class="btn" data-act="fhRound"${left<1||n(S.hp.cur)>=hpMaxNow()?' disabled':''}>Heal 5 (one round)</button>
    <small class="muted" style="flex-basis:100%">In a fight the DM’s tracker runs it: once it’s switched on there, it heals him at the start of each of his turns and counts the rounds. Use this button outside the tracker.</small></div>`;
 }
@@ -842,7 +847,7 @@ function pOverview(){
     ${downBox()}
     ${fhPanel()}
     ${(S.hpLog||[]).length?`<div class="hplog"><span class="lbl">Recent</span>${S.hpLog.slice(-6).reverse().map(e=>`<div><span>${esc(e.txt)}</span><b>${e.cur} HP</b></div>`).join('')}<button class="btn x" data-act="clearLog">Clear log</button></div>`:''}
-    <p class="note">Max HP 138 from his paper sheet. Long rest heals level + Con modifier (${levels().total} + ${conMod()}), clears nonlethal damage, ends the mutagen, and resets his extracts, Martial Flexibility, fast healing rounds and other daily uses. Damage uses temp HP first.</p>
+    <p class="note">Max HP from his classes: 6d10 + 11d8 at the standard average (full on the first die) plus Con +5 per level. His build estimates ~185; his old paper sheet said 138. To type a number instead, switch “Max HP comes from” above. Long rest heals level + Con modifier (${levels().total} + ${conMod()}), clears nonlethal damage, ends the mutagen, and resets his extracts, Martial Flexibility, fast healing rounds and other daily uses. Damage uses temp HP first.</p>
     <div class="row"><span class="lbl">Hero points spent</span>${pips('hero',3)}<small class="muted">${3-Math.min(3,n(S.used.hero))} of 3 left</small></div>
    </section>
   </div>
@@ -852,7 +857,7 @@ function pOverview(){
     <div class="acedit">${field('Extra natural',num('ac.natural'))}${field('Extra deflection',num('ac.deflection'))}${field('Dodge',num('ac.dodge'))}${field('Misc',num('ac.misc'))}</div>
    </div>
    <div class="acparts" aria-label="AC breakdown"><span><small>Base</small><b>10</b></span><span><small>Armor</small><b data-o="ac.armor"></b></span><span><small>Shield</small><b data-o="ac.shield"></b></span><span><small>Dex</small><b data-o="ac.dex"></b></span><span><small>Natural</small><b data-o="ac.nat"></b></span><span><small>Deflection</small><b data-o="ac.defl"></b></span><span><small>Dodge</small><b data-o="ac.dodgeT"></b></span><span><small>Size</small><b data-o="size"></b></span><span><small>Other</small><b data-o="ac.oth"></b></span><span><small>Conditions</small><b data-o="ac.cond"></b></span></div>
-   <p class="note">Paper sheet: AC 26, touch 18, flat-footed 22, and 28 with the mutagen’s +2 natural armor. Mithral chain: armor +8, max Dex +4. ${S.cond.prone?`Prone: AC <b data-o="ac.vsMelee"></b> vs melee, <b data-o="ac.vsRanged"></b> vs ranged.`:''}</p>
+   <p class="note">AC 26, touch 18, flat-footed 22: 28 with the mutagen’s +2 natural armor, 32 with a Shield extract on top. Owlbear Suit (+4 mithral chain shirt): armor +8, max Dex +6. ${S.cond.prone?`Prone: AC <b data-o="ac.vsMelee"></b> vs melee, <b data-o="ac.vsRanged"></b> vs ranged.`:''}</p>
   </section>
   <section class="panel"><header><h2>Combat</h2></header>
    <div class="ctiles">
@@ -873,7 +878,7 @@ function pOverview(){
   </section>
   <section class="panel"><header><h2>Identity</h2></header>
    <div class="grid2">
-    ${field('Secret identity',txt('info.alias'))}${field('Race',txt('info.race'))}${field('Alignment',txt('info.alignment'))}${field('Deity',txt('info.deity'))}${field('Gender',txt('info.gender'))}
+    ${field('Secret identity',txt('info.alias'))}${field('Role',txt('info.role'))}${field('Race',txt('info.race'))}${field('Alignment',txt('info.alignment'))}${field('Deity',txt('info.deity'))}${field('Gender',txt('info.gender'))}
     ${field('Age',txt('info.age'))}${field('Height',txt('info.height'))}${field('Weight',txt('info.weight'))}${field('Hair',txt('info.hair'))}${field('Eyes',txt('info.eyes'))}
     ${field('Homeland',txt('info.homeland'))}${field('Campaign',txt('info.campaign'))}${field('Player',txt('info.player'))}${field('Experience',txt('info.xp'))}
    </div>
@@ -889,8 +894,8 @@ function pOverview(){
     <button class="btn pri" data-act="levelUp">Add level ${levels().total+1}</button>
     ${(S.levelLog||[]).length?`<button class="btn" data-act="undoLevel">Undo last level</button>`:''}
    </div>
-   ${lastSummary||`<div class="summary"><h3>Level 17, from his paper sheet</h3><ul>
-    <li>Brawler 6 / Alchemist 11. Hit points <b>138</b>, base attack <b>+14/+9/+4</b>.</li>
+   ${lastSummary||`<div class="summary"><h3>Level 17, from his official build</h3><ul>
+    <li>Brawler (strangler) 6 / Alchemist (vivisectionist) 11. Hit points <b>${hpBase()}</b>, base attack <b>+14/+9/+4</b>.</li>
     <li>Saves from the class tables: Fort <b>+20</b>, Ref <b>+19</b>, Will <b>+10</b> (his paper had +18 / +15 / +11).</li>
     <li>CMD <b>37</b> with his Strength (paper: 32). Keen Bear Knuckles <b>d10+7</b> (paper: d10+5).</li>
     <li>Extracts per day <b>6 / 5 / 5 / 2</b> from the alchemist table and Int 16 (paper: 6 / 6 / 5 / 3).</li>
@@ -918,7 +923,7 @@ function pSkills(){
     <span class="counter">Ranks spent <b id="spent" data-o="sk.spent"></b> of <b data-o="sk.avail"></b> · max ${out('lvl')} per skill</span></header>
    <div class="scroll"><table class="skilltbl"><thead><tr><th>Class</th><th class="l">Skill</th><th>Key</th><th>Total</th><th></th><th>Ability</th><th></th><th>Ranks</th><th></th><th>Class</th><th></th><th>Misc</th><th></th><th title="Armor check penalty, size and conditions">Other</th></tr></thead><tbody>${rows}</tbody></table></div>
    <p class="note">His paper sheet lists only skill totals (Acrobatics 23, Climb 10, Craft (alchemy) 30, Disable Device 28, Disguise 10, Escape Artist 12, Heal 15, Intimidate 24, Knowledge (engineering) 25, Knowledge (local) 25, Perception 22, Sense Motive 20, Sleight of Hand 21, Stealth 24, Survival 17, Swim 10, Use Magic Device 15). Those totals need 213 ranks and he has ${out('sk.avail')}, so every skill’s ranks were scaled down by the same share: his priorities stay the same, and the totals come out lower than on paper. Move ranks around as you like, up to 17 in a skill.</p>
-   <p class="note">Craft (alchemy) misc holds +11 from Alchemy (his alchemist level). Ranks available: 4 + Int per level in both classes, plus 1 per level from the human Skilled trait. The mutagen’s −2 Int lowers his Int-based skills by 1 while it lasts.</p>
+   <p class="note">Craft (alchemy) misc holds +11 from Alchemy (his alchemist level); Stealth and Escape Artist misc hold the Owlbear Suit’s +5. Stealth is a class skill from the strangler archetype. Ranks available: 4 + Int per level in both classes, plus 1 per level from the human Skilled trait. The mutagen’s −2 Int lowers his Int-based skills by 1 while it lasts.</p>
   </section>`;
 }
 
@@ -937,6 +942,8 @@ function pSaves(){
    </section>
    <section class="panel"><header><h2>Defenses</h2></header>
     ${field('Resistances',txt('resist'))}<div class="grid2">${field('DR',txt('dr'))}${field('SR',txt('sr'))}</div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--mut-soft);border-radius:var(--r);padding:8px 10px;font-size:.9rem"><b>Preserve Organs:</b> 25% chance to negate a critical hit or sneak attack. <button class="btn" data-act="fort">Roll it</button></div>
+    ${S.fortLast?`<p class="note" style="margin:0">${S.fortLast}</p>`:''}
     ${field('Conditional modifiers',area('saveNotes',{rows:5}))}
    </section></div>`;
 }
@@ -1038,7 +1045,7 @@ function castTargets(nm,selfId,desc){
 }
 function robinPanel(){
   const c=S.comp,hp=n(c.hp),mx=n(c.hpMax);
-  return `<section class="panel"><header><h2>${esc(c.name||'Robin')}</h2><span class="muted">${esc(c.kind||'')}</span></header>
+  return `<section class="panel"><header><h2>${esc(c.name||'Bat')}</h2><span class="muted">${esc(c.kind||'')}</span></header>
    <div class="grid2">${field('Name',txt('comp.name',{rr:1}))}<label class="field"><span class="lbl">Where it is</span>${sel('comp.attached',[['true','Attached to him'],['false','Off scouting']],{label:'Robin attached'})}</label></div>
    <div class="row"><span class="lbl">HP</span><b style="font-size:1.4rem">${hp} / ${mx}</b></div>
    <div class="hpbar"><i style="width:${Math.max(0,Math.min(100,hp/Math.max(1,mx)*100))}%" class="${hp<=mx/4?'low':''}"></i></div>
@@ -1108,7 +1115,7 @@ function mflexPanel(C){
 function pAbilities(){
   const C=compute(true),L=levels();const A=autoAbilities(L);
   return `<section class="panel"><header><h2>Class Abilities</h2><span class="muted">Brawler ${L.brawler} / Alchemist ${L.alch}. Filled pips are spent uses.</span><button class="btn" data-act="rest" style="margin-left:auto">Rest: reset daily uses</button></header>
-   <p class="note" style="margin:0">His paper sheet names Martial Flexibility, Mutagen, Tumor Familiar and Infusion. The others marked “core rules” come from the class rules and aren’t on his paper; delete or note any the DM doesn’t use.</p>
+   <p class="note" style="margin:0">His build names Martial Flexibility, Strangle, Mutagen, sneak attack and his five discoveries. The others marked “core rules” come from the class rules and aren’t in his build; delete or note any the DM doesn’t use.</p>
    <div class="ab-list">${A.map(a=>{const k='ov.'+ok(a.key);const hasNote=String(getP(k+'.note')||'').trim();return `<div class="ab"><div class="lv">${a.cls==='Brawler'?'Brl':'Alc'} ${a.lvl}</div><div><span class="nm">${a.name}</span>${a.ty?`<span class="ty">(${a.ty})</span>`:''}${a.core?'<span class="core">core rules</span>':''}${a.uses&&!a.noPips?pips(a.key,a.uses):''}${a.uses?` <small class="muted">${a.uses}/day</small>`:''}<div class="ds">${a.ds}</div>
     ${hasNote?`<div class="ovr" style="display:block">${area(k+'.note',{rows:2,label:a.name+' notes'})}</div>`:`<div class="ovr"><button class="btn x" data-act="addNote" data-k="${k}.note">+ Add note or DM ruling</button></div>`}</div></div>`}).join('')||'<p class="muted">Set Brawler and Alchemist levels on the Overview tab to see abilities here.</p>'}</div></section>
   <div class="cols">${mflexPanel(C)}${customList('special','Other Abilities','Discoveries and anything else')}</div>
@@ -1169,7 +1176,7 @@ function pGear(){
   </section>
   <section class="panel belt"><header><h2>Utility Belt</h2><span class="muted">${(S.belt||[]).map(g=>`${esc(g.name)} ×${n(g.qty)}`).join(' · ')||'Empty'}</span><button class="btn" data-act="tab" data-t="attacks" style="margin-left:auto">Open on the Attacks tab</button></header></section>
   <div class="cols">
-   <section class="panel"><header><h2>Armor</h2></header>${arm('armor')}<p class="note">Mithral chain from his paper sheet: armor +8, max Dex +4, speed 30 ft. It counts as light armor, so brawler and alchemist are both proficient. The paper doesn’t give a check penalty, so it’s 0 here.</p></section>
+   <section class="panel"><header><h2>Armor</h2></header>${arm('armor')}<p class="note">The Owlbear Suit: a +4 shadow slick mithral chain shirt. Armor +8, max Dex +6, no check penalty, 10% spell failure (extracts ignore it), light armor. Shadow and slick give +5 competence on Stealth and Escape Artist (in those skills’ misc).</p></section>
    <section class="panel"><header><h2>Shield</h2></header>${arm('shield')}<p class="note">None on his paper sheet. His hands are full of knuckles and -arangs.</p></section>
   </div>
   ${acItemsPanel()}
@@ -1250,9 +1257,9 @@ function dmReport(){
   return {t:'saviors-hero',v:1,id:'owlbear',name:S.info.name||'Owlbear Man',at:new Date().toISOString(),
     hp:{cur:n(S.hp.cur),max:hpMaxNow(),temp:n(S.hp.temp),nl:n(S.hp.nl),neg:n(S.neg)},
     powers,powersTitle:'brawler & alchemist',
-    note:[S.cond.mutagen?`mutagen (${MUT_KINDS[mutKind()][0]}) working`:'',S.cond.mflex?`Martial Flexibility${String(S.mflexFeats||'').trim()?': '+S.mflexFeats:''}`:'',S.cond.fly?'flying (60 ft.)':'',`${S.comp.name||'Robin'} ${String(S.comp.attached)!=='false'?'attached':'off scouting'}`].filter(Boolean).join(' · '),
+    note:[S.cond.mutagen?`mutagen (${MUT_KINDS[mutKind()][0]}) working`:'',S.cond.mflex?`Martial Flexibility${String(S.mflexFeats||'').trim()?': '+S.mflexFeats:''}`:'',S.cond.fly?'flying (60 ft.)':'',`${S.comp.name||'Bat'} ${String(S.comp.attached)!=='false'?'attached':'off scouting'}`].filter(Boolean).join(' · '),
     slots:[1,2,3,4,5,6].map(l=>{const si=slotInfo(l);return {s:l,total:si.total,used:Math.min(si.total,prepOf(l).filter(x=>x.c).length),dc:C.O['dc.'+l].n}}).filter(x=>x.total>0),
-    comp:{name:S.comp.name||'Robin',kind:'tumor familiar',status:'active',hp:n(S.comp.hp),max:n(S.comp.hpMax)},
+    comp:{name:S.comp.name||'Bat',kind:'tumor familiar',status:'active',hp:n(S.comp.hp),max:n(S.comp.hpMax)},
     log:(S.sdLog||[]).slice(-25),cl:casterLevel(),durs:castDurs((S.sdLog||[]).slice(-25))};
 }
 /* everything the DM's party sheet shows live: defenses, saves, speed and active conditions */
@@ -1342,9 +1349,32 @@ function toV2(s){
     if(x&&n(x.ranks)===r&&n(x.misc)===m){x.ranks=d.ranks;x.misc=d.misc}});
   s.v=2;
 }
+/* version 3 brings in his official build: archetypes, the Owlbear Suit, the bat familiar, his five discoveries, gadget and
+   weapon wording, and HP from his classes. Again only what still holds the old default changes. */
+function toV3(s){
+  const D=DEFAULT;
+  s.classes.forEach(c=>{if(c.preset==='Brawler'&&c.name==='Brawler'){c.name=D.classes[0].name;if(!/stealth/i.test(c.skills||''))c.skills=(c.skills||'')+', Stealth'}
+    if(c.preset==='Alchemist'&&c.name==='Alchemist')c.name=D.classes[1].name});
+  if(s.hp.mode==='manual'&&n(s.hp.max)===138){s.hp.mode='auto';s.hp.cur=n(s.hp.cur)+42}
+  if(s.armor.name==='Mithral chain')s.armor=clone(D.armor);
+  ['stealth','escape'].forEach(k=>{if(s.skills[k]&&!n(s.skills[k].misc))s.skills[k].misc=5});
+  const oldAtk={knuckles:'Keen Bear Knuckles',arang:'Owlbear-arang',shower:'Startoss Shower',hug:'Owlbear Hug',gun:'MW Grapple Gun',bands:'Iron Bands'};
+  s.attacks=s.attacks.map(a=>{const nw=D.attacks.find(x=>x.id===a.id);return nw&&oldAtk[a.id]===a.name?clone(nw):a});
+  (s.belt||[]).forEach(g=>{const nw=D.belt.find(x=>x.name===g.name);if(nw)g.desc=nw.desc});
+  if((s.feats||[]).length===12&&(s.feats[0]||{}).name==='Point Blank Shot')s.feats=clone(D.feats);
+  if(s.comp.name==='Robin'){Object.assign(s.comp,{name:D.comp.name,kind:D.comp.kind,notes:D.comp.notes});if(n(s.comp.hpMax)===69){s.comp.hpMax=90;s.comp.hp=n(s.comp.hp)+21}}
+  const oldGear={'Mithral chain':0,'Keen Bear Knuckles':1,'Owlbear-arang':2,'MW Grapple Gun':3,'Iron Bands':4};
+  s.gear=s.gear.map(g=>g.item in oldGear?clone(D.gear[oldGear[g.item]]):g);
+  if(!/preserve organs/i.test(s.saveNotes||''))s.saveNotes=/^Cloak of Resistance \+3: in Magic\.\nAlchemist 10/.test(s.saveNotes||'')?D.saveNotes:String(s.saveNotes||'')+'\nPreserve Organs (discovery): 25% chance to negate a critical hit or sneak attack.';
+  if(/\(paper sheet\)/.test(s.atkNotes||'')&&/^Sneak attack: \+6d6/.test(s.atkNotes||''))s.atkNotes=D.atkNotes;
+  if(/Mithral chain counts/.test(s.profs||''))s.profs=D.profs;
+  s.notes=String(s.notes||'').replace(/\nThe portrait box on his paper sheet has “121” written in it\./,'');
+  s.v=3;
+}
 function load(d){
   const s=merge(DEFAULT,d||{});
   if(d&&n(d.v)<2)toV2(s);
+  if(d&&n(d.v)<3)toV3(s);
   s.attacks.forEach(a=>{if(!a.id)a.id=newId()});
   [1,2,3,4,5,6].forEach(l=>{if(!Array.isArray(s.spells[l]))s.spells[l]=[];if(!Array.isArray(s.formulae[l]))s.formulae[l]=[]});
   return s;
@@ -1518,6 +1548,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(
    case 'mutEnd':S.cond.mutagen=false;dayLog(`${MUTAGEN} wore off`);render();break;
    case 'mflex':{const mx=compute(true).O.mflexMax.n,u=n(S.used.mflex);if(u>=mx||S.cond.mflex)return;S.used.mflex=u+1;S.cond.mflex=true;dayLog(`Cast ${MFLEX}`+(String(S.mflexFeats||'').trim()?` (${S.mflexFeats})`:''));render();break;}
    case 'mflexEnd':S.cond.mflex=false;dayLog(`${MFLEX} ended`);render();break;
+   case 'fort':{const r=1+Math.floor(Math.random()*100),neg=r<=25;S.fortLast=`d% <b>${r}</b>: ${neg?'<b>negated</b>. Roll the damage as a normal hit, with no sneak attack dice.':'it lands. Take the full critical or sneak attack damage.'}`;dayLog(`Preserve Organs: ${r}, ${neg?'negated the crit or sneak attack':'the crit or sneak attack lands'}`);render();break;}
    case 'fhRound':{const u=n(S.used.fh);if(u>=5)return;const mx=hpMaxNow(),bf=n(S.hp.cur);if(bf>=mx)return;S.used.fh=u+1;S.hp.cur=Math.min(mx,bf+5);hpLog(`Fast healing +${S.hp.cur-bf} (${4-u} rounds left)`);render();break;}
    /* utility belt */
    case 'beltUse':{const g=(S.belt||[])[i];if(!g||n(g.qty)<1)return;g.qty=n(g.qty)-1;dayLog(`${g.verb==='Throw'?'Threw':'Used'} ${g.name}`);setStatus(`${g.name}: ${g.qty} left`);burstAt(b);render();break;}
