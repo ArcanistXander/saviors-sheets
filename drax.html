@@ -3395,6 +3395,24 @@ function castTargets(nm,selfId,desc){
   if(personal||!window.ttAskTargets){done(['drax']);return}
   window.ttAskTargets(nm,{all:/,\s*mass\b|\bburst\b|\ballies\b/i.test(nm+' '+(desc||''))}).then(done);
 }
+/* loot the DM sends from the party sheet: party/loot holds {heroId:[{at,coins,items,note}]}, the newest few each. Each applies
+   once (S.dmLootAt): coins go on the purse, items onto Gear & Notes, and a pop-up says what came. */
+function watchDmLoot(db){
+  db.doc('party/loot').onSnapshot(s=>{
+    const list=(((s.exists&&s.data())||{})['drax']||[]).filter(c=>c&&c.at&&c.at>(S.dmLootAt||'')).sort((x,y)=>x.at<y.at?-1:1);
+    if(!list.length)return;
+    const lines=[];
+    list.forEach(c=>{
+      S.dmLootAt=c.at;S.coins=S.coins||{pp:0,gp:0,sp:0,cp:0};
+      ['pp','gp','sp','cp'].forEach(k=>{const v=Math.floor(n((c.coins||{})[k]));if(v){S.coins[k]=n(S.coins[k])+v;lines.push(`${v.toLocaleString()} ${k}`)}});
+      (c.items||[]).forEach(it=>{if(!it||!it.item)return;const q=Math.max(1,Math.floor(n(it.qty))||1),nm=it.item+(q>1?` ×${q}`:'');
+        (S.gear=S.gear||[]).push({item:nm,desc:it.desc||'From the DM',loc:'',wt:0});lines.push(nm)});
+      if(c.note)lines.push(`“${c.note}”`);
+    });
+    render();setStatus(`Loot from the DM: ${lines.join(', ')}`);scheduleSave(true);
+    if(window.ttNotice)window.ttNotice('Loot from the DM',lines,'Coins are on your purse and items are on the Gear & Notes tab.');
+  },()=>{});
+}
 /* damage and healing the DM sends from the party sheet: party/hp holds {heroId:[{at,amt,type,heal,src}]}, the newest few each.
    Each one applies once (S.dmHpAt keeps the newest time applied), with this sheet's own resistances and temp HP. */
 function dmHit(c){
@@ -4078,7 +4096,7 @@ async function boot(){
     const [db,as]=await Promise.all([cl.use('db'),cl.use('assets').catch(()=>null)]);assets=as;
     if(db){dbRef=db.doc('sheets/'+CHAR);const snap=await dbRef.get();
       if(snap.exists&&!dirty){S=load(clone(snap.data()));render();if(migrated)scheduleSave(true);}
-      setStatus(dirty?'Unsaved changes':'Saved');if(dirty)flush();watchPartyRest(db);watchDmConds(db);watchDmHp(db);watchPartyPerform(db);pushLink();}
+      setStatus(dirty?'Unsaved changes':'Saved');if(dirty)flush();watchPartyRest(db);watchDmConds(db);watchDmHp(db);watchDmLoot(db);watchPartyPerform(db);pushLink();}
     else setStatus('Edits save in this browser');
   }catch(e){setStatus('Couldn’t load saved sheet; showing local copy')}
 }
