@@ -446,6 +446,8 @@ td.tot{font-weight:700;font-size:1.08rem;min-width:3em}
 
 <script src="js/firebase-config.js"></script>
 <script src="js/cloud.js"></script>
+<script src="js/levelup-data.js"></script>
+<script src="js/levelup.js"></script>
 <script src="js/turn.js" data-hero="namfoodle" data-name="Namfoodle"></script>
 <script>
 (() => {
@@ -1246,13 +1248,14 @@ function pOverview(){
   </section>
   <section class="panel lvlup" id="levelup"><header><h2>Level Up</h2><span class="muted">Character level ${out('lvl')} · adds one level and recalculates BAB, saves, HP, skill ranks, spells and performances</span></header>
    <div class="row" style="align-items:end">
-    ${field('Class for the new level',`<select id="lu-cls">${S.classes.map((c,i)=>`<option value="row:${i}">${esc(c.name)} ${Math.floor(n(c.level))} → ${Math.floor(n(c.level))+1}</option>`).join('')}<optgroup label="Start a new class">${Object.keys(PRESETS).filter(p=>!S.classes.some(c=>c.preset===p)).map(p=>`<option value="preset:${p}">${p} 1</option>`).join('')}<option value="custom">Custom class 1</option></optgroup></select>`)}
+    ${field('Class for the new level',`<select id="lu-cls" data-char="${levels().total+1}">${S.classes.map((c,i)=>`<option value="row:${i}" data-cls="${esc(c.preset)}" data-arch="${esc(window.SaviorsLevel?SaviorsLevel.archOf(c):'')}" data-to="${Math.floor(n(c.level))+1}">${esc(c.name)} ${Math.floor(n(c.level))} → ${Math.floor(n(c.level))+1}</option>`).join('')}<optgroup label="Start a new class">${Object.keys(PRESETS).filter(p=>!S.classes.some(c=>c.preset===p)).map(p=>`<option value="preset:${p}" data-cls="${p}" data-to="1">${p} 1</option>`).join('')}<option value="custom">Custom class 1</option></optgroup></select>`)}
     ${S.hp.mode==='auto'?'':field('Hit points',`<select id="lu-hp"><option value="avg">Average</option><option value="roll">I rolled…</option><option value="max">Max</option></select>`)}
     ${S.hp.mode==='auto'?'':field('Roll',`<input type="number" id="lu-roll" min="1" aria-label="Hit die roll" style="width:4.5em">`)}
     ${field('Favored class bonus',`<select id="lu-fcb"><option value="">None</option><option value="hp">+1 HP</option><option value="skill">+1 skill rank</option></select>`)}
     <button class="btn pri" data-act="levelUp">Add level ${levels().total+1}</button>
     ${(S.levelLog||[]).length?`<button class="btn" data-act="undoLevel">Undo last level</button>`:''}
    </div>
+   <div id="lu-prev"></div>
    ${lastSummary}
   </section>
   <section class="panel"><header><h2>Classes &amp; Levels</h2><span class="muted">Pick a preset to fill in hit die, BAB, saves, skill points and class skills</span></header>
@@ -1792,7 +1795,7 @@ function pBag(){
 }
 
 /* ---------- refresh computed outputs ---------- */
-function refresh(){
+function refresh(){if(window.SaviorsLevel)SaviorsLevel.paint();
   const A=compute(true),B=compute(false);
   document.querySelectorAll('[data-o]').forEach(el=>{const k=el.dataset.o,a=A.O[k];if(!a)return;el.textContent=a.t;
     const b=B.O[k];if(b&&typeof a.n==='number'&&a.n!==b.n&&k!=='hp.cur'&&!k.startsWith('sk.spent')&&!k.endsWith('.vp')&&k!=='sizeName'&&k!=='speed')el.dataset.d=a.n<b.n?'down':'up';else delete el.dataset.d;});
@@ -1861,7 +1864,7 @@ function castDurs(log){const o={};log.forEach(e=>{const m=String(e.txt).match(/^
 function liveStats(){
   const A=compute(true),o=k=>A.O[k]?A.O[k].n:null,t=k=>A.O[k]?A.O[k].t:'';
   return {ac:o('ac.total'),touch:o('ac.touch'),ff:o('ac.ff'),fort:o('sv.fort'),ref:o('sv.ref'),will:o('sv.will'),
-    rv:3,init:t('init'),speed:t('speed'),cmb:t('cmb'),cmd:t('cmd'),perception:t('sk.perception'),neg:A.M.neg||0,
+    rv:4,lvlGrant:S.levelGrant||0,init:t('init'),speed:t('speed'),cmb:t('cmb'),cmd:t('cmd'),perception:t('sk.perception'),neg:A.M.neg||0,
     level:A.L.total,classes:S.classes.filter(c=>n(c.level)>0).map(c=>`${c.name} ${Math.floor(n(c.level))}`).join(' / '),
     conds:A.M.active.map(c=>({id:c.id,n:String(cname(c)),buff:!!c.buff})),cids:ALLC.map(c=>c.id)};
 }
@@ -2036,6 +2039,7 @@ function load(d){
   return s;
 }
 async function boot(){
+  if(window.SaviorsLevel)SaviorsLevel.attach({id:'namfoodle',get name(){return S.info.name||'Namfoodle'},S:()=>S,save:()=>scheduleSave(true),redraw:()=>render(),status:t=>setStatus(t),level:()=>levels().total,goPanel:()=>{if(tab!=='overview'){tab='overview';render()}}});
   const local=ls.get('namfoodle-sheet');if(local){try{S=load(JSON.parse(local))}catch(e){}}
   render();setStatus('Loading…');
   const cl=window.claude;
@@ -2047,7 +2051,7 @@ async function boot(){
       cloudDb=db;db.doc('party/perform').get().then(p=>{const d=(p.exists&&p.data())||{};lastDoc=d;lastPerf={};
         for(const k in d){if(d[k]&&typeof d[k]==='object'){const x=Object.assign({},d[k]);delete x.at;lastPerf[k]=JSON.stringify(x)}}postPerf();}).catch(()=>{});
       if(snap.exists&&!dirty){S=load(clone(snap.data()));render();}
-      setStatus(dirty?'Unsaved changes':'Saved');if(dirty)flush();watchPartyRest(db);watchDmConds(db);watchDmHp(db);watchDmLoot(db);watchDmRound(db);pushLink();}
+      setStatus(dirty?'Unsaved changes':'Saved');if(dirty)flush();if(window.SaviorsLevel)SaviorsLevel.watch(db);watchPartyRest(db);watchDmConds(db);watchDmHp(db);watchDmLoot(db);watchDmRound(db);pushLink();}
     else{document.getElementById('backup').hidden=false;setStatus('Edits save in this browser');}
   }catch(e){setStatus('Couldn’t load saved sheet; showing local copy')}
 }
@@ -2058,6 +2062,7 @@ function snap(){const C=compute(false);return{lvl:C.L.total,bab:C.bab,base:{...C
   slots:[...Array(7).keys()].map(l=>slotInfo(l,C).total),known:[...Array(7).keys()].map(l=>knownBase(l,C.L.bard)),perf:perfMax(C),
   ab:autoAbilities(C.L).map(a=>a.name+(a.uses?` (${a.uses}/day)`:'')),L:C.L}}
 function levelUp(){
+  if(window.SaviorsLevel&&SaviorsLevel.locked()){setStatus('Level up is locked. Your DM unlocks it from the Party Sheet.');return}
   const $=id=>document.getElementById(id);const v=$('lu-cls').value,how=($('lu-hp')||{}).value||'avg',roll=n(($('lu-roll')||{}).value),fcb=$('lu-fcb').value;
   if(how==='roll'&&!(roll>=1)){setStatus('Enter the hit die roll first.');$('lu-roll').focus();return}
   const before=snap();let idx,added=false;
@@ -2082,9 +2087,10 @@ function levelUp(){
   if(after.lvl%2===1)li.push(`<b>Choose a feat</b> (character level ${after.lvl})`);
   if(after.lvl%4===0)li.push('<b>+1 to an ability score</b> (every 4th character level)');
   lastSummary=`<div class="summary"><h3>Level ${after.lvl}: ${esc(c.name)} ${c.level}</h3><ul>${li.map(x=>`<li>${x}</li>`).join('')}</ul></div>`;
+  if(window.SaviorsLevel){SaviorsLevel.spend();lastSummary+=SaviorsLevel.summary(c,after.lvl)}
 }
 function undoLevel(){
-  const e=(S.levelLog||[]).pop();if(!e)return;const c=S.classes[e.row];if(!c)return;
+  const e=(S.levelLog||[]).pop();if(!e)return;if(window.SaviorsLevel)SaviorsLevel.giveBack();const c=S.classes[e.row];if(!c)return;
   c.level=Math.max(0,Math.floor(n(c.level))-1);
   if(S.hp.mode!=='auto')S.hp.max=n(S.hp.max)-e.gain;
   S.hp.cur=n(S.hp.cur)-e.delta;

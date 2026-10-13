@@ -76,6 +76,7 @@ input.n{width:4.2em;text-align:center}
 .lbl{font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 footer{color:var(--muted);font-size:.85rem;display:grid;gap:4px}
 .hp{min-width:190px}
+.lvlctl{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:6px}
 select{font:inherit;font-size:.85rem;color:var(--ink);background:var(--bg);border:1px solid var(--rule);border-radius:4px;padding:3px 4px;min-width:0;flex:1}
 select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .dmg{display:flex;gap:4px;margin-top:4px}
@@ -274,7 +275,7 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
   var DEFAULTS=dataEl.textContent;var STORE='saviors-party-sheet';
   var state=JSON.parse(DEFAULTS);
   try{var saved=localStorage.getItem(STORE);if(saved){var sp=JSON.parse(saved);if(sp&&Array.isArray(sp.party))state=sp;}}catch(e){}
-  var editing=false, dirty=false, statusMsg='', confirmReset=false, confirmRest=false;
+  var editing=false, dirty=false, statusMsg='', confirmReset=false, confirmRest=false, confirmLvl=false;
   var HPKEY='saviors-current-hp';
   var cur={};
   try{cur=JSON.parse(localStorage.getItem(HPKEY)||'{}')||{}}catch(e){cur={}}
@@ -627,7 +628,7 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
     if(editing) return editRow(p);
     var l=live(p), spd=l&&l.speed?String(l.speed).replace(/\s*ft\.?$/,''):p.speed;
     return '<tr><td><div class="name">'+esc(p.name)+'</div><div class="race">'+esc(p.race)+'</div>'+liveToggle(p)+liveLine(p)+wsLine(p)+heroCell(p)+(l?'':buffCell(p))+condCell(p)+spellBtn(p)+fervorBtn(p)+shadowBtn(p)+'</td>'+
-      '<td class="cls"><span class="lvl">'+esc(l&&l.level?l.level:p.level)+'</span>'+esc(l&&l.classes?l.classes:p.classes)+(l&&l.level?'<div class="live">● live</div>':'')+'</td>'+
+      '<td class="cls"><span class="lvl">'+esc(l&&l.level?l.level:p.level)+'</span>'+esc(l&&l.classes?l.classes:p.classes)+(l&&l.level?'<div class="live">● live</div>':'')+lvlCell(p,l)+'</td>'+
       '<td><div class="big">'+esc(l?l.ac:p.ac)+'</div><div class="minor">T '+esc(l?l.touch:p.touch)+' · FF '+esc(l?l.ff:p.ff)+'</div>'+(l?'<div class="live">● live</div>':'')+'</td>'+
       '<td>'+hpCell(p)+'</td>'+
       '<td class="num"><span class="big">'+esc(spd)+'</span> <span class="minor">ft</span>'+(l&&l.speed?'<div class="live">● live</div>':'')+'</td>'+
@@ -658,7 +659,7 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
     if(editing){
       tools=(confirmReset?'<button id="restore-yes">Yes, restore originals</button><button id="restore-no">Keep my edits</button>':'<button id="restore-btn">Restore original stats</button>')+'<button id="add-btn">Add character</button><button id="cancel-btn">Cancel</button><button class="primary" id="save-btn">Save changes</button>';
     } else {
-      tools=(confirmRest?'<button class="primary" id="rest-yes">Yes, long rest for everyone</button><button id="rest-no">Cancel</button>':'<button id="rest-all">Long rest (everyone)</button>')+allPaperBtn()+'<button id="loot-btn" title="Send coins and items to a hero’s own sheet">Send loot</button><button id="stats-btn">Perception · CMB · CMD</button><button id="reset-hp">Reset all HP</button><button id="export-btn">Export backup</button><button id="import-btn">Import backup</button><input type="file" id="import-file" accept=".json,application/json" hidden><button class="primary" id="edit-btn">Edit sheet</button>';
+      tools=(confirmLvl?'<button class="primary" id="lvl-yes">Yes, unlock a level for everyone</button><button id="lvl-no">Cancel</button>':'<button id="lvl-all" title="Milestone: lets every hero add one level on their own sheet">⬆ Unlock level up</button>')+(confirmRest?'<button class="primary" id="rest-yes">Yes, long rest for everyone</button><button id="rest-no">Cancel</button>':'<button id="rest-all">Long rest (everyone)</button>')+allPaperBtn()+'<button id="loot-btn" title="Send coins and items to a hero’s own sheet">Send loot</button><button id="stats-btn">Perception · CMB · CMD</button><button id="reset-hp">Reset all HP</button><button id="export-btn">Export backup</button><button id="import-btn">Import backup</button><input type="file" id="import-file" accept=".json,application/json" hidden><button class="primary" id="edit-btn">Edit sheet</button>';
     }
     autoTimers();postRound();
     var ir=ini().round, onInit=view==='init'&&!editing;
@@ -1802,6 +1803,11 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
     else if(t.id==='rest-all'){confirmRest=true;statusMsg='';render();}
     else if(t.id==='rest-no'){confirmRest=false;render();}
     else if(t.id==='rest-yes'){confirmRest=false;restAll();}
+    else if(t.id==='lvl-all'){confirmLvl=true;statusMsg='';render();}
+    else if(t.id==='lvl-no'){confirmLvl=false;render();}
+    else if(t.id==='lvl-yes'){confirmLvl=false;lvlUnlock(syncedIds(),'unlock');}
+    else if(t.dataset.lvlu){lvlUnlock([t.dataset.lvlu],'unlock');}
+    else if(t.dataset.lvlt){lvlUnlock([t.dataset.lvlt],'take');}
     else if(t.dataset.close){var dl=t.closest('dialog');if(dl)dl.close();}
     else if(t.id==='sync-btn'){openSync();}
     else if(t.dataset.syncsave||t.dataset.syncoff){
@@ -1956,6 +1962,29 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
   });
   window.addEventListener('beforeunload',function(e){if(editing&&dirty){e.preventDefault();e.returnValue='';}});
   document.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.id==='sync-phrase'){e.preventDefault();var b=document.querySelector('[data-syncsave]');if(b)b.click();}});
+  // ---- Milestone levelling: unlock (or take back) a level on heroes' own sheets, through party/levelup ----
+  // Each unlock adds one to that hero's count; their sheet turns new unlocks into "level up" grants and celebrates.
+  function lvlCell(p,l){
+    if(!SHEET_PAGES[p.id])return '';
+    var g=l&&l.lvlGrant||0;
+    return '<div class="lvlctl">'+(g?'<span class="chip on buff">⬆ level unlocked'+(g>1?' ×'+g:'')+'</span>':'')+
+      '<button class="ghost" data-lvlu="'+p.id+'" title="Let '+esc(p.name)+' add one level">Unlock level</button>'+
+      (g?'<button class="ghost" data-lvlt="'+p.id+'" title="Take back an unlock '+esc(p.name)+' hasn’t used">Take back</button>':'')+'</div>';
+  }
+  function lvlUnlock(ids,kind){
+    if(!cloudDb){statusMsg='Level up can only be unlocked while this sheet saves online.';render();return}
+    var ref=cloudDb.doc('party/levelup'),at=new Date().toISOString();
+    statusMsg=kind==='take'?'Taking back the unlock…':'Unlocking level up…';render();
+    ref.get().then(function(s){
+      var d=(s.exists&&s.data())||{};d.unlock=d.unlock||{};d.take=d.take||{};
+      ids.forEach(function(id){var b=d[kind][id]||{};d[kind][id]={n:(+b.n||0)+1,at:at}});
+      return ref.set(d);
+    }).then(function(){
+      var names=ids.map(function(id){var p=state.party.find(function(x){return x.id===id});return p?p.name:id});
+      statusMsg=kind==='take'?'Level up locked again for '+names.join(', '):'Level up unlocked for '+names.join(', ')+'. They’ll see it on their sheets.';
+      render();
+    },function(){statusMsg='Couldn’t reach the online sheets. Check the connection and try again.';render()});
+  }
   // ---- Long rest for the whole party ----
   // Synced heroes rest on their own sheets: each is opened out of sight in turn so the rest lands even if
   // nobody has that sheet open. Heroes tracked only here get their spell slots and daily uses back.
@@ -1992,7 +2021,7 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
   }
   // A hero whose latest report predates the current sheets (no class, level, Perception…) gets a quick
   // background visit so this sheet shows their real numbers without waiting for the player.
-  var LIVE_VERSION=3;
+  var LIVE_VERSION=4;
   function liveCurrent(id){var L=extras.link[id];return !!(L&&L.live&&L.live.rv>=LIVE_VERSION)}
   function refreshStale(){var stale=syncedIds().filter(function(id){return !liveCurrent(id)});if(stale.length)visitSheets(stale,liveCurrent)}
 
