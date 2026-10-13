@@ -843,6 +843,8 @@ const SUM={
  'Roc':['Gargantuan',120,19,'20 ft., fly 80 (average)','2 talons +18 (2d6+9 plus grab), bite +17 (2d8+9)','low-light vision'],
  'Tyrannosaurus':['Gargantuan',153,21,'40 ft.','bite +20 (4d8+15 plus grab)','swallow whole, powerful bite'],
  'Triceratops':['Huge',119,21,'30 ft.','gore +17 (2d10+12)','powerful charge, trample'],
+ 'Pixie (irresistible dance, sleep arrows)':['Small',18,19,'20 ft., fly 60 (good)','short sword +8 (1d4−2/19–20), longbow +8 (1d6−2/×3, sleep arrows)','irresistible dance (Sp, 1/day), sleep arrows (Will DC 15 or asleep 1d6 min), natural invisibility, DR 10/cold iron, SR 15'],
+ 'Storm giant':['Huge',199,28,'50 ft., swim 40','greatsword +26/+21/+16 (4d6+21/17–20), composite longbow +12/+7/+2 (3d6+14/×3)','immune electricity, freedom of movement, water breathing, rock catching; call lightning, chain lightning (1/day), control weather, levitate'],
 };
 const ELS={Small:[13,17],Medium:[30,19],Large:[68,21],Huge:[95,22],Greater:[136,25],Elder:[152,27]};
 ['Air','Earth','Fire','Water'].forEach(e=>Object.entries(ELS).forEach(([s,[hp,ac]])=>{const i=['Small','Medium','Large','Huge','Greater','Elder'].indexOf(s);
@@ -857,7 +859,7 @@ const SNA={
  6:['Dire bear','Dire tiger','Elasmosaurus',...elems('Huge'),'Elephant','Giant octopus'],
  7:['Brachiosaurus','Dire crocodile','Dire shark',...elems('Greater'),'Giant squid','Mastodon','Roc','Tyrannosaurus'],
  8:[...elems('Elder'),'Triceratops'],
- 9:[...elems('Elder')],
+ 9:[...elems('Elder'),'Pixie (irresistible dance, sleep arrows)','Storm giant'],
 };
 const ROMAN=['','I','II','III','IV','V','VI','VII','VIII','IX'];
 
