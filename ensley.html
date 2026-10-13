@@ -1182,11 +1182,15 @@ function wsMax(){const a=autoAbilities(levels()).find(x=>x.key==='ws');return a?
 /* ---------- rendering ---------- */
 const TABS=[['overview','Overview'],['skills','Skills'],['saves','Saving Throws'],['attacks','Attacks'],['spells','Spells'],['wildshape','Wild Shape'],['summon','Summoning'],['companion','Companion'],['abilities','Class Abilities'],['conditions','Conditions'],['gear','Gear & Notes']];
 let tab=(()=>{const h=(location.hash||'').slice(1);if(TABS.some(t=>t[0]===h))return h;const s=ls.get('ensley-tab');return TABS.some(t=>t[0]===s)?s:'overview'})();
+/* the Initiative tab: only while the DM's tracker runs a fight; js/turn.js fills it and redraws the sheet when a fight starts or ends */
+const ttTabs=()=>window.ttActive&&window.ttActive()?[['initiative',window.ttLabel?window.ttLabel():'Initiative']]:[];
+const ttTab=()=>window.ttTab?window.ttTab():'';
+window.ttRefresh=()=>render();
 let condScope='pc';
 
 function renderTabs(){
   const nc=Object.values(S.cond).filter(Boolean).length+(n(S.neg)>0?1:0);
-  document.getElementById('tabs').innerHTML=TABS.map(([k,l])=>`<button class="tab" role="tab" data-act="tab" data-t="${k}" aria-selected="${k===tab}">${l}${k==='conditions'&&nc?`<span class="dot">${nc}</span>`:''}</button>`).join('')+`<span class="status" id="status">${esc(statusText)}</span>`;
+  if(tab==='initiative'&&!ttTabs().length)tab='overview';document.getElementById('tabs').innerHTML=TABS.concat(ttTabs()).map(([k,l])=>`<button class="tab" role="tab" data-act="tab" data-t="${k}" aria-selected="${k===tab}">${l}${k==='conditions'&&nc?`<span class="dot">${nc}</span>`:''}</button>`).join('')+`<span class="status" id="status">${esc(statusText)}</span>`;
 }
 /* keep current HP in step with Con changes: a form with more Con adds the HP, changing back takes them off again */
 function syncConHP(){const a=compute(true).O['hp.adj'].n,prev=n(S.hp.conAdj);if(a===prev)return;
@@ -1197,7 +1201,7 @@ function render(){
   {const T=themeOf(curCre()),bs=document.body;if(T){bs.dataset.el=T.key;bs.style.setProperty('--stripB',T.glow[0]);bs.style.setProperty('--stripG',T.glow[1])}else delete bs.dataset.el;}
   document.getElementById('f-name').value=S.info.name||'';
   renderTabs();
-  const P={overview:pOverview,skills:pSkills,saves:pSaves,attacks:pAttacks,spells:pSpells,wildshape:pWild,summon:pSummon,companion:pCompanion,abilities:pAbilities,conditions:pConditions,gear:pGear}[tab];
+  const P={initiative:ttTab,overview:pOverview,skills:pSkills,saves:pSaves,attacks:pAttacks,spells:pSpells,wildshape:pWild,summon:pSummon,companion:pCompanion,abilities:pAbilities,conditions:pConditions,gear:pGear}[tab];
   const pg=document.getElementById('page');const openD=[...pg.querySelectorAll('details[id][open]')].map(d=>d.id);
   pg.innerHTML=P();openD.forEach(id=>{const d=document.getElementById(id);if(d)d.open=true});
   renderArt(); refresh();
@@ -1969,6 +1973,15 @@ function watchPartyPerform(db){
     if(!touched)return;render();if(ch.length)setStatus('Namfoodle: '+ch.join(', '));scheduleSave(true);
   },()=>{});
 }
+/* a buff spell: who is it on? Personal spells skip the question. This sheet switches it on only if Ensley is one of them; the DM's
+   tracker puts it on the others (their own sheets) and takes it off everyone when its timer ends. The answer goes on the cast
+   in the log (on: hero ids, fx: what this sheet calls the effect). */
+function castTargets(nm,selfId,desc){
+  const L=S.sdLog||[], e=L[L.length-1], personal=/^\s*personal\b/i.test(desc||'');
+  const done=on=>{if(e){e.on=on;e.fx=selfId}if(on.includes('ensley'))S.cond[selfId]=true;render();scheduleSave(true)};
+  if(personal||!window.ttAskTargets){done(['ensley']);return}
+  window.ttAskTargets(nm,{all:/,\s*mass\b|\bburst\b|\ballies\b/i.test(nm+' '+(desc||''))}).then(done);
+}
 /* damage and healing the DM sends from the party sheet: party/hp holds {heroId:[{at,amt,type,heal,src}]}, the newest few each.
    Each one applies once (S.dmHpAt keeps the newest time applied), with this sheet's own resistances and temp HP. */
 function dmHit(c){
@@ -2227,8 +2240,8 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(
      const P=prepOf(l),cap=slotInfo(l,compute(true)).total;if(P.length>=cap){setStatus('All slots at that level are prepared.');return}
      P.push({n:nm,c:false});render();break;}
    case 'spUnprep':{const P=prepOf(+b.dataset.l);P.splice(i,1);render();break;}
-   case 'spCast':{const l=+b.dataset.l,p=prepOf(l)[i];if(!p)return;p.c=!p.c;const bf=SP_BUFF[p.n];if(bf)S.cond[bf]=p.c;
-     dayLog(`${p.c?'Cast':'Undid'} ${p.n} (${ORD[l-1]})`);render();break;}
+   case 'spCast':{const l=+b.dataset.l,p=prepOf(l)[i];if(!p)return;p.c=!p.c;const bf=SP_BUFF[p.n];if(bf&&!p.c)S.cond[bf]=false;
+     dayLog(`${p.c?'Cast':'Undid'} ${p.n} (${ORD[l-1]})`);if(bf&&p.c)castTargets(p.n,bf,(Object.values(DS).flat().find(x=>x[0]===p.n)||[])[1]);render();break;}
    case 'spClear':Object.keys(S.prep||{}).forEach(l=>S.prep[l]=[]);render();break;
    case 'goSummon':(S.sum=S.sum||{active:[]}).lvl=+b.dataset.l;tab='summon';render();window.scrollTo({top:0});break;
    case 'sumLvl':S.sum.lvl=+b.dataset.l;S.sum.src='';render();break;

@@ -2933,18 +2933,22 @@ function TABS(){const L=levels();const t=[['overview','Overview'],['skills','Ski
   if(S.cabal)t.push(['cabal',S.cabal.name||'Item']);
   t.push(['conditions','Conditions'],['gear','Gear & Notes']);return t}
 let tab=(()=>{const h=(location.hash||'').slice(1);return h||ls.get(CHAR+'-tab')||'overview'})();
+/* the Initiative tab: only while the DM's tracker runs a fight; js/turn.js fills it and redraws the sheet when a fight starts or ends */
+const ttTabs=()=>window.ttActive&&window.ttActive()?[['initiative',window.ttLabel?window.ttLabel():'Initiative']]:[];
+const ttTab=()=>window.ttTab?window.ttTab():'';
+window.ttRefresh=()=>render();
 let condScope='pc';
 
 function renderTabs(){
   const nc=Object.values(S.cond).filter(Boolean).length+(n(S.neg)>0?1:0);
-  document.getElementById('tabs').innerHTML=TABS().map(([k,l])=>`<button class="tab" role="tab" data-act="tab" data-t="${k}" aria-selected="${k===tab}">${l}${k==='conditions'&&nc?`<span class="dot">${nc}</span>`:''}</button>`).join('')+`<span class="status" id="status">${esc(statusText)}</span>`;
+  if(tab==='initiative'&&!ttTabs().length)tab='overview';document.getElementById('tabs').innerHTML=TABS().concat(ttTabs()).map(([k,l])=>`<button class="tab" role="tab" data-act="tab" data-t="${k}" aria-selected="${k===tab}">${l}${k==='conditions'&&nc?`<span class="dot">${nc}</span>`:''}</button>`).join('')+`<span class="status" id="status">${esc(statusText)}</span>`;
 }
 function render(){
   document.getElementById('f-name').value=S.info.name||'';
-  if(!TABS().some(t=>t[0]===tab))tab='overview';
+  if(!TABS().concat(ttTabs()).some(t=>t[0]===tab))tab='overview';
   renderTabs();
   document.getElementById('exampleNote').hidden=!S.example;
-  const P={overview:pOverview,skills:pSkills,saves:pSaves,attacks:pAttacks,abilities:pAbilities,spells:pSpells,fervor:pFervor,cabal:pCabal,shadow:pShadow,companion:pCompanion,conditions:pConditions,gear:pGear}[tab];
+  const P={initiative:ttTab,overview:pOverview,skills:pSkills,saves:pSaves,attacks:pAttacks,abilities:pAbilities,spells:pSpells,fervor:pFervor,cabal:pCabal,shadow:pShadow,companion:pCompanion,conditions:pConditions,gear:pGear}[tab];
   const pg=document.getElementById('page');const openD=[...pg.querySelectorAll('details[id][open]')].map(d=>d.id);
   pg.innerHTML=P();openD.forEach(id=>{const d=document.getElementById(id);if(d)d.open=true});
   renderArt(); refresh();
@@ -3381,6 +3385,15 @@ function watchPartyPerform(db){
       ['fatigued','sickened','shaken'].forEach(c=>S.cond[c]=false);hpLog(`Namfoodle’s Soothing Performance: healed ${S.hp.cur-bf}`);ch.push(`Soothing Performance healed ${S.hp.cur-bf}`)});
     if(!touched)return;render();if(ch.length)setStatus('Namfoodle: '+ch.join(', '));scheduleSave(true);
   },()=>{});
+}
+/* a buff spell: who is it on? Personal spells skip the question. This sheet switches it on only if Drax is one of them; the DM's
+   tracker puts it on the others (their own sheets) and takes it off everyone when its timer ends. The answer goes on the cast
+   in the log (on: hero ids, fx: what this sheet calls the effect). */
+function castTargets(nm,selfId,desc){
+  const L=S.spLog||[], e=L[L.length-1], personal=/^\s*personal\b/i.test(desc||'');
+  const done=on=>{if(e){e.on=on;e.fx=selfId}if(on.includes('drax'))S.cond[selfId]=true;render();scheduleSave(true)};
+  if(personal||!window.ttAskTargets){done(['drax']);return}
+  window.ttAskTargets(nm,{all:/,\s*mass\b|\bburst\b|\ballies\b/i.test(nm+' '+(desc||''))}).then(done);
 }
 /* damage and healing the DM sends from the party sheet: party/hp holds {heroId:[{at,amt,type,heal,src}]}, the newest few each.
    Each one applies once (S.dmHpAt keeps the newest time applied), with this sheet's own resistances and temp HP. */
@@ -4271,7 +4284,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(
      P.push(emp?{n:nm,c:false,emp:true,lv:s}:{n:nm,c:false});spLog('Prepared '+(emp?'Empowered ':'')+nm+' ('+lvName(tgt)+' slot)');render();{const el=document.getElementById(`spadd-${k}-${s}`);if(el&&a==='spPrep')el.focus()}break;}
    case 'spUnprep':{const k=b.dataset.k,s=+b.dataset.s,P=prepOf(k,s);const gone=P[i];if(gone)spLog('Unprepared '+(gone.emp?'Empowered ':'')+gone.n+' ('+lvName(s)+' slot)');P.splice(i,1);if(s)S.used[`sp.${k}.${s}`]=P.filter(x=>x.c).length;render();break;}
    case 'spCast':{const k=b.dataset.k,s=+b.dataset.s,P=prepOf(k,s),p=P[i];if(!p)return;const f=fxForSpell(p.n);
-     if(s){p.c=!p.c;if(p.c)p.ct=new Date().toISOString();else delete p.ct;S.used[`sp.${k}.${s}`]=P.filter(x=>x.c).length;if(f)S.cond[f.id]=p.c;spLog((p.c?'Cast ':'Undid cast: ')+(p.emp?'Empowered ':'')+p.n+' ('+lvName(s)+' slot)');}
+     if(s){p.c=!p.c;if(p.c)p.ct=new Date().toISOString();else delete p.ct;S.used[`sp.${k}.${s}`]=P.filter(x=>x.c).length;if(f&&!p.c)S.cond[f.id]=false;spLog((p.c?'Cast ':'Undid cast: ')+(p.emp?'Empowered ':'')+p.n+' ('+lvName(s)+' slot)');if(f&&p.c)castTargets(p.n,f.id,SPELL_DESC[p.n]);}
      else if(f)S.cond[f.id]=!S.cond[f.id];
      render();break;}
    case 'goConc':tab='spells';ls.set(CHAR+'-tab',tab);render();setTimeout(()=>{const el=document.getElementById('conc');if(el){el.scrollIntoView({block:'start'});const i=document.getElementById('conc-d20');if(i)i.focus({preventScroll:true})}},60);return;

@@ -678,10 +678,14 @@ function autoAbilities(L){
 /* ---------- rendering ---------- */
 const TABS=[['overview','Overview'],['skills','Skills'],['saves','Saving Throws'],['attacks','Attacks'],['ward','Death Walker’s Ward'],['blessing','Blessing'],['abilities','Class Abilities'],['conditions','Conditions'],['gear','Gear & Notes']];
 let tab=(()=>{const h=(location.hash||'').slice(1);if(TABS.some(t=>t[0]===h))return h;const s=ls.get('lork-tab');return TABS.some(t=>t[0]===s)?s:'overview'})();
+/* the Initiative tab: only while the DM's tracker runs a fight; js/turn.js fills it and redraws the sheet when a fight starts or ends */
+const ttTabs=()=>window.ttActive&&window.ttActive()?[['initiative',window.ttLabel?window.ttLabel():'Initiative']]:[];
+const ttTab=()=>window.ttTab?window.ttTab():'';
+window.ttRefresh=()=>render();
 
 function renderTabs(){
   const nc=Object.values(S.cond).filter(Boolean).length+(n(S.neg)>0?1:0);
-  document.getElementById('tabs').innerHTML=TABS.map(([k,l])=>`<button class="tab" role="tab" data-act="tab" data-t="${k}" aria-selected="${k===tab}">${l}${k==='conditions'&&nc?`<span class="dot">${nc}</span>`:''}</button>`).join('')+`<span class="status" id="status">${esc(statusText)}</span>`;
+  if(tab==='initiative'&&!ttTabs().length)tab='overview';document.getElementById('tabs').innerHTML=TABS.concat(ttTabs()).map(([k,l])=>`<button class="tab" role="tab" data-act="tab" data-t="${k}" aria-selected="${k===tab}">${l}${k==='conditions'&&nc?`<span class="dot">${nc}</span>`:''}</button>`).join('')+`<span class="status" id="status">${esc(statusText)}</span>`;
 }
 /* keep current HP in step with Con changes */
 function syncConHP(){const a=compute(true).O['hp.adj'].n,prev=n(S.hp.conAdj);if(a===prev)return;
@@ -691,7 +695,7 @@ function render(){
   syncConHP();
   document.getElementById('f-name').value=S.info.name||'';
   renderTabs();
-  const P={overview:pOverview,skills:pSkills,saves:pSaves,attacks:pAttacks,ward:pWard,blessing:pBlessing,abilities:pAbilities,conditions:pConditions,gear:pGear}[tab];
+  const P={initiative:ttTab,overview:pOverview,skills:pSkills,saves:pSaves,attacks:pAttacks,ward:pWard,blessing:pBlessing,abilities:pAbilities,conditions:pConditions,gear:pGear}[tab];
   const pg=document.getElementById('page');const openD=[...pg.querySelectorAll('details[id][open]')].map(d=>d.id);
   pg.innerHTML=P();openD.forEach(id=>{const d=document.getElementById(id);if(d)d.open=true});
   renderArt(); refresh();

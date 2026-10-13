@@ -1113,10 +1113,14 @@ function autoAbilities(L){
 /* ---------- rendering ---------- */
 const TABS=[['overview','Overview'],['skills','Skills'],['saves','Saving Throws'],['attacks','Attacks'],['spells','Spells'],['perform','Performance'],['treasures','Magic Weapons'],['abilities','Class Abilities'],['conditions','Conditions'],['gear','Gear & Notes'],['journal','Journal']];
 let tab=(()=>{const h=(location.hash||'').slice(1);if(TABS.some(t=>t[0]===h))return h;const s=ls.get('namfoodle-tab');return TABS.some(t=>t[0]===s)?s:'overview'})();
+/* the Initiative tab: only while the DM's tracker runs a fight; js/turn.js fills it and redraws the sheet when a fight starts or ends */
+const ttTabs=()=>window.ttActive&&window.ttActive()?[['initiative',window.ttLabel?window.ttLabel():'Initiative']]:[];
+const ttTab=()=>window.ttTab?window.ttTab():'';
+window.ttRefresh=()=>render();
 
 function renderTabs(){
   const nc=Object.values(S.cond).filter(Boolean).length+(n(S.neg)>0?1:0);
-  document.getElementById('tabs').innerHTML=TABS.map(([k,l])=>`<button class="tab" role="tab" data-act="tab" data-t="${k}" aria-selected="${k===tab}">${l}${k==='conditions'&&nc?`<span class="dot">${nc}</span>`:''}${k==='perform'&&S.perf.cur?' ♪':''}</button>`).join('')+`<span class="status" id="status">${esc(statusText)}</span>`;
+  if(tab==='initiative'&&!ttTabs().length)tab='overview';document.getElementById('tabs').innerHTML=TABS.concat(ttTabs()).map(([k,l])=>`<button class="tab" role="tab" data-act="tab" data-t="${k}" aria-selected="${k===tab}">${l}${k==='conditions'&&nc?`<span class="dot">${nc}</span>`:''}${k==='perform'&&S.perf.cur?' ♪':''}</button>`).join('')+`<span class="status" id="status">${esc(statusText)}</span>`;
 }
 /* keep current HP in step with Con changes */
 function syncConHP(){const a=compute(true).O['hp.adj'].n,prev=n(S.hp.conAdj);if(a===prev)return;
@@ -1126,7 +1130,7 @@ function render(){
   syncConHP();
   document.getElementById('f-name').value=S.info.name||'';
   renderTabs();
-  const P={overview:pOverview,skills:pSkills,saves:pSaves,attacks:pAttacks,spells:pSpells,perform:pPerform,treasures:pTreasures,abilities:pAbilities,conditions:pConditions,gear:pGear,journal:pJournal}[tab];
+  const P={initiative:ttTab,overview:pOverview,skills:pSkills,saves:pSaves,attacks:pAttacks,spells:pSpells,perform:pPerform,treasures:pTreasures,abilities:pAbilities,conditions:pConditions,gear:pGear,journal:pJournal}[tab];
   const pg=document.getElementById('page');const openD=[...pg.querySelectorAll('details[id][open]')].map(d=>d.id);
   pg.innerHTML=P();openD.forEach(id=>{const d=document.getElementById(id);if(d)d.open=true});
   renderArt(); refresh(); postPerf();
@@ -1861,6 +1865,15 @@ function liveStats(){
     level:A.L.total,classes:S.classes.filter(c=>n(c.level)>0).map(c=>`${c.name} ${Math.floor(n(c.level))}`).join(' / '),
     conds:A.M.active.map(c=>({id:c.id,n:String(cname(c)),buff:!!c.buff})),cids:ALLC.map(c=>c.id)};
 }
+/* a buff spell: who is it on? Personal spells skip the question. This sheet switches it on only if Namfoodle is one of them; the DM's
+   tracker puts it on the others (their own sheets) and takes it off everyone when its timer ends. The answer goes on the cast
+   in the log (on: hero ids, fx: what this sheet calls the effect). */
+function castTargets(nm,selfId,desc){
+  const L=S.sdLog||[], e=L[L.length-1], personal=/^\s*personal\b/i.test(desc||'');
+  const done=on=>{if(e){e.on=on;e.fx=selfId}if(on.includes('namfoodle'))S.cond[selfId]=true;render();scheduleSave(true)};
+  if(personal||!window.ttAskTargets){done(['namfoodle']);return}
+  window.ttAskTargets(nm,{all:/,\s*mass\b|\bburst\b|\ballies\b/i.test(nm+' '+(desc||''))}).then(done);
+}
 /* damage and healing the DM sends from the party sheet: party/hp holds {heroId:[{at,amt,type,heal,src}]}, the newest few each.
    Each one applies once (S.dmHpAt keeps the newest time applied), with this sheet's own resistances and temp HP. */
 function dmHit(c){
@@ -2204,7 +2217,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(
    /* spells */
    case 'slot':{const l=+b.dataset.l;S.cast=S.cast||{};const u=castOf(l);S.cast[l]=(i===u-1)?u-1:i+1;dayLog(S.cast[l]>u?`Spent a ${ORD[l-1]}-level slot`:`Got back a ${ORD[l-1]}-level slot`);render();break;}
    case 'spCast':{const l=+b.dataset.l,nm=b.dataset.n,C=compute(true),si=slotInfo(l,C);S.cast=S.cast||{};if(castOf(l)>=si.total){setStatus(`No ${ORD[l-1]}-level slots left today.`);return}
-     S.cast[l]=castOf(l)+1;const bf=SP_BUFF[nm];if(bf)S.cond[bf]=true;dayLog(`Cast ${nm} (${ORD[l-1]})`);setStatus(`Cast ${nm}: ${Math.max(0,si.total-castOf(l))} ${ORD[l-1]}-level slot${si.total-castOf(l)===1?'':'s'} left`);render();break;}
+     S.cast[l]=castOf(l)+1;const bf=SP_BUFF[nm];dayLog(`Cast ${nm} (${ORD[l-1]})`);if(bf)castTargets(nm,bf,(Object.values(BS).flat().find(x=>x[0]===nm)||[])[1]);setStatus(`Cast ${nm}: ${Math.max(0,si.total-castOf(l))} ${ORD[l-1]}-level slot${si.total-castOf(l)===1?'':'s'} left`);render();break;}
    case 'spLearn':case 'spLearnN':{const l=+b.dataset.l;const el=document.getElementById('spadd-'+l);let nm=(a==='spLearnN'?b.dataset.n:(el?el.value:'')).trim();if(!nm)return;
      const hit=(BS[l]||[]).find(x=>x[0].toLowerCase()===nm.toLowerCase().replace(/'/g,'’'));if(hit)nm=hit[0];
      const K=knownOf(l),cap=slotInfo(l,compute(true)).known;if(K.length>=cap){setStatus('He already knows as many spells as he can at that level.');return}

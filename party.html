@@ -313,7 +313,9 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
   // Buffs on the heroes' own sheets that a timer of the same name switches on and off (sheet id, spell name).
   var BUFF_LINK=[['haste','Haste'],['bless','Bless'],['heroism','Heroism'],['gheroism','Greater Heroism'],['goodhope','Good Hope'],
     ['magearmor','Mage Armor'],['shieldspell','Shield'],['barkskin','Barkskin'],['enlarge','Enlarge Person'],['reduce','Reduce Person'],
-    ['invisible','Invisibility'],['invisible','Greater Invisibility']];
+    ['invisible','Invisibility'],['invisible','Greater Invisibility'],['invisible','Invisibility, Greater'],['invisible','Vanish'],['gheroism','Heroism, Greater'],
+    ['catsgrace','Cat’s Grace'],['catsgrace','Cat’s Grace, Mass'],['eagles','Eagle’s Splendor'],['eagles','Eagle’s Splendor, Mass'],['bullstr','Bull’s Strength'],['bullstr','Bull’s Strength, Mass'],
+    ['bearend','Bear’s Endurance'],['bearend','Bear’s Endurance, Mass'],['owlwis','Owl’s Wisdom'],['owlwis','Owl’s Wisdom, Mass']];
   function condIdFor(name){
     var k=String(name||'').toLowerCase().replace(/[^a-z]+/g,''), hit=COND_ALL.concat(BUFF_LINK).find(function(c){return c[0]===k||c[1].toLowerCase().replace(/[^a-z]+/g,'')===k});
     return hit?hit[0]:'';
@@ -1104,16 +1106,24 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
   // A timer named after a condition or a buff (Stunned, Haste, Bless…) puts it on whoever the timer is on, and takes it off
   // again when the timer ends or is removed. f.applied lists the heroes it was put on; f.off marks one already taken off.
   function fxCond(f){return f.cond||condIdFor(f.name)}
+  // f.whoList: the heroes a caster picked on their own sheet; f.ids: a hero whose own sheet calls the effect something else
+  // (Drax's Bless is his spell effect sp_bless; on anyone else it's the bless buff).
   function fxHeroes(I,f){
+    if(Array.isArray(f.whoList))return f.whoList.filter(function(h){return state.party.some(function(p){return p.id===h})});
     if(f.who==='party')return state.party.filter(function(p){return entry(I,'pc-'+p.id)}).map(function(p){return p.id});
     var e=f.who&&entry(I,f.who);return e&&e.pc?[e.pc]:[];
   }
   function linkFx(I,f,on){
-    var c=fxCond(f); if(!c) return;
-    var want=on?fxHeroes(I,f):[], had=f.applied||[];
-    had.filter(function(h){return want.indexOf(h)<0}).forEach(function(h){setCondFor(h,c,false)});
-    want.filter(function(h){return had.indexOf(h)<0}).forEach(function(h){setCondFor(h,c,true)});
+    var c=fxCond(f), idFor=function(h){return (f.ids&&f.ids[h])||c};
+    var want=on?fxHeroes(I,f).filter(function(h){return idFor(h)}):[], had=f.applied||[];
+    had.filter(function(h){return want.indexOf(h)<0}).forEach(function(h){if(idFor(h))setCondFor(h,idFor(h),false)});
+    want.filter(function(h){return had.indexOf(h)<0}).forEach(function(h){setCondFor(h,idFor(h),true)});
     f.applied=want;
+  }
+  function whoText(I,f){
+    if(Array.isArray(f.whoList))return f.whoList.length?f.whoList.map(function(h){var p=state.party.find(function(x){return x.id===h});return p?p.name:h}).join(', '):'';
+    if(f.who==='party')return 'Whole party';
+    var e=f.who&&entry(I,f.who);return e?eName(e):'';
   }
   function note(I,h,txt){var L=(I.notes||(I.notes={}))[h]||(I.notes[h]=[]);if(L.indexOf(txt)<0)L.push(txt)}
   function checkEnds(I){
@@ -1179,7 +1189,7 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
   // Also tells each hero's sheet whose turn it is (js/turn.js): turn and next are hero ids, only for heroes reading a live
   // sheet; turnName is what players see, and DM slots show as "Enemy" so their names stay hidden.
   function sheetId(e){var p=e&&hero(e);return p&&!p.paper&&SHEET_PAGES[p.id]?p.id:''}
-  function shownName(e){return e?(e.pc?eName(e):'Enemy'):''}
+  function shownName(e){if(!e)return '';if(e.pc)return eName(e);var foes=ini().list.filter(function(x){return !x.pc&&rolled(x)}),k=foes.indexOf(e);return 'Enemy'+(k>=0?' '+(k+1):'')}
   function postRound(){
     var I=ini(), c=I.round?entry(I,I.turn):null, nx=I.round?peek(I,1):null;
     var doc={cid:I.cid||'',round:I.round||0,active:!!I.round,turn:sheetId(c),turnName:shownName(c),
@@ -1187,10 +1197,31 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
       held:I.round?I.list.filter(function(e){return e.held}).map(sheetId).filter(Boolean):[],
       notes:c&&c.pc&&sheetId(c)&&I.notes&&I.notes[c.pc]?I.notes[c.pc]:[],
       call:I.call&&!I.round?I.call.id:'', callFor:callFor(I)};
+    // timers show on the players' sheets in or out of a fight; the roster lets a caster pick who a spell is on
+    doc.fx=playerFx(I); doc.heroes=state.party.map(function(p){return {id:p.id,n:p.name}});
+    if(I.round)doc.order=playerOrder(I,c);
     var key=JSON.stringify(doc);
     if(!cloudDb||key===lastRoundKey) return; lastRoundKey=key;
     doc.at=new Date().toISOString();
     cloudDb.doc('party/round').set(doc).catch(function(){lastRoundKey=null});
+  }
+  // What players see in the Initiative panel on their sheets: the order with enemies as "Enemy 1, 2…" (no names, HP or stats),
+  // and only the timers that involve a hero (on a hero or the whole party, or cast by one). Timers on monsters alone stay private.
+  function playerOrder(I,c){
+    var k=0;
+    return I.list.filter(rolled).map(function(e){var p=hero(e);
+      return {n:p?p.name:'Enemy '+(++k),id:p?p.id:'',i:+e.init,cur:e===c,held:!!e.held,foe:!p}});
+  }
+  // Every running timer (the DM is fine with players seeing them all); enemies still show only as "Enemy 1, 2…".
+  function playerFx(I){
+    var out=[];
+    I.fx.forEach(function(f){
+      if(ended(f))return;
+      var who=f.who&&f.who!=='party'?entry(I,f.who):null, by=f.by&&entry(I,f.by);
+      var on=Array.isArray(f.whoList)||f.who==='party'?whoText(I,f):who?shownName(who):'';
+      out.push({n:f.name,on:on,by:by?shownName(by):'',left:f.total!=null?Math.max(0,f.total-(f.el||0)):null});
+    });
+    return out;
   }
   // "Roll initiative": heroes on a live sheet without a roll yet get asked on their sheet; their answer fills in their box.
   function callFor(I){return I.call&&!I.round?I.list.filter(function(e){return e.pc&&!rolled(e)}).map(sheetId).filter(Boolean):[]}
@@ -1234,16 +1265,23 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
       var L=readLink(p.id); if(!L||!L.log) return;
       L.log.forEach(function(e){
         if(!e||!e.t||e.t<I.autoFrom) return;
-        var txt=String(e.txt), key=p.id+'|'+e.t+'|'+txt; if(I.seen[key]) return;
+        var txt=String(e.txt), key=p.id+'|'+e.t+'|'+txt;
+        if(I.seen[key]){
+          // the caster picked the targets after the cast came through: put the buff on them now
+          if(Array.isArray(e.on)){var ef=I.fx.find(function(f){return f.key===key});if(ef&&!Array.isArray(ef.whoList)){castOn(ef,e,p.id);if(!ended(ef))linkFx(I,ef,true);ch=true}}
+          return;
+        }
         var c=txt.match(/^Cast (?:Empowered )?(.+?)(?: \(| from the Ring|$)/), u=txt.match(/^(?:Uncast|Undid(?: cast:)?) (?:Empowered )?(.+?)(?: \(|$)/);
         if(!c&&!u) return;
         I.seen[key]=e.t; ch=true;
-        if(u){for(var i=I.fx.length-1;i>=0;i--){var f=I.fx[i];if(f.auto&&f.by==='pc-'+p.id&&f.name===u[1]&&f.at<e.t){I.fx.splice(i,1);break}}return}
+        if(u){for(var i=I.fx.length-1;i>=0;i--){var f=I.fx[i];if(f.auto&&f.by==='pc-'+p.id&&f.name===u[1]&&f.at<e.t){if(!f.off)linkFx(I,f,false);I.fx.splice(i,1);break}}return}
         var nm=c[1], d=(L.durs||{})[nm]; if(!d) return;
         var r=durRounds(d,L.cl); if(r===undefined) return;
         var me=entry(I,'pc-'+p.id);
-        I.fx.push({id:'fx'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:nm,who:'',by:'pc-'+p.id,auto:true,at:e.t,
-          anchor:I.round&&me&&inTurn(me)?me.id:'',total:r,el:0});
+        var nf={id:'fx'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:nm,who:'',by:'pc-'+p.id,auto:true,at:e.t,key:key,
+          anchor:I.round&&me&&inTurn(me)?me.id:'',total:r,el:0};
+        I.fx.push(nf);
+        if(Array.isArray(e.on)){castOn(nf,e,p.id);linkFx(I,nf,true)}
         statusMsg='Timer started: '+nm+' ('+p.name+(r==null?', until ended':', '+roundsTxt(r))+')';
       });
     });
@@ -1251,6 +1289,8 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
     var old=new Date(Date.now()-3*864e5).toISOString();Object.keys(I.seen).forEach(function(k){if(I.seen[k]<old){delete I.seen[k];ch=true}});
     if(ch)saveExtras();
   }
+  // A cast log entry can say who the spell is on (e.on, picked on the caster's sheet) and what the caster's own sheet calls it (e.fx).
+  function castOn(f,e,caster){f.whoList=e.on.slice();f.ids={};if(e.fx&&e.on.indexOf(caster)>=0)f.ids[caster]=e.fx}
   function recentSpells(){
     var out=[];
     state.party.forEach(function(p){var L=readLink(p.id);if(!L)return;
@@ -1266,10 +1306,12 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
     else status=roundsTxt(left)+' left';
     if(!done&&left!=null&&I.round&&a&&inTurn(a))endTxt='Ends at the start of '+eName(a)+'’s turn, round '+(I.round+left-(a.started===I.round?0:1));
     var pct=f.total?Math.round(left/f.total*100):100, by=f.by&&entry(I,f.by);
+    var picked=Array.isArray(f.whoList);
     var onSel=by?'<label class="minor" style="display:flex;gap:6px;align-items:center">On <select data-fxwho="'+f.id+'" aria-label="'+esc(f.name)+' is on">'+
-      '<option value="">— not set —</option><option value="party"'+(f.who==='party'?' selected':'')+'>Whole party</option>'+I.list.map(function(e){return '<option value="'+e.id+'"'+(f.who===e.id?' selected':'')+'>'+esc(eName(e))+'</option>'}).join('')+'</select></label>':'';
-    var onTxt=f.who==='party'?'On the whole party · ':who&&!by?'On '+esc(eName(who))+' · ':'', lk=fxCond(f);
-    var lkTxt=lk&&!done&&f.applied&&f.applied.length?'<br>'+esc(linkName(lk))+' is on '+(f.who==='party'?'everyone':esc(f.applied.map(function(h){var hp=state.party.find(function(x){return x.id===h});return hp?hp.name:h}).join(', ')))+' until this ends.':'';
+      (picked?'<option value="" selected>'+esc(whoText(I,f)||'nobody in the party')+' (caster’s pick)</option>':'<option value="">— not set —</option>')+
+      '<option value="party"'+(!picked&&f.who==='party'?' selected':'')+'>Whole party</option>'+I.list.map(function(e){return '<option value="'+e.id+'"'+(!picked&&f.who===e.id?' selected':'')+'>'+esc(eName(e))+'</option>'}).join('')+'</select></label>':'';
+    var onTxt=picked?(f.whoList.length?'On '+esc(whoText(I,f))+' · ':'Not on the party · '):f.who==='party'?'On the whole party · ':who&&!by?'On '+esc(eName(who))+' · ':'', lk=fxCond(f);
+    var lkTxt=lk&&!done&&f.applied&&f.applied.length?'<br>'+esc(linkName(lk))+' is on '+(f.who==='party'&&!picked?'everyone':esc(f.applied.map(function(h){var hp=state.party.find(function(x){return x.id===h});return hp?hp.name:h}).join(', ')))+' until this ends.':'';
     return '<div class="fx'+(done?' ended':'')+'"><div class="t"><b>'+esc(f.name)+'</b><span class="left">'+esc(status)+'</span></div>'+
       '<div class="minor" style="white-space:normal">'+(by?'Cast by '+esc(eName(by))+(f.auto?' (from their sheet)':'')+' · ':'')+onTxt+(f.total!=null?roundsTxt(f.total)+' total':'until ended')+(endTxt?'<br>'+esc(endTxt):'')+lkTxt+'</div>'+onSel+
       (f.total&&!done?'<div class="hpbar"><i style="width:'+pct+'%"></i></div>':'')+
@@ -1309,7 +1351,7 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
       var l=live(p);(l&&l.conds||[]).filter(function(x){return !x.buff}).forEach(function(x){sub.push('<span class="chip on">'+esc(x.n)+'</span>')});
     }
     if(!r)sub.push('<span>'+(active?'Not in this fight':'No roll yet')+'</span>');
-    I.fx.filter(function(f){return (f.who||f.by)===e.id||(f.who==='party'&&e.pc)}).forEach(function(f){var lf=f.total!=null?Math.max(0,f.total-(f.el||0)):null;
+    I.fx.filter(function(f){return Array.isArray(f.whoList)?(e.pc&&f.whoList.indexOf(e.pc)>=0)||(!f.whoList.length&&f.by===e.id):(f.who||f.by)===e.id||(f.who==='party'&&e.pc)}).forEach(function(f){var lf=f.total!=null?Math.max(0,f.total-(f.el||0)):null;
       sub.push('<span class="tag fx'+(ended(f)?' ended':'')+'">'+esc(f.name)+(ended(f)?' ended':lf!=null?' '+lf:'')+'</span>')});
     var act='';
     if(r)act+='<button class="step" data-iup="'+e.id+'"'+(ri<=0?' disabled':'')+' aria-label="Move '+esc(eName(e))+' up" title="Move up">↑</button><button class="step" data-idown="'+e.id+'"'+(ri>=rl.length-1?' disabled':'')+' aria-label="Move '+esc(eName(e))+' down" title="Move down">↓</button>';
@@ -1517,7 +1559,7 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
     else if(el.id==='pk-roll'){pickRoll=el.checked;}
     else if(el.id==='fx-unit'){fxForm.unit=el.value;render();var u=document.getElementById('fx-unit');if(u)u.focus();}
     else if(el.id==='fx-who'){fxForm.who=el.value;}
-    else if(el.dataset.fxwho){var I=ini(),f=I.fx.find(function(x){return x.id===el.dataset.fxwho});if(f){f.who=el.value;if(!ended(f))linkFx(I,f,true);saveExtras();render();}}
+    else if(el.dataset.fxwho){var I=ini(),f=I.fx.find(function(x){return x.id===el.dataset.fxwho});if(f){if(Array.isArray(f.whoList)&&!el.value)return;linkFx(I,f,false);delete f.whoList;f.ids={};f.who=el.value;if(!ended(f))linkFx(I,f,true);saveExtras();render();}}
   });
   document.addEventListener('input',function(ev){
     var el=ev.target, I;
