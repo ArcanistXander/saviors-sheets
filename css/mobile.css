@@ -1,0 +1,55 @@
+/* Phone layout for every sheet. Loaded after each page's own styles, so these rules win on small screens only;
+   the computer layout is untouched. js/mobile.js adds the .stack class to tables that don't fit. */
+@media (max-width:640px){
+  .panel{padding:12px 12px}
+  .tab{padding:10px 11px}
+  input,select,textarea{font-size:16px}           /* stops iPhones zooming in when a field is tapped */
+  input[type=number]{width:3.4em}
+  td{padding:4px 3px}
+  body{overflow-x:clip}                            /* nothing can push the page sideways */
+  .ctile .v{overflow-wrap:anywhere;word-break:normal}
+  .panel>*{min-width:0}
+  .panel select{max-width:100%}
+  .rf{flex-wrap:wrap}
+  .seg{max-width:100%;flex-wrap:wrap}
+  .seg button{padding:5px 9px}
+
+  /* skills and saves: drop the "+" and "=" columns */
+  td.op,table:has(td.op) th:empty{display:none}
+
+  /* skills: keep class box, skill, total, ranks and misc; the breakdown columns stay on the computer layout */
+  .skilltbl tr>:nth-child(3),.skilltbl tr>:nth-child(6),.skilltbl tr>:nth-child(10),.skilltbl tr>:nth-child(14){display:none}
+  .skilltbl td:nth-child(2){white-space:normal}
+  .skilltbl .vers{display:block;white-space:normal}
+  .skilltbl input.sub{width:5.2em}
+  .skilltbl input[type=number]{width:2.8em;padding:3px 2px}
+  .skilltbl td.tot{min-width:2.4em}
+  .skilltbl th{letter-spacing:.02em}
+  .skilltbl td,.skilltbl th{padding:4px 2px}
+
+  /* number grids (spell slots by level) shrink to fit; the row names stay put if they still need to scroll */
+  table.tight{font-size:.86rem}
+  table.tight th{letter-spacing:0;padding:4px 2px}
+  table.tight td{padding:5px 2px}
+  table.tight td.tot{min-width:0;font-size:.95rem}
+  table.tight tr>:first-child{position:sticky;left:0;z-index:1;background:var(--surface,var(--panel));padding-right:6px;white-space:nowrap}
+
+  /* tables that would need sideways scrolling become one card per row */
+  table.stack,table.stack tbody{display:block;min-width:0!important;width:100%}
+  table.stack colgroup{display:none}
+  table.stack thead{display:none}
+  table.stack tr{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px 12px;padding:10px 0;border-top:1px solid var(--line,var(--rule))}
+  table.stack tbody tr:first-child{border-top:0}
+  table.stack td{display:flex;flex-wrap:wrap;align-items:center;align-content:start;gap:2px 4px;text-align:left;border:0;padding:0;min-width:0}
+  table.stack td[data-label]::before{flex-basis:100%;content:attr(data-label);font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+  table.stack td:first-child,table.stack td.wide{grid-column:1/-1}
+  table.stack td:first-child,table.stack td:first-child input{font-weight:700}
+  table.stack td:first-child{display:block}
+  table.stack td:first-child::before{display:block;margin-bottom:2px}
+  table.stack td.wide input:not([type=checkbox]):not([type=radio]):not([type=number]),table.stack td textarea{flex:1 1 10em;width:auto!important;max-width:100%}
+  .wrap>table.stack tr{padding:12px}
+  table.stack td select{max-width:100%}
+  table.stack td input[type=number]{max-width:6em}
+  table.stack td:not([data-label]):not(.wide){align-self:end;gap:6px}
+  table.stack td:empty,table.stack td.op{display:none}
+}

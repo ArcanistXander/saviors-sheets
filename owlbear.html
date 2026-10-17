@@ -174,6 +174,8 @@ td.tot{font-weight:700;font-size:1.08rem;min-width:3em}
 .vers{font-size:.78rem;color:var(--accent);white-space:nowrap}
 .cols2{display:grid;gap:18px;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
 @media (max-width:760px){.cols2{grid-template-columns:1fr}}
+.condcols{grid-template-columns:minmax(0,2.2fr) minmax(260px,1fr)}.netside{position:sticky;top:60px}
+@media (max-width:760px){.condcols{grid-template-columns:minmax(0,1fr)}.netside{position:static;order:-1}}
 .actop{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:14px;align-items:center}
 @media (max-width:760px){.actop{grid-template-columns:1fr}}
 .actop .big3 .v{font-size:2rem}
@@ -264,6 +266,8 @@ td.tot{font-weight:700;font-size:1.08rem;min-width:3em}
 @keyframes fxFeather{0%{opacity:1;transform:translate(-50%,-50%) rotate(var(--a)) translateY(0)}100%{opacity:0;transform:translate(-50%,-50%) rotate(var(--a)) translateY(-90px) rotate(60deg)}}
 @media (prefers-reduced-motion:reduce){.fx-feather{display:none}}
 </style>
+<link rel="stylesheet" href="css/mobile.css">
+<script src="js/mobile.js" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -1159,13 +1163,13 @@ function netSummary(){
 function pConditions(){
   return `<section class="panel"><header><h2>Conditions</h2><button class="btn" data-act="clearCond" style="margin-left:auto">Clear all</button></header>
    <p class="muted" style="margin:0">Tap a card to toggle it. Scores, AC, saves, skills and attacks on every tab update right away. Changed values turn red (worse) or blue (better).</p></section>
-  <div class="cols" style="grid-template-columns:minmax(0,2.2fr) minmax(min(100%,260px),1fr)">
+  <div class="cols condcols">
    <div class="page" style="margin:0">
     <section class="panel"><header><h2>Combat &amp; Situations</h2></header><div class="condgrid">${condCards(BUFFS.filter(b=>b.sec!=='alc'),S.cond)}</div></section>
     <section class="panel"><header><h2>Mutagen &amp; Extracts</h2></header><div class="condgrid">${condCards(BUFFS.filter(b=>b.sec==='alc'),S.cond)}</div></section>
     <section class="panel"><header><h2>Conditions</h2></header><div class="condgrid">${condCards(CONDS,S.cond)}</div></section>
    </div>
-   <section class="panel" style="position:sticky;top:60px"><header><h2>Net Effect</h2></header>
+   <section class="panel netside"><header><h2>Net Effect</h2></header>
     <div class="row"><span class="lbl">Negative levels</span>${num('neg',{w:'3.6em',rr:1,label:'Negative levels'})}<small class="muted">−1 on d20 rolls and −5 max HP each</small></div>
     <div class="net">${netSummary()}</div>
     <p class="note">Same-type bonuses don’t stack: Inspire Courage and Heroism are different types, so both count, but Heroism and Good Hope are both morale. The mutagen’s alchemical bonus stacks with his belt.</p>

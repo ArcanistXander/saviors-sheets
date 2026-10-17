@@ -246,6 +246,8 @@ td.tot{font-weight:700;font-size:1.08rem;min-width:3em}
 /* overview: abilities and HP side by side, then AC and combat across the full width */
 .cols2{display:grid;gap:18px;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
 @media (max-width:760px){.cols2{grid-template-columns:1fr}}
+.condcols{grid-template-columns:minmax(0,2.2fr) minmax(260px,1fr)}.netside{position:sticky;top:60px}
+@media (max-width:760px){.condcols{grid-template-columns:minmax(0,1fr)}.netside{position:static;order:-1}}
 .actop{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:14px;align-items:center}
 @media (max-width:760px){.actop{grid-template-columns:1fr}}
 .actop .big3 .v{font-size:2rem}
@@ -462,6 +464,8 @@ body[data-el] #strip{border-color:var(--stripB);box-shadow:0 0 18px var(--stripG
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .mantle h2{color:#e2c06a}}
 :root[data-theme="dark"] .mantle h2{color:#e2c06a}
 </style>
+<link rel="stylesheet" href="css/mobile.css">
+<script src="js/mobile.js" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -1862,12 +1866,12 @@ function pConditions(){
     <div class="seg" role="group" aria-label="Whose conditions"><button data-act="scope" data-v="pc" aria-pressed="${sc==='pc'}">${esc(S.info.name||'Ensley')}</button><button data-act="scope" data-v="comp" aria-pressed="${sc==='comp'}">${esc(S.comp.name||'Companion')}</button></div>
     <button class="btn" data-act="clearCond" style="margin-left:auto">Clear all</button></header>
    <p class="muted" style="margin:0">Tap a card to toggle it. Scores, AC, saves, skills and attacks on every tab update right away. Changed values turn red (worse) or blue (better).</p></section>
-  <div class="cols" style="grid-template-columns:minmax(0,2.2fr) minmax(min(100%,260px),1fr)">
+  <div class="cols condcols">
    <div class="page" style="margin:0">
     <section class="panel"><header><h2>Conditions</h2></header><div class="condgrid">${condCards(CONDS,map,sc)}</div></section>
     <section class="panel"><header><h2>Spells &amp; Buffs</h2></header><div class="condgrid">${condCards(BUFFS,map,sc)}</div></section>
    </div>
-   <section class="panel" style="position:sticky;top:60px"><header><h2>Net Effect</h2></header>
+   <section class="panel netside"><header><h2>Net Effect</h2></header>
     <div class="row"><span class="lbl">Negative levels</span><span class="stepper"><button data-act="neg" data-d="-1" aria-label="Remove negative level">−</button><b>${n(getP(negP))}</b><button data-act="neg" data-d="1" aria-label="Add negative level">+</button></span></div>
     ${sc==='pc'?`<div class="row"><span class="lbl">Inspire Courage bonus</span>${num('courage',{rr:1,label:'Inspire Courage bonus'})}</div>`:''}
     <div class="net">${netSummary(sc)}</div>
