@@ -1052,7 +1052,7 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
   // list stays sorted: highest initiative first, ties by tb (set from the initiative modifier, or by moving someone).
   // A timed effect counts down when its anchor's turn starts (the turn it was added on), so it ends just before
   // that turn the right number of rounds later, as in the rules.
-  var VIEWKEY='saviors-party-view', view='party', confirmNewFight=false, fxForm={unit:'1'}, lastRoundKey=null;
+  var VIEWKEY='saviors-party-view', view='party', confirmNewFight=false, confirmClearFx=false, askClearFx=false, fxForm={unit:'1'}, lastRoundKey=null;
   try{if(localStorage.getItem(VIEWKEY)==='init')view='init'}catch(e){}
   function ini(){
     var I=extras.init;
@@ -1436,12 +1436,13 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
   }
   // Spells cast on a hero's own sheet start a timer here by themselves, on that hero's turn; undoing the cast there removes it.
   function autoTimers(){
-    var I=ini(), ch=false; if(!I.autoFrom){I.autoFrom=new Date().toISOString();ch=true}
+    var I=ini(), ch=false, stale=new Date(Date.now()-12*36e5).toISOString(); if(!I.autoFrom){I.autoFrom=new Date().toISOString();ch=true}
     if(!I.seen)I.seen={};
     state.party.forEach(function(p){
       var L=readLink(p.id); if(!L||!L.log) return;
       L.log.forEach(function(e){
-        if(!e||!e.t||e.t<I.autoFrom) return;
+        // a cast from an earlier session (over 12 hours ago) never starts a timer, even once it's been forgotten from I.seen
+        if(!e||!e.t||e.t<I.autoFrom||e.t<stale) return;
         var txt=String(e.txt), key=p.id+'|'+e.t+'|'+txt;
         if(I.seen[key]){
           // the caster picked the targets after the cast came through: put the buff on them now
@@ -1622,13 +1623,17 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
     var perf=state.party.map(function(p){var f=perfOf(p);return f?perfCard(I,p,f):''}).join('');
     var who='<option value="">— nobody in particular —</option><option value="party"'+(fxForm.who==='party'?' selected':'')+'>Whole party</option>'+I.list.map(function(e){var sel=fxForm.who!=null?fxForm.who===e.id:(c===e);return '<option value="'+e.id+'"'+(sel?' selected':'')+'>'+esc(eName(e))+'</option>'}).join('');
     var units=[['1','rounds'],['10','minutes'],['600','hours'],['0','until ended']];
-    var side='<section class="ini-side" aria-labelledby="fx-title"><h2 id="fx-title">Timed effects</h2>'+perf+
+    var endAsk=askClearFx&&!active&&I.fx.length?'<div class="ini-alert" role="status" style="background:var(--accent-soft);color:var(--ink)">The fight is over. Clear the '+I.fx.length+' timer'+(I.fx.length===1?'':'s')+' too?'+
+      '<button class="primary" id="fx-clear-yes">Clear all timers</button><button id="fx-keep">Keep them</button></div>':'';
+    var side='<section class="ini-side" aria-labelledby="fx-title"><h2 id="fx-title">Timed effects</h2>'+endAsk+perf+
       '<div class="fx-form"><div class="r"><input id="fx-name" list="fx-spells" value="'+esc(fxForm.name||'')+'" placeholder="Spell or effect (e.g. Haste)" aria-label="Effect name" autocomplete="off">'+
         '<datalist id="fx-spells">'+recentSpells().map(function(s){return '<option value="'+esc(s)+'">'}).join('')+'</datalist></div>'+
       '<div class="r"><label class="minor" for="fx-who">On</label><select id="fx-who">'+who+'</select></div>'+
       '<div class="r"><input class="n" id="fx-dur" inputmode="numeric" value="'+esc(fxForm.dur||'')+'" placeholder="#" aria-label="Duration"'+(fxForm.unit==='0'?' disabled':'')+'>'+
         '<select id="fx-unit" aria-label="Duration unit">'+units.map(function(u){return '<option value="'+u[0]+'"'+(fxForm.unit===u[0]?' selected':'')+'>'+u[1]+'</option>'}).join('')+'</select>'+
         '<button class="primary" id="fx-add">Add timer</button></div>'+
+      (I.fx.length?'<div class="r">'+(confirmClearFx?'<button class="primary" id="fx-clear-yes">Yes, clear all '+I.fx.length+'</button><button id="fx-clear-no">Cancel</button>':
+        '<button id="fx-clear" title="Removes every timer and takes their buffs and conditions off the heroes">Clear all timers</button>')+'</div>':'')+
       '<p class="minor" style="white-space:normal;margin:0">Add it on the caster’s turn: it counts down at the start of that turn each round and ends just before it, as in the rules.</p></div>'+
       (I.fx.length?I.fx.map(function(f){return fxCard(I,f)}).join(''):'<p class="minor" style="margin:0">No timers running.</p>')+
       (!active&&I.fx.some(function(f){return !ended(f)})?'<div class="ini-tools"><button id="fx-min" title="Outside combat: every timer loses 10 rounds">Pass 1 minute</button><button id="fx-10min">Pass 10 minutes</button></div>':'')+
@@ -1667,11 +1672,11 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
     var d=t.dataset, I, handled=true;
     if(d.view){view=d.view;try{localStorage.setItem(VIEWKEY,view)}catch(e){}confirmNewFight=false;render();var tb=document.querySelector('[data-view="'+view+'"]');if(tb)tb.focus();return}
     if(t.id==='ini-call'||t.id==='ini-call-stop')initGo(function(I){if(t.id==='ini-call'){I.call={id:Date.now().toString(36)};statusMsg=callFor(I).length?'Asked '+callFor(I).length+' players to roll on their sheets.':'Every hero on a live sheet already has a roll.'}else{delete I.call;statusMsg=''}});
-    else if(t.id==='ini-start')initGo(function(I){delete I.call;I.log=[];delete I.lastRecap;sortInit(I);I.list.forEach(function(e){e.held=false;e.started=0});I.fx.forEach(function(f){delete f.tr});I.round=1;I.turn='';I.cid=Date.now().toString(36);nextTurn(I);
+    else if(t.id==='ini-start')initGo(function(I){askClearFx=false;delete I.call;I.log=[];delete I.lastRecap;sortInit(I);I.list.forEach(function(e){e.held=false;e.started=0});I.fx.forEach(function(f){delete f.tr});I.round=1;I.turn='';I.cid=Date.now().toString(36);nextTurn(I);
       Object.keys(I.perf).forEach(function(k){if(!I.perf[k].since)I.perf[k].since=1})});
     else if(t.id==='ini-next')initGo(nextTurn);
     else if(t.id==='ini-prev')initGo(prevTurn);
-    else if(t.id==='ini-end')initGo(function(I){I.lastRecap=recap(I);setTimeout(function(){openRecap(I.lastRecap)},0);I.round=0;I.turn='';I.list.forEach(function(e){e.held=false;e.started=0});I.fx.forEach(function(f){f.anchor='';delete f.tr});Object.keys(I.perf).forEach(function(k){I.perf[k].since=0})});
+    else if(t.id==='ini-end')initGo(function(I){askClearFx=I.fx.length>0;I.lastRecap=recap(I);setTimeout(function(){openRecap(I.lastRecap)},0);I.round=0;I.turn='';I.list.forEach(function(e){e.held=false;e.started=0});I.fx.forEach(function(f){f.anchor='';delete f.tr});Object.keys(I.perf).forEach(function(k){I.perf[k].since=0})});
     else if(t.id==='ini-sort'){I=ini();sortInit(I);saveExtras();render();}
     else if(t.id==='ini-add'){
       I=ini();var k=I.list.filter(function(e){return !e.pc}).length+1, id='dm-'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
@@ -1732,7 +1737,21 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
     else if(d.fxadj){I=ini();var f=I.fx.find(function(x){return x.id===d.fxadj});if(f){if(f.total==null)f.el=Math.max(0,(f.el||0)+(+d.d));else f.el=Math.max(0,Math.min(f.total,(f.el||0)-(+d.d)));checkEnds(I);saveExtras();}render();}
     else if(d.fxdel){I=ini();var gone=I.fx.find(function(x){return x.id===d.fxdel});if(gone&&!gone.off)linkFx(I,gone,false);I.fx=I.fx.filter(function(x){return x.id!==d.fxdel});saveExtras();render();}
     else if(d.fxclear){I=ini();I.fx=I.fx.filter(function(x){return !ended(x)});saveExtras();render();}
-    else if(t.id==='fx-min'||t.id==='fx-10min'){I=ini();var r=t.id==='fx-min'?10:100;I.fx.forEach(function(f){f.el=(f.el||0)+r});checkEnds(I);saveExtras();render();}
+    else if(t.id==='fx-min'||t.id==='fx-10min'){
+      // time passes outside combat: timers that run out come off (with their buffs) and leave the list
+      I=ini();var r=t.id==='fx-min'?10:100;I.fx.forEach(function(f){f.el=(f.el||0)+r});checkEnds(I);
+      var gone=I.fx.filter(ended);I.fx=I.fx.filter(function(f){return !ended(f)});
+      statusMsg=(t.id==='fx-min'?'1 minute':'10 minutes')+' passed.'+(gone.length?' Ran out: '+gone.map(function(f){return f.name}).join(', ')+'.':'');
+      saveExtras();postRound();render();
+    }
+    else if(t.id==='fx-clear'){confirmClearFx=true;render();var cy=document.getElementById('fx-clear-yes');if(cy)cy.focus();return}
+    else if(t.id==='fx-clear-no'){confirmClearFx=false;render();var cn=document.getElementById('fx-clear');if(cn)cn.focus();return}
+    else if(t.id==='fx-keep'){askClearFx=false;render();return}
+    else if(t.id==='fx-clear-yes'){
+      I=ini();var n0=I.fx.length;I.fx.forEach(function(f){if(!f.off)linkFx(I,f,false)});I.fx=[];
+      confirmClearFx=false;askClearFx=false;statusMsg='Cleared '+n0+' timer'+(n0===1?'':'s')+'; their buffs and conditions are off.';
+      saveExtras();postRound();render();var fa=document.getElementById('fx-name');if(fa)fa.focus();return;
+    }
     else handled=false;
     if(handled&&t.id){var back=document.getElementById(t.id);if(back)back.focus();}
   });
@@ -2010,7 +2029,12 @@ input.ini-in{width:100%;height:2.4rem;font-family:var(--display);font-size:1.15r
     })();
   }
   function restAll(){
-    extras.spells={};extras.res={};saveExtras();
+    extras.spells={};extras.res={};
+    // eight hours pass: timers that run out in that time come off (with their buffs and conditions)
+    // ("until ended" ones, like concentration, end too)
+    var I=ini();I.fx.forEach(function(f){if(f.total!=null)f.el=(f.el||0)+4800;else if(!f.off){linkFx(I,f,false);f.off=true}});checkEnds(I);
+    I.fx=I.fx.filter(function(f){return f.total!=null&&!ended(f)});postRound();
+    saveExtras();
     if(!cloudDb){statusMsg='Long rest: spell slots and daily uses reset here. Synced sheets only rest too when this sheet saves online.';render();return}
     var at=new Date().toISOString(), ids=syncedIds(), done={};
     function nm(id){var p=state.party.find(function(x){return x.id===id});return p?p.name:id}
